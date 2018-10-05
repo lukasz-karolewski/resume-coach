@@ -3,3 +3,7 @@ docker run -ti \
   -v `pwd`:/miktex/work \
   miktex/miktex \
   pdflatex $1
+
+rm *.log
+rm *.aux
+rm *.out
