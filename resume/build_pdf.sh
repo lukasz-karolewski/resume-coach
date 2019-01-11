@@ -11,7 +11,7 @@ if ! [[ $(docker volume ls --filter=name=$VOLUME_NAME --format='{{.Name}}') ]]; 
   docker volume create --name $VOLUME_NAME
 fi
 
-docker run -ti \
+docker run -it --rm \
   -v miktex:/miktex/.miktex \
   -v `pwd`:/miktex/work \
   miktex/miktex \
