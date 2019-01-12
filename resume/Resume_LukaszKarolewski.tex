@@ -4,11 +4,9 @@
 \moderncvstyle{banking}                            % style options are 'casual' (default), 'classic', 'oldstyle' and 'banking'
 \moderncvcolor{blue}                               % color options 'blue' (default), 'orange', 'green', 'red', 'purple', 'grey' and 'black'
 %\renewcommand{\familydefault}{\sfdefault}         % to set the default font; use '\sfdefault' for the default sans serif font, '\rmdefault' for the default roman one, or any tex font name
-%\nopagenumbers{}                                  % uncomment to suppress automatic page numbering for CVs longer than one page
 
 % character encoding
 \usepackage[utf8]{inputenc}                        % if you are not using xelatex ou lualatex, replace by the encoding you are using
-%\usepackage{CJKutf8}                              % if you need to use CJK to typeset your resume in Chinese, Japanese or Korean
 
 % adjust the page margins
 \usepackage[scale=0.75]{geometry}
@@ -17,18 +15,25 @@
 
 \usepackage{import}
 
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\pagestyle{fancy}
+\fancyhf{}
+\thispagestyle{empty}
+\rfoot{Page \thepage \hspace{1pt} of \pageref{LastPage}}
+
 % personal data
 \name{Lukasz}{Karolewski}
-%\title{Curriculum Vitae}                         % optional, remove / comment the line if not wanted
-\address{3069 Jayhawkers Pl, Unit 4, San Jose, CA 95136}{}{} % optional, remove / comment the line if not wanted; the "postcode city" and and "country" arguments can be omitted or provided empty
-\phone[mobile]{(408) 680-9149}                    % optional, remove / comment the line if not wanted
-%\phone[fixed]{01234 123456}                      % optional, remove / comment the line if not wanted
-%\phone[fax]{+3~(456)~789~012}                    % optional, remove / comment the line if not wanted
-\email{lkarolewski@gmail.com}                     % optional, remove / comment the line if not wanted
-%\homepage{www.myname.webs.com}                   % optional, remove / comment the line if not wanted
-\extrainfo{https://www.linkedin.com/in/lukaszkarolewski/}               % optional, remove / comment the line if not wanted
-%\photo[64pt][0.4pt]{picture}                     % optional, remove / comment the line if not wanted; '64pt' is the height the picture must be resized to, 0.4pt is the thickness of the frame around it (put it to 0pt for no frame) and 'picture' is the name of the picture file
-%\quote{Some quote}                               % optional, remove / comment the line if not wanted
+%\title{Curriculum Vitae}                         
+\address{3069 Jayhawkers Pl, Unit 4, San Jose, CA 95136} % the "postcode city" and and "country" arguments can be omitted or provided empty
+\phone{(408) 680-9149}                    
+%\phone[fixed]{01234 123456}                      
+%\phone[fax]{+3~(456)~789~012}                    
+\email{lkarolewski@gmail.com}                     
+%\homepage{www.myname.webs.com}                   
+\extrainfo{\href{https://www.linkedin.com/in/lukaszkarolewski/}{LinkedIn}} 
+%\photo[64pt][0.4pt]{picture} % '64pt' is the height the picture must be resized to, 0.4pt is the thickness of the frame around it and 'picture' is the name of the picture file
+%\quote{Some quote}                               
 
 % to show numerical labels in the bibliography (default is to show no labels); only useful if you make citations in your resume
 %\makeatletter
@@ -39,34 +44,41 @@
 % bibliography with mutiple entries
 %\usepackage{multibib}
 %\newcites{book,misc}{{Books},{Others}}
+
 %----------------------------------------------------------------------------------
 %            content
 %----------------------------------------------------------------------------------
+
 \begin{document}
+
 \makecvtitle
 
 \small{Result-oriented engineering leader focused on timely delivery with strong analytical skills passionate about cutting edge technology. Rich experience leading and coordinating software development teams including multinational teams in global locations. Strong motivation and mentoring skills combined with continual success in aligning technology with business requirements.}
 
 \section{Skills}
 
-\vspace{6pt}
-
 \begin{itemize}
-
-\item \textbf{Programming Languages:} 
-
+    \item 
 \end{itemize}
 
 \section{Experience}
 
-\vspace{6pt}
-
 \cventry{Santa Clara, CA}{Sr Manager, Engineering}{\href{https://www.realtor.com/}{realtor.com}}{Oct 2016 -- present}{}{}
 
-Responsible for web development.
-
-and some other stuff
-
+Responsible for web development. 
+\begin{itemize}
+    \item Proposed, managed and delivered a 10 month initiative that drove 9\% increase in company revenue (12\% lead increase overall, 23\% lead increase in web) this initiative also answered fundamental question about whether lead conversion of ad products are more important to the company
+    \item Redesigned filter experience bringing together web, IOS and Android teams improving CSAT by 5 points.
+    \item Assisted in building experimentation program, run over 30 experiments that delivered about 20\% increase in revenue.
+    \item Built business case for rewriting realtor.com to React. Improved Above the Fold performance by 60\%, decreased bounce rate by 20\%, increased revenue by 3\%.
+    \item Lead testing efforts to embrace test pyramid, introduced js based test framework, which improved efficiency.
+    \item Drove adoption of CICD pipeline driving time it takes to release from 2 days to 1 hour.
+    \item Refined hiring process for my teams in a way that increased hire rate after onsite form 10\% to 60\%.
+    \item Lead web technologies center of excellence across company, raising frontend technologies expertise across company.
+    \item Drove 95\% reduction in number of 500 errors from ~0.2\% to ~0.01\% which resulted is 5 point increase in CSAT and boosted SEO ranking.
+    \item Responsible for migration to https.
+    \item Initiated rewrite of api that drove 13 person/year ongoing savings in development spending 1 person/year of effort.
+\end{itemize}
 \vspace{16pt}
 
 \cventry{Victoria, BC}{CTO and Vice President of Engineering}{\href{https://www.telmediq.com/}{TelmedIQ}}{Jul 2015 -- Oct 2016}{}{}
@@ -83,7 +95,9 @@ Encompassing mobile and desktop technology, TelmedIQ combines:
     \item EHR integration, 
 \end{itemize}
 
-TelmedIQ is HIPAA compliant, streamlines communication workflow, and gets clinicians back to doing what they love — helping patients. Learn more and book a demo at www.telmediq.com
+TelmedIQ is HIPAA compliant, streamlined communication workflow.
+
+
 
 \vspace{16pt}
 
@@ -91,15 +105,17 @@ TelmedIQ is HIPAA compliant, streamlines communication workflow, and gets clinic
 
 Recognized in Symantec Top Talent program.
 
+\vspace{6pt}
 
 Enterprise Security group
 \begin{itemize}
-    \item As a frontend architect I was overseeing migration of 8 Symantec cloud-based products into angular, coaching and mentoring frontend leads of those products. Leading a team of 6 people
+    \item As a frontend architect I was overseeing migration of 8 Symantec cloud-based products into angular, coaching and mentoring frontend teams of those products. 
     \item Initiated `Symantec open source` ecosystem to enhance collaboration across teams. 
     \item Introduced git as a officially supported code repository, Worked with C-level executives to build cross-organizational support for the initiative, and VP level executives on implementation.
-    \item Responsible for a complete redesign of a legacy web application into a bleeding edge responsive, single page application. The new version had support for branding, theming and was localized into 14 languages. Achieved 70\% code coverage in unit tests for frontend, designed and implemented e2e automation with protractor reducing number of defects by 60\% compared to an average of three previous releases.
+    \item Responsible for a complete redesign of a legacy web application into a bleeding edge responsive, single page application. The new version had support for branding, theming and was localized into 14 languages. Achieved 70\% code coverage in unit tests for frontend, designed and implemented e2e automation with protractor reducing number of defects by 60\%.
 \end{itemize}
 
+\vspace{6pt}
 
 Information Security Group
 
@@ -109,30 +125,28 @@ Information Security Group
     \item Redesigned build process migrating it from ant to gradle reducing build time from 15min to under 1 min. Created new deployment model that utilized rpm and enabled fully automatic deployment. I was able to bring down deploy time to 1h from 3-day manual process before
 \end{itemize}
 
+\vspace{6pt}
 
 Internationalization team
 
 \begin{itemize}
-    \item responsible for end to end i18n of multiple products in Information Security Group
-    \item created localization process and tooling to improve automation that allowed enabling localization of 3 products into 14 languages.
+    \item Responsible for end to end analysis, design and implementation of i18n features for multiple products in Information Security Group.
+    \item Created localization process and built tooling to automate localization. Used by 3 products to automate testing and translation into 14 languages.
 \end{itemize}
 
 \vspace{16pt}
 
 \cventry{Warsaw, Poland}{Software Enginner}{\href{https://simple.com.pl/}{Simple S.A.}}{Aug 2007 -- Aug 2008}{}{}
 
-As a part of four member team designed and implemented prototype of automated supply chain management system that based on inventory thresholds inquired for quotes, picked best bid based on user defined criteria, managed payments and tracked shipments.
+As a part of four member team designed and implemented prototype of automated supply chain management system that based on inventory thresholds inquired for quotes, picked best bid based on user defined criteria, managed payments and tracked shipments. It was an extension of a well established ERP.
 
 \vspace{16pt}
 
 \cventry{Warsaw, Poland}{Owner}{Fast Internet}{Aug 2004 -- Aug 2010}{}{}
 
-Started a business providing broadband network to a local community of about 40 users. Built a number of systems to support operations, most notably: billing system, traffic shaping system, captive portal for new device registration. 
-Sold business to a larger ISP.
+Started a business providing broadband internet to a local community of about 40 users. Built a number of systems to support operations, most notably: billing, traffic shaping, captive portal for new device registration. Sold business to a larger ISP.
 
 \section{Education}
-
-\vspace{5pt}
 
 % arguments 3 to 6 can be left empty
 
@@ -141,21 +155,19 @@ Sold business to a larger ISP.
 \cventry{Warsaw, Poland}{\textit{B.Sc.} Computer Science}{\href{https://www.pw.edu.pl/engpw/University}{Warsaw University of Technology}}{2004--2008}{}{}
 
 
-\cventry{Stanford, CA}{Leadership and Decision-Making }{\href{https://continuingstudies.stanford.edu/}{Stanford}}{2017}{}{course BUS 53}
+\cventry{Stanford, CA}{Leadership and Decision-Making }{\href{https://continuingstudies.stanford.edu/}{Stanford University}}{2017}{}{course BUS 53}
 
-\cventry{Stanford, CA}{The Exceptional Leader: A Framework for Successful, Scalable, and Impactful Leadership}{\href{https://continuingstudies.stanford.edu/}{Stanford}}{2017}{}{course WSP 179 B}
+\cventry{Stanford, CA}{The Exceptional Leader: A Framework for Successful, Scalable, and Impactful Leadership}{\href{https://continuingstudies.stanford.edu/}{Stanford University}}{2017}{}{course WSP 179 B}
 
 \cventry{Warsaw, Poland}{IT Management and IT Governance}{\href{http://www.sgh.waw.pl/en/Pages/default.aspx}{SGH Warsaw School of Economics}}{2010--2011}{\textit{Postgraduate diploma}}{}
 
 
-\section{Significant Honors/Achievements}
-
-\vspace{6pt}
+\section{Significant Honors}
  
 \begin{itemize}
     \item Awarded CTO's 'Cheif Collboarator' award at relator.com
     \item Awarded 'Top Talent' award at Symantec
-    \item Awarded with scholarship for academic performance 
+    \item Awarded with three subsequent scholarships for academic performance at Warsaw University of Technology
 \end{itemize}
 
 % Publications from a BibTeX file without multibib
