@@ -7,7 +7,7 @@ if [ "$#" -ne 1 ]; then
 fi
 
 if ! [[ $(docker volume ls --filter=name=$VOLUME_NAME --format='{{.Name}}') ]]; then 
-  echo "$VOLUME_NAME not found, creating"
+  echo "volume $VOLUME_NAME not found, creating"
   docker volume create --name $VOLUME_NAME
 fi
 
