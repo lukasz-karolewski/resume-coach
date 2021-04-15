@@ -11,9 +11,12 @@ if ! [[ $(docker volume ls --filter=name=$VOLUME_NAME --format='{{.Name}}') ]]; 
   docker volume create --name $VOLUME_NAME
 fi
 
+# miktex/miktex needs to be build manually from git@github.com:MiKTeX/docker-miktex.git, using docker build --tag miktex/miktex .
 docker run -it --rm \
   -v miktex:/miktex/.miktex \
   -v `pwd`:/miktex/work \
+  -e MIKTEX_GID=$(id -g) \
+  -e MIKTEX_UID=$(id -u) \
   miktex/miktex \
   pdflatex $1
 
