@@ -1,0 +1,7 @@
+{
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.linkedEditing": true,
+  "css.lint.unknownAtRules": "ignore",
+  "cSpell.words": ["Karolewski", "Lukasz"]
+}
