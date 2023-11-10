@@ -8,9 +8,10 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-left gap-4 p-12">
       <div>
-        <h1 className="text-4xl">Lukasz Karolewski</h1>
+        <h1 className="text-3xl">Lukasz Karolewski</h1>
         <div className="flex">
-          <PhoneIcon className="w-4 mr-2" /> 408 680 9149
+          <PhoneIcon className="w-4 mr-2" />
+          408 680 9149
         </div>
         <div className="flex">
           <EnvelopeIcon className="w-4 mr-2" />
@@ -18,45 +19,47 @@ export default function Home() {
         </div>
       </div>
 
-      <p>
+      <p className="text-justify text-sm">
         I’m a technology leader with 15+ years of experience in both B2B and
         consumer environments. I believe in first principles thinking and
         leading through setting context. I thrive in fast-paced, goal-driven,
         growth-oriented environments. I’m entrepreneurial. I’ve built and sold a
         company, I’ve built an entire technology organization in a startup
         environment and teams from scratch in large organizations. I have
-        experience managing managers, running high traffic ( ̃10k qps) web
+        experience managing managers, running high traffic (10k qps) web
         applications in a public cloud, as well as managing search
         infrastructure in private data centers, both with 99.99 availability and
-        in multiple regions. Rich experience driving A/B testing, SEO, growth,
-        leading technology migrations without disrupting business, and driving
-        tech excellence. I love learning and grappling with a fresh challenge.
+        in multiple regions. Rich experience driving feature development, A/B
+        testing, SEO, growth, leading technology migrations without disrupting
+        business, and driving tech excellence. I love learning and grappling
+        with a fresh challenge.
       </p>
 
       <Section>
-        <Header title="Experince" />
+        <Header title="Experience" />
 
         <JobExperience
           company="LinkedIn"
           link="https://linkedin.com"
           title="Sr Manager, Engineering"
-          timeframe="2019 - Present"
+          timeframe="Sep 2019 - Present"
           location="Sunnyvale, CA"
         >
-          <ul className="list-inside list-disc text-sm">
+          <ul className=" list-disc text-sm">
             <li>
               Responsible for end-to-end search experience in Sales Navigator
               product (including UI, api, search infrastructure, hardware) and
               messaging.
             </li>
+            <li>Leading group of 15 engineers.</li>
             <li>
-              Leading group of 15 engineers. ○Leading a virtual group of 20 UI
-              engineers to modernize UI tech stack, without disrupting the
-              business.
+              Leading a virtual group of 20 UI engineers to modernize UI tech
+              stack, without disrupting the business.
             </li>
+            <li>Built new team to lead recommendations track.</li>
             <li>
-              Built new team to lead recommendations track. ○Drove initiative to
-              reduce on-call workload by 80% to 0.2 person/week.
+              Drove initiative to reduce on-call workload by 80% to 0.2
+              person/week.
             </li>
             <li>
               Partnered with Data standardization team to improve data quality
@@ -84,58 +87,55 @@ export default function Home() {
           location="Santa Clara, CA"
           timeframe="3 yr, Oct 2016 - Sep 2019"
         >
-          <ul className="list-inside list-disc text-sm">
+          <ul className="list-disc text-sm">
             <li>
-              <li>
-                Responsible for web tier of the www.realtor.com site. Leading up
-                to 3&nbsp;managers and 38&nbsp;engineers organized into 6 teams.
-              </li>
-              <li>
-                Proposed, managed and delivered a project that overhauled SRP
-                experience. Project increased company revenue by 9% (~35M).
-              </li>
-              <li>
-                Built business case for rewriting realtor.com to React.
-                Delivered project in time, exceeding project goals and meeting
-                the company's annual growth goals. On average improved above the
-                fold render time by 45%, full page load by 40%, decreased bounce
-                rate by 20%, Increased CSAT by 2 points, increased company
-                revenue by 3% (~15M)
-              </li>
-              <li>
-                Lead rewrite of business layer API's that drove 13 people/year
-                ongoing savings in development by spending 1 person/year of
-                effort.
-              </li>
-              <li>
-                Drove a 95% reduction in the umber of 500 errors driving error
-                rate from ~0.2% to ~0.01% which was attributed to 2 point
-                increase in CSAT and improved SEO metrics.
-              </li>
-              <li>
-                Collaborated with QE team to implement fully automated testing,
-                which allowed moving from bi-weekly release to multiple daily
-                releases, decreasing number of defects leaking to production.
-              </li>
-              <li>
-                Refined hiring process in a way that increased onsite interview
-                hire rate from 10% to 60%.
-              </li>
-              <li>
-                Lead web technologies center of excellence, raising frontend
-                technology expertise across the company.
-              </li>
-              <li>Migrated www.realtor.com to https.</li>
-              <li>
-                Contributed to embracing data-driven culture by building an
-                experimentation program. Enabled the PM team to run over 30
-                experiments in the first year and increased company revenue by
-                21% over the course of two years.
-              </li>
-              <li>
-                Drove adoption of CICD reducing release process duration from 2
-                days to 1 hour.
-              </li>
+              Responsible for web tier of the www.realtor.com site. Leading up
+              to 3&nbsp;managers and 38&nbsp;engineers organized into 6 teams.
+            </li>
+            <li>
+              Proposed, managed and delivered a project that overhauled SRP
+              experience. Project increased company revenue by 9% (~35M).
+            </li>
+            <li>
+              Built business case for rewriting realtor.com to React. Delivered
+              project in time, exceeding project goals and meeting the company’s
+              annual growth goals. On average improved above the fold render
+              time by 45%, full page load by 40%, decreased bounce rate by 20%,
+              Increased CSAT by 2 points, increased company revenue by 3% (~15M)
+            </li>
+            <li>
+              Lead rewrite of business layer API’s that drove 13 people/year
+              ongoing savings in development by spending 1 person/year of
+              effort.
+            </li>
+            <li>
+              Drove a 95% reduction in the umber of 500 errors driving error
+              rate from ~0.2% to ~0.01% which was attributed to 2 point increase
+              in CSAT and improved SEO metrics.
+            </li>
+            <li>
+              Collaborated with QE team to implement fully automated testing,
+              which allowed moving from bi-weekly release to multiple daily
+              releases, decreasing number of defects leaking to production.
+            </li>
+            <li>
+              Refined hiring process in a way that increased onsite interview
+              hire rate from 10% to 60%.
+            </li>
+            <li>
+              Lead web technologies center of excellence, raising frontend
+              technology expertise across the company.
+            </li>
+            <li>Migrated www.realtor.com to https.</li>
+            <li>
+              Contributed to embracing data-driven culture by building an
+              experimentation program. Enabled the PM team to run over 30
+              experiments in the first year and increased company revenue by 21%
+              over the course of two years.
+            </li>
+            <li>
+              Drove adoption of CICD reducing release process duration from 2
+              days to 1 hour.
             </li>
           </ul>
         </JobExperience>
@@ -146,7 +146,7 @@ export default function Home() {
           location="Victoria, BC"
           timeframe="1.5 yr, Jun 2015 - Oct 2016"
         >
-          <ul className="list-inside list-disc text-sm">
+          <ul className="list-disc text-sm">
             <li>
               Joined as 3rd employee, built engineering organization and hired
               18&nbsp;engineers and 2&nbsp;managers into DEV (web, android, ios,
@@ -163,8 +163,8 @@ export default function Home() {
               company culture.
             </li>
             <li>Negotiated contracts with customers and vendors.</li>
-            <li>Responsible for the technical side of RFP's.</li>
-            <li>Represented company at trade shows.</li>
+            <li>Responsible for the technical side of RFP’s.</li>
+            <li>Represented company at HIMSS trade show.</li>
             <li>Worked with research firms (KLAS and Gartner).</li>
           </ul>
         </JobExperience>
@@ -178,7 +178,7 @@ export default function Home() {
           <ul className="text-sm flex flex-col gap-2">
             <li>
               Enterprise Security Group
-              <ul className="list-inside list-disc">
+              <ul className=" list-disc">
                 <li>
                   As a frontend architect, I was overseeing the migration of 8
                   Symantec cloud-based products into angular, coaching and
@@ -210,7 +210,7 @@ export default function Home() {
 
             <li>
               Information Security Group
-              <ul className="list-inside list-disc">
+              <ul className=" list-disc">
                 <li>
                   VIP Intelligent Authentication Services Development Team.
                   Responsible for the design and implementation of multi-tiered
@@ -235,7 +235,7 @@ export default function Home() {
 
             <li>
               Internationalization team
-              <ul className="list-inside list-disc">
+              <ul className=" list-disc">
                 <li>
                   Responsible for end to end analysis, design and implementation
                   of i18n features for multiple products in Information Security
@@ -287,10 +287,14 @@ export default function Home() {
 
       <Section>
         <Header title="Patents" />
-
-        <p>18/243883</p>
-
-        <p>18/243883</p>
+        <ul>
+          <li>
+            Semantic-aware next best action recommendation systems - 18/243883
+          </li>
+          <li>
+            Synthetic label generation for Natural Language-to-API systems
+          </li>
+        </ul>
       </Section>
 
       <Section>

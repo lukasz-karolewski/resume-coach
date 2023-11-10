@@ -3,5 +3,16 @@
   "editor.formatOnPaste": true,
   "editor.linkedEditing": true,
   "css.lint.unknownAtRules": "ignore",
-  "cSpell.words": ["Karolewski", "Lukasz"]
+  "cSpell.words": [
+    "CICD",
+    "CSAT",
+    "heroicons",
+    "HIMSS",
+    "Karolewski",
+    "KLAS",
+    "Lukasz",
+    "RFP’s",
+    "Telmed",
+    "timeframe"
+  ]
 }
