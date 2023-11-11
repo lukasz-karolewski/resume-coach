@@ -1,13 +1,12 @@
-import { ReactNode } from "react";
+import { ReactNode, HTMLAttributes } from "react";
 
-const Section = ({
-  title,
-  children,
-}: {
+interface SectionProps extends HTMLAttributes<HTMLDivElement> {
   title: string;
   children: ReactNode;
-}) => (
-  <div className="flex gap-4 flex-col">
+}
+
+const Section = ({ title, children, ...rest }: SectionProps) => (
+  <div className="flex gap-4 flex-col" {...rest}>
     <h2 className={`text-2xl font-semibold border-b-2 border-b-gray-300`}>
       {title}
     </h2>
