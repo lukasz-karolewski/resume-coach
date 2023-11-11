@@ -17,12 +17,13 @@ export default function EducationExperience({
 }) {
   return (
     <div className="flex flex-col">
-      <strong>{school}</strong>
+      <div className="flex justify-between">
+        <strong>{school}</strong>
+        <span>{timeframe}</span>
+      </div>
       <a href={link}>{distinction}</a>
 
-      <div className="pl-2">{children}</div>
-
-      <span>{timeframe}</span>
+      {!!children && <div className="pl-2">{children}</div>}
     </div>
   );
 }

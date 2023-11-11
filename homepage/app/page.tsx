@@ -5,8 +5,8 @@ import Section from "./components/section";
 
 export default function Home() {
   return (
-    <main className="min-h-screen p-12 bg-gray-100">
-      <div className="max-w-4xl m-auto bg-white p-12 flex flex-col gap-4  shadow-lg print:shadow-none print:p-0">
+    <main className="min-h-screen p-12 bg-gray-100 dark:bg-gray-900">
+      <div className="max-w-4xl m-auto bg-white p-12 flex flex-col gap-4 shadow-lg print:shadow-none print:p-0 dark:bg-gray-800">
         <PersonalInfo
           name="Lukasz Karolewski"
           email="lkarolewski@gmail.com"
@@ -53,7 +53,7 @@ export default function Home() {
             company="LinkedIn"
             link="https://linkedin.com"
             title="Sr Manager, Engineering"
-            timeframe="Sep 2019 - Oct 2022"
+            timeframe="3y, Sep 2019 - Oct 2022"
             location="Sunnyvale, CA"
           >
             <JobExperience.Accomplishments>
@@ -96,7 +96,7 @@ export default function Home() {
             company="Move Inc. - realtor.com"
             title="Sr Manager, Engineering"
             location="Santa Clara, CA"
-            timeframe="3 yr, Oct 2016 - Sep 2019"
+            timeframe="3y, Oct 2016 - Sep 2019"
           >
             <JobExperience.Accomplishments>
               <li>
@@ -156,7 +156,7 @@ export default function Home() {
             company="TelmedIQ"
             title="CTO and VP of Engineering"
             location="Victoria, BC"
-            timeframe="1.5 yr, Jun 2015 - Oct 2016"
+            timeframe="1.5y, Jun 2015 - Oct 2016"
           >
             <JobExperience.Accomplishments>
               <li>
@@ -185,7 +185,7 @@ export default function Home() {
             company="Symantec"
             title="Principal Software Engineer"
             location="Mountain View, CA"
-            timeframe="6 yr 10 mo, Sep 2008 - Jun 2015"
+            timeframe="6y 10mo, Sep 2008 - Jun 2015"
           >
             <ul className="text-sm flex flex-col gap-2">
               <li>
@@ -267,7 +267,7 @@ export default function Home() {
             company="Simple S.A."
             title="Software Engineer"
             location="Warsaw, Poland"
-            timeframe="1 yr 1 mo, Jun 2015 - Oct 2016"
+            timeframe="1y 1mo, Aug 2007 - Aug 2008"
           >
             <ul className="text-sm">
               <li>
@@ -284,7 +284,7 @@ export default function Home() {
             company="Fast Internet"
             title="Founder"
             location="Warsaw, Poland"
-            timeframe="6 yr, Sep 2004 - Aug 2010"
+            timeframe="6y, Sep 2004 - Aug 2010"
           >
             <ul className="text-sm">
               <li>
@@ -314,7 +314,7 @@ export default function Home() {
             school="Warsaw University of Technology"
             location="Warsaw, Poland"
             link="https://www.pw.edu.pl/engpw"
-            timeframe="2004"
+            timeframe="2008 - 2010"
           />
 
           <EducationExperience
@@ -322,7 +322,7 @@ export default function Home() {
             school="Warsaw University of Technology"
             location="Warsaw, Poland"
             link="https://www.pw.edu.pl/engpw"
-            timeframe="2004"
+            timeframe="2004 - 2008"
           />
 
           <EducationExperience
@@ -333,11 +333,27 @@ export default function Home() {
             timeframe="2019 - 2022"
           >
             <ul className="text-sm">
-              <li>Negotiation and Influence</li>
-              <li>Product Management</li>
-              <li>Communication Excellence</li>
-
-              <li>Executive Decision Making with Data Science</li>
+              <li>
+                <a href="https://executive.berkeley.edu/programs/negotiation-and-influence">
+                  Negotiation and Influence
+                </a>
+              </li>
+              <li>
+                <a href="https://executive.berkeley.edu/programs/product-management-studio">
+                  Product Management
+                </a>
+              </li>
+              <li>
+                <a href="https://executive.berkeley.edu/communications/excellence">
+                  Communication Excellence
+                </a>
+                Communication Excellence
+              </li>
+              <li>
+                <a href="https://executive.berkeley.edu/programs/executive-decision-making">
+                  Executive Decision Making with Data Science
+                </a>
+              </li>
               <li>Corporate Business Model Innovation</li>
             </ul>
           </EducationExperience>
