@@ -15,18 +15,20 @@ export default function Home() {
 
         <p className="text-justify text-sm">
           I’m a technology leader with 20 years of experience in both B2B and
-          consumer environments. I believe in first principles thinking and
-          leading through setting context. I thrive in fast-paced, goal-driven,
-          growth-oriented environments. I’m entrepreneurial. I’ve built and sold
-          a company, I’ve built an entire technology organization in a startup
-          environment and teams from scratch in large organizations. I have
-          experience managing managers, running high traffic (10k qps) web
-          applications in a public cloud, as well as managing search
-          infrastructure in private data centers, both with 99.99 availability
-          and in multiple regions. Rich experience driving feature development,
-          A/B testing, SEO, growth, leading technology migrations without
-          disrupting business, and driving tech excellence. I love learning and
-          grappling with a fresh challenge.
+          consumer environments. I’ve lead feature, growth and infrastructure
+          teams. I believe in first principles thinking and leading through
+          context. I’m entrepreneurial and I thrive in fast-paced, goal-driven,
+          growth-oriented environments. I’ve built and sold a company, an entire
+          engineering organization in a startup environment and multiple teams
+          in large organizations. I’ve managed managers. I’m a life long learner
+          and love new challenges.
+        </p>
+
+        <p className="text-justify text-sm">
+          I have experience with GenAI, machine learning, search, A/B testing,
+          SEO, growth, leading technology migrations without disrupting
+          business, and driving tech excellence, high traffic (10k qps) web
+          applications in multiple regions.
         </p>
 
         <Section title="Experience">
@@ -37,7 +39,7 @@ export default function Home() {
             timeframe="Nov 2022 - Present"
             location="Sunnyvale, CA"
           >
-            <ul className=" list-disc text-sm">
+            <JobExperience.Accomplishments>
               <li>
                 Delivered 3 Gen AI features to market. Created teams, defined
                 technical vision, roadmap, influenced GTM strategy and design,
@@ -46,7 +48,7 @@ export default function Home() {
                 monthly basis.
               </li>
               <li>Filed 2 patent applications</li>
-            </ul>
+            </JobExperience.Accomplishments>
           </JobExperience>
 
           <JobExperience
@@ -101,7 +103,8 @@ export default function Home() {
             <JobExperience.Accomplishments>
               <li>
                 Responsible for web tier of the www.realtor.com site. Leading up
-                to 3&nbsp;managers and 38&nbsp;engineers organized into 6 teams.
+                to 3&nbsp;managers and 38&nbsp;engineers organized into
+                6&nbsp;teams.
               </li>
               <li>
                 Proposed, managed and delivered a project that overhauled SRP
@@ -116,13 +119,13 @@ export default function Home() {
                 revenue by 3% (~15M)
               </li>
               <li>
-                Lead rewrite of business layer API’s that drove 13 people/year
-                ongoing savings in development by spending 1 person/year of
-                effort.
+                Lead rewrite of business layer API’s that drove
+                13&nbsp;people/year ongoing savings in development by spending
+                1&nbsp;person/year of effort.
               </li>
               <li>
                 Drove a 95% reduction in the umber of 500 errors driving error
-                rate from ~0.2% to ~0.01% which was attributed to 2 point
+                rate from ~0.2% to ~0.01% which was attributed to 2&nbsp;point
                 increase in CSAT and improved SEO metrics.
               </li>
               <li>
@@ -160,22 +163,22 @@ export default function Home() {
           >
             <JobExperience.Accomplishments>
               <li>
-                Joined as 3rd employee, built engineering organization and hired
-                18&nbsp;engineers and 2&nbsp;managers into DEV (web, android,
-                ios, api), QE and DevOps roles.
-              </li>
-              <li>
                 Built HIPAA compliant, streamlined communication workflow for
                 healthcare providers recognized by KLAS and Gartner as #1 vendor
                 in the space. Solution was deployed across 100 healthcare
                 organizations and 30,000 users, driving +2M revenue.
               </li>
               <li>
-                Working with CEO on defining product strategy and establishing
-                company culture.
+                Joined as 3rd employee, built engineering organization hiring
+                18&nbsp;engineers and 2&nbsp;managers into DEV (be, web,
+                android, ios), QE and DevOps roles and established engineering
+                culture.
               </li>
               <li>Negotiated contracts with customers and vendors.</li>
-              <li>Responsible for the technical side of RFP’s.</li>
+              <li>
+                Responsible for the technical side of our company’s RFP
+                responses.
+              </li>
               <li>Represented company at HIMSS trade show.</li>
               <li>Worked with research firms (KLAS and Gartner).</li>
             </JobExperience.Accomplishments>
@@ -238,8 +241,10 @@ export default function Home() {
                   <li>
                     Redesigned build process migrating it from Ant to Gradle
                     reducing build time from 15&nbsp;min to under 1&nbsp;min.
+                  </li>
+                  <li>
                     Created a new deployment model that utilized rpm and enabled
-                    fully automatic deployment. Brought down deploy time to
+                    fully automatic deployment. Reduced deploy time to
                     1&nbsp;hour from 3-day manual process before.
                   </li>
                 </JobExperience.Accomplishments>
