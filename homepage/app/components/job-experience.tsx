@@ -1,4 +1,6 @@
-export default function JobExperience({
+import { ReactNode } from "react";
+
+function JobExperience({
   company,
   link,
   timeframe,
@@ -35,3 +37,13 @@ export default function JobExperience({
     </div>
   );
 }
+
+JobExperience.Accomplishments = function Accomplishments({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  return <ul className="list-disc text-sm">{children}</ul>;
+};
+
+export default JobExperience;
