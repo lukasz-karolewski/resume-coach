@@ -2,6 +2,7 @@ import EducationExperience from "./components/education-experience";
 import JobExperience from "./components/job-experience";
 import PersonalInfo from "./components/personal-info";
 import Section from "./components/section";
+import Skill from "./components/skill";
 
 export default function Home() {
   return (
@@ -25,11 +26,29 @@ export default function Home() {
         </p>
 
         <p className="text-justify text-sm">
-          I have experience with GenAI, machine learning, search, A/B testing,
-          SEO, growth, leading technology migrations without disrupting
-          business, and driving tech excellence, high traffic (10k qps) web
-          applications in multiple regions.
+          I have experience with LLM’s, prompt engineering, RAG, langchain, LLM
+          agents, machine learning, search, A/B testing, SEO, growth, leading
+          technology migrations without disrupting business, driving tech
+          excellence, high traffic (10k qps) web applications in multiple
+          regions.
         </p>
+
+        <Section title="Skills">
+          <div className="flex text-xs gap-2 flex-wrap">
+            <Skill>Strategic Technical Leadership</Skill>
+            <Skill>Cross-Functional Team Collaboration</Skill>
+            <Skill>Large-Scale Web Application Scalability</Skill>
+            <Skill>AI and Machine Learning Implementation</Skill>
+            <Skill>Product Roadmap Development</Skill>
+            <Skill>High-Impact Go-to-Market Strategies</Skill>
+            <Skill>Data-Driven Decision Making</Skill>
+            <Skill>Continuous Integration/Deployment (CI/CD)</Skill>
+            <Skill>Revenue Growth and Cost Optimization</Skill>
+            <Skill>Tech Talent Mentorship and Development</Skill>
+            <Skill>Agile Methodologies and SDLC Expertise</Skill>
+            <Skill>Corporate Innovation and Entrepreneurship</Skill>
+          </div>
+        </Section>
 
         <Section title="Experience">
           <JobExperience
@@ -41,11 +60,11 @@ export default function Home() {
           >
             <JobExperience.Accomplishments>
               <li>
-                Delivered 3 Gen AI features to market. Created teams, defined
-                technical vision, roadmap, influenced GTM strategy and design,
-                and drove execution including trust requirements, automatic
-                evaluation. Working directly with CPO and presenting to CEO on
-                monthly basis.
+                Delivered three Gen AI features to market. Created teams,
+                defined technical vision, roadmap, influenced GTM strategy and
+                design, and drove execution including trust requirements,
+                automatic evaluation. Working directly with CPO and presenting
+                to CEO on monthly basis.
               </li>
               <li>Filed 2 patent applications</li>
             </JobExperience.Accomplishments>
@@ -337,30 +356,22 @@ export default function Home() {
             link="https://executive.berkeley.edu/certificate-of-business-excellence"
             timeframe="2019 - 2022"
           >
-            <ul className="text-sm">
-              <li>
-                <a href="https://executive.berkeley.edu/programs/negotiation-and-influence">
-                  Negotiation and Influence
-                </a>
-              </li>
-              <li>
-                <a href="https://executive.berkeley.edu/programs/product-management-studio">
-                  Product Management
-                </a>
-              </li>
-              <li>
-                <a href="https://executive.berkeley.edu/communications/excellence">
-                  Communication Excellence
-                </a>
+            <span className="text-sm flex flex-wrap gap-2">
+              <a href="https://executive.berkeley.edu/programs/negotiation-and-influence">
+                Negotiation and Influence
+              </a>
+              <a href="https://executive.berkeley.edu/programs/product-management-studio">
+                Product Management
+              </a>
+              <a href="https://executive.berkeley.edu/communications/excellence">
                 Communication Excellence
-              </li>
-              <li>
-                <a href="https://executive.berkeley.edu/programs/executive-decision-making">
-                  Executive Decision Making with Data Science
-                </a>
-              </li>
-              <li>Corporate Business Model Innovation</li>
-            </ul>
+              </a>
+              Communication Excellence
+              <a href="https://executive.berkeley.edu/programs/executive-decision-making">
+                Executive Decision Making with Data Science
+              </a>
+              <a>Corporate Business Model Innovation</a>
+            </span>
           </EducationExperience>
 
           <EducationExperience
