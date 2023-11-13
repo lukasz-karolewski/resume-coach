@@ -1,5 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
+// TODO migrate to CUID when https://github.com/prisma/prisma/issues/17102 is resolved
 
 generator client {
   provider = "prisma-client-js"
