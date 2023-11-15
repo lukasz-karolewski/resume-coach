@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Noto_Serif } from "next/font/google";
 import "./globals.css";
 import TopNav from "./components/top-nav";
+import Assistant from "./components/assistant";
 
 const font = Noto_Serif({ subsets: ["latin"] });
 
@@ -22,6 +23,7 @@ export default function RootLayout({
         <main className="min-h-screen p-12 bg-gray-100 dark:bg-gray-900">
           {children}
         </main>
+        <Assistant />
       </body>
     </html>
   );
