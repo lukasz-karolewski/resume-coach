@@ -14,22 +14,23 @@ export default async function ResumePage() {
       />
 
       <p className="text-justify text-sm">
-        I’m a technology leader with 20 years of experience in B2B and consumer
-        environments. I’ve led feature, growth, and infrastructure teams. I
-        believe in first-principles thinking and leading through context. I’m
-        entrepreneurial and thrive in fast-paced, goal-driven, growth-oriented
-        environments. I’ve built and sold a company, an entire engineering
-        organization in a startup environment, and multiple teams in large
-        organizations. I’ve managed managers. I’m a lifelong learner and love
-        new challenges.
+        I’m a results-driven, customer-focused technology leader with 15 years
+        of experience in B2B and consumer environments, driving growth and
+        building successful products. I believe in first-principles thinking and
+        leading through context. I’m entrepreneurial and thrive in fast-paced,
+        goal-driven, growth-oriented environments. I have built a successful
+        company, an entire engineering organization in a startup environment,
+        and multiple teams in large organizations. I’ve managed managers. I’m a
+        lifelong learner and love new challenges.
       </p>
       <p className="text-justify text-sm">
         I have experience with LLM’s, prompt engineering, RAG, langchain, LLM
-        agents, machine learning, search, A/B testing, SEO, growth, leading
-        technology migrations without disrupting business, driving tech
-        excellence, high traffic (10k qps) web applications in multiple regions.
+        agents, machine learning, search, large-scale application, A/B testing,
+        SEO, growth, leading technology migrations without disrupting business,
+        and driving tech excellence in organization.
       </p>
-      <Section title="Skills">
+      <p className="text-justify text-sm"></p>
+      {/* <Section title="Skills">
         <div className="flex text-xs gap-2 flex-wrap">
           <Skill>Strategic Technical Leadership</Skill>
           <Skill>Cross-Functional Team Collaboration</Skill>
@@ -44,7 +45,7 @@ export default async function ResumePage() {
           <Skill>Agile Methodologies and SDLC Expertise</Skill>
           <Skill>Corporate Innovation and Entrepreneurship</Skill>
         </div>
-      </Section>
+      </Section> */}
       <Section title="Experience">
         <JobExperience
           company="LinkedIn"
@@ -55,11 +56,11 @@ export default async function ResumePage() {
         >
           <JobExperience.Accomplishments>
             <li>
-              Delivered three Gen AI features to market. Created teams, defined
-              technical vision, roadmap, influenced GTM strategy and design, and
-              drove execution including trust requirements, automatic
-              evaluation. Working directly with CPO and presenting to CEO on
-              monthly basis.
+              Delivered three Gen AI features to market. Created new teams,
+              defined technical vision, roadmap, influenced GTM strategy and
+              design, and drove execution including trust requirements,
+              automatic evaluation. Working directly with CPO and presenting to
+              CEO on monthly basis.
             </li>
             <li>Filed 2 patent applications</li>
           </JobExperience.Accomplishments>
@@ -74,8 +75,9 @@ export default async function ResumePage() {
         >
           <JobExperience.Accomplishments>
             <li>
-              Responsible for all aspects of prospecting, outreach in the Sales
-              Navigator - 80% of value prop of the 1.5B product.
+              Responsible for all aspects of prospecting, outreach and mobile
+              apps for the Sales Navigator - 80% of value prop of the 1.5B
+              product.
             </li>
             <li>
               Created and leading Foundation Committee to drive technical
@@ -85,10 +87,13 @@ export default async function ResumePage() {
             <li>
               Transformed search, and lead recommendations stacks driving 20
             </li>
-            <li>Reduced on-call workload by 80%, by prioritizing .</li>
             <li>
-              Partnered with Data standardization team to improve data quality
-              and freshness, improved search precision for non-english queries.
+              Reduced team on-call workload by 80%, by prioritizing engineering
+              excellence.
+            </li>
+            <li>
+              Partnered with Data standardization team and improve data quality
+              and freshness.
             </li>
             {/* <li>Championed introducing Natural Language queries in search.</li> */}
             <li>
@@ -213,16 +218,13 @@ export default async function ResumePage() {
                   collaboration across teams.
                 </li>
                 <li>
-                  Introduced git as an officially supported code repository,
-                  Worked with C-level executives to build cross-organizational
-                  support for the initiative, and VP level executives on
-                  implementation.
+                  Introduced git as an officially supported code repository.
+                  Proposed to CTO as a productivity improvement and built a
+                  cross-organizational support for the initiative.
                 </li>
                 <li>
                   Responsible for a complete redesign of a legacy web
-                  application into a bleeding edge responsive, single page
-                  application. The new version had support for branding, theming
-                  and was localized into 14 languages.
+                  application into a SPA Angular.
                 </li>
                 <li>
                   Achieved 70% code coverage in unit tests for frontend,
@@ -358,7 +360,9 @@ export default async function ResumePage() {
             <a href="https://executive.berkeley.edu/programs/executive-decision-making">
               Executive Decision Making with Data Science
             </a>
-            <a>Corporate Business Model Innovation</a>
+            <a href="https://executive.berkeley.edu/programs/open-innovation">
+              Corporate Business Model Innovation
+            </a>
           </span>
         </EducationExperience>
 
