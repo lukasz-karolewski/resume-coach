@@ -12,7 +12,8 @@ export function SignIn({
         "use server";
         const url = await signIn(provider, { redirect: false });
         // TODO: fix in next-auth
-        redirect(url.replace("signin", "api/auth/signin"));
+        // redirect(url.replace("signin", "api/auth/signin"));
+        redirect(url);
       }}
     >
       <Button {...props}>Sign In</Button>
