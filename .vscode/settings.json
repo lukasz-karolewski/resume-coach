@@ -2,22 +2,5 @@
   "editor.formatOnSave": true,
   "editor.formatOnPaste": true,
   "editor.linkedEditing": true,
-  "css.lint.unknownAtRules": "ignore",
-  "cSpell.words": [
-    "CICD",
-    "clsx",
-    "CSAT",
-    "heroicons",
-    "HIMSS",
-    "Karolewski",
-    "KLAS",
-    "langchain",
-    "LLM’s",
-    "Lukasz",
-    "RFP’s",
-    "signin",
-    "tailwindcss",
-    "Telmed",
-    "timeframe"
-  ]
+  "css.lint.unknownAtRules": "ignore"
 }

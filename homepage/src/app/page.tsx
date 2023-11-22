@@ -1,13 +1,18 @@
+import { api } from "~/trpc/server";
 import EducationExperience from "./components/education-experience";
 import JobExperience from "./components/job-experience";
 import PersonalInfo from "./components/personal-info";
 import Section from "./components/section";
 import Skill from "./components/skill";
-import TextEditor from "./components/text-editor";
 
 export default async function HomePage() {
+  const hello = await api.post.hello.query({ text: "from Lukasz" });
+  const secret = await api.post.getSecretMessage.query();
+
   return (
     <div className="max-w-4xl m-auto bg-white p-12 flex flex-col gap-4 shadow-lg print:shadow-none print:p-0 dark:bg-gray-800">
+      {hello.greeting}
+      {secret}
       <PersonalInfo
         name="Lukasz Karolewski"
         email="lkarolewski@gmail.com"
