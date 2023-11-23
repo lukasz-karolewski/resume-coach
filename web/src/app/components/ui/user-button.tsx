@@ -8,7 +8,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "./dropdown-menu";
-import { SignIn, SignOut } from "./auth-components";
+import { SignIn, SignOut } from "./buttons-auth";
 
 export default async function UserButton() {
   const session = await auth();

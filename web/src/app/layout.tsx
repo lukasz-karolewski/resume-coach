@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Noto_Serif } from "next/font/google";
 import "./globals.css";
-import TopNav from "./components/top-nav";
-import Assistant from "./components/assistant";
+import TopNav from "~/app/components/ui/top-nav";
+import Assistant from "~/app/components/assistant";
 import { TRPCReactProvider } from "../trpc/react";
 import { cookies } from "next/headers";
 
