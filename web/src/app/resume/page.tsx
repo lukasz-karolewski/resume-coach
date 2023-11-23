@@ -1,13 +1,13 @@
 import EducationExperience from "../components/education-experience";
 import JobExperience from "../components/job-experience";
-import PersonalInfo from "../components/personal-info";
+import ContactInfo from "../components/contact-info";
 import Section from "../components/section";
 import Skill from "../components/skill";
 
 export default async function ResumePage() {
   return (
     <div className="max-w-4xl m-auto bg-white p-12 flex flex-col gap-4 shadow-lg print:shadow-none print:p-0 dark:bg-gray-800">
-      <PersonalInfo
+      <ContactInfo
         name="Lukasz Karolewski"
         email="lkarolewski@gmail.com"
         phone="408 680 9149"

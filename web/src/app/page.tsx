@@ -1,57 +1,57 @@
-import { api } from "~/trpc/server";
 import EducationExperience from "./components/education-experience";
 import JobExperience from "./components/job-experience";
-import PersonalInfo from "./components/personal-info";
+import ContactInfo from "./components/contact-info";
 import Section from "./components/section";
-import Skill from "./components/skill";
+import { Skills, Skill } from "./components/skill";
+import { ProfessionalSummary } from "./components/professional-summary";
+
+import { api } from "~/trpc/server";
 
 export default async function HomePage() {
-  const hello = await api.post.hello.query({ text: "from Lukasz" });
-  const secret = await api.post.getSecretMessage.query();
+  const resume = await api.resume.getResume.query();
+  if (!resume) return <div>loading</div>;
+
+  const data = {
+    contactInfo: {
+      name: "Lukasz Karolewski",
+      email: "lkarolewski@gmail.com",
+      phone: "408 680 9149",
+    },
+    professionalSummary: "test \n test 2",
+    skills: [
+      { id: 1, name: "Strategic Technical Leadership" },
+      { id: 2, name: "Cross-Functional Team Collaboration" },
+      { id: 3, name: "Large-Scale Web Application Scalability" },
+      { id: 4, name: "AI and Machine Learning" },
+      { id: 5, name: "Product Roadmap Development" },
+      { id: 6, name: "High-Impact Go-to-Market Strategies" },
+      { id: 7, name: "Data-Driven Decision Making" },
+      { id: 8, name: "Continuous Integration/Deployment (CI/CD)" },
+      { id: 9, name: "Revenue Growth and Cost Optimization" },
+      { id: 10, name: "Tech Talent Mentorship and Development" },
+      { id: 11, name: "Agile Methodologies and SDLC Expertise" },
+      { id: 12, name: "Corporate Innovation and Entrepreneurship" },
+    ],
+    experience: [],
+    education: [],
+  };
 
   return (
     <div className="max-w-4xl m-auto bg-white p-12 flex flex-col gap-4 shadow-lg print:shadow-none print:p-0 dark:bg-gray-800">
-      {hello.greeting}
-      {secret}
-      <PersonalInfo
-        name="Lukasz Karolewski"
-        email="lkarolewski@gmail.com"
-        phone="408 680 9149"
+      <ContactInfo
+        name={data.contactInfo.name}
+        email={data.contactInfo.email}
+        phone={data.contactInfo.phone}
       />
 
-      <p className="text-justify text-sm">
-        I’m a technology leader with 20 years of experience in B2B and consumer
-        environments. I’ve led feature, growth, and infrastructure teams. I
-        believe in first-principles thinking and leading through context. I’m
-        entrepreneurial and thrive in fast-paced, goal-driven, growth-oriented
-        environments. I’ve built and sold a company, an entire engineering
-        organization in a startup environment, and multiple teams in large
-        organizations. I’ve managed managers. I’m a lifelong learner and love
-        new challenges.
-      </p>
+      <ProfessionalSummary text={resume.professionalSummary} />
 
-      <p className="text-justify text-sm">
-        I have experience with LLM’s, prompt engineering, RAG, langchain, LLM
-        agents, machine learning, search, A/B testing, SEO, growth, leading
-        technology migrations without disrupting business, driving tech
-        excellence, high traffic (10k qps) web applications in multiple regions.
-      </p>
-      <Section title="Skills">
-        <div className="flex text-xs gap-2 flex-wrap">
-          <Skill>Strategic Technical Leadership</Skill>
-          <Skill>Cross-Functional Team Collaboration</Skill>
-          <Skill>Large-Scale Web Application Scalability</Skill>
-          <Skill>AI and Machine Learning Implementation</Skill>
-          <Skill>Product Roadmap Development</Skill>
-          <Skill>High-Impact Go-to-Market Strategies</Skill>
-          <Skill>Data-Driven Decision Making</Skill>
-          <Skill>Continuous Integration/Deployment (CI/CD)</Skill>
-          <Skill>Revenue Growth and Cost Optimization</Skill>
-          <Skill>Tech Talent Mentorship and Development</Skill>
-          <Skill>Agile Methodologies and SDLC Expertise</Skill>
-          <Skill>Corporate Innovation and Entrepreneurship</Skill>
-        </div>
-      </Section>
+      <Skills>
+        {data.skills.map((skill) => (
+          <Skill key={skill.id}>{skill.name}</Skill>
+        ))}
+      </Skills>
+
       <Section title="Experience">
         <JobExperience
           company="LinkedIn"

@@ -1,16 +1,12 @@
 import { EnvelopeIcon, PhoneIcon } from "@heroicons/react/24/solid";
 
-type PersonalInfoProps = {
+type ContactInfoProps = {
   name: string;
   phone: string;
   email: string;
 };
 
-export default function PersonalInfo({
-  name,
-  phone,
-  email,
-}: PersonalInfoProps) {
+export default function ContactInfo({ name, phone, email }: ContactInfoProps) {
   return (
     <div>
       <h1 className="text-3xl">{name}</h1>

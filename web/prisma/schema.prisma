@@ -46,6 +46,7 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
+  resume        Resume[]
 }
 
 model VerificationToken {
@@ -54,4 +55,79 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Resume {
+  id          String   @id @default(cuid())
+  description String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  contactInfo         ContactInfo?
+  professionalSummary String?
+  skills              Skill[]
+  workExperiences     WorkExperience[]
+  education           Education[]
+}
+
+model ContactInfo {
+  id        String   @id @default(cuid())
+  resumeId  String   @unique
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  address   String?
+  city      String?
+  state     String?
+  zip       String?
+  phone     String?
+  email     String?
+  website   String?
+  linkedin  String?
+  github    String?
+  twitter   String?
+  instagram String?
+  facebook  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Skill {
+  id        String   @id @default(cuid())
+  resumeId  String
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  name      String
+  level     Int      @default(3) // 1-5
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WorkExperience {
+  id          String    @id @default(cuid())
+  resumeId    String
+  resume      Resume    @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  title       String
+  company     String
+  location    String?
+  startDate   DateTime
+  endDate     DateTime?
+  isCurrent   Boolean   @default(false)
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Education {
+  id          String    @id @default(cuid())
+  resumeId    String
+  resume      Resume    @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  school      String
+  degree      String
+  field       String?
+  startDate   DateTime
+  endDate     DateTime?
+  isCurrent   Boolean   @default(false)
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
