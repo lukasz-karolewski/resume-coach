@@ -15,7 +15,7 @@ const TextEditor: React.FC<TextEditorProps> = ({ onSave, children }) => {
   };
 
   return (
-    <div className="text-justify text-sm border">
+    <div className="border text-justify text-sm">
       <textarea value={text} onChange={(e) => setText(e.target.value)} />
       <button onClick={handleSave}>Save</button>
     </div>

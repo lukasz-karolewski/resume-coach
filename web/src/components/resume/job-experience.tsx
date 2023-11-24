@@ -28,7 +28,7 @@ function JobExperience({
           )}
           <span>{timeframe}</span>
         </div>
-        <div className="flex justify-between italic text-sm">
+        <div className="flex justify-between text-sm italic">
           <span>{title}</span>
           <span>{location}</span>
         </div>

@@ -2,10 +2,10 @@ import UserButton from "./user-button";
 
 const TopNav: React.FC = async () => {
   return (
-    <nav className="p-4 flex gap-8 print:hidden items-center">
+    <nav className="flex items-center gap-8 p-4 print:hidden">
       <h1>AI Resume Coach</h1>
 
-      <div className="flex-grow"></div>
+      <div className="grow"></div>
 
       <UserButton />
     </nav>

@@ -1,6 +1,8 @@
+import { auth } from "~/auth";
+
 import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 import { Button } from "./button";
-import { auth } from "~/auth";
+import { SignIn, SignOut } from "./buttons-auth";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,7 +10,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "./dropdown-menu";
-import { SignIn, SignOut } from "./buttons-auth";
 
 export default async function UserButton() {
   const session = await auth();
@@ -16,7 +17,7 @@ export default async function UserButton() {
   else
     return (
       <div className="flex items-center">
-        <Avatar className="w-8 h-8">
+        <Avatar className="h-8 w-8">
           {session.user.image && (
             <AvatarImage
               src={session.user.image}

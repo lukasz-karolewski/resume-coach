@@ -1,6 +1,8 @@
-import { signIn, signOut } from "~/auth";
-import { Button } from "./button";
 import { redirect } from "next/navigation";
+
+import { signIn, signOut } from "~/auth";
+
+import { Button } from "./button";
 
 export function SignIn({
   provider,

@@ -7,13 +7,13 @@ interface SectionProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const Section = ({ title, children, ...rest }: SectionProps) => (
-  <div className="flex gap-4 flex-col group" {...rest}>
+  <div className="group flex flex-col gap-4" {...rest}>
     <h2
-      className={`text-2xl font-semibold border-b-2 border-b-gray-300 flex flex-row justify-between sticky top-0 bg-white`}
+      className={`sticky top-0 flex flex-row justify-between border-b-2 border-b-gray-300 bg-white text-2xl font-semibold`}
     >
       {title}
 
-      <div className="print:hidden group-hover:block hidden cursor-pointer">
+      <div className="hidden cursor-pointer group-hover:block print:hidden">
         <Link href={`/summary`}>edit</Link>
       </div>
     </h2>

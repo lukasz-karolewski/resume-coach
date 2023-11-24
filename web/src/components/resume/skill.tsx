@@ -1,4 +1,5 @@
 import React from "react";
+
 import Section from "./section";
 
 interface SkillProps {
@@ -6,7 +7,7 @@ interface SkillProps {
 }
 
 export const Skill: React.FC<SkillProps> = ({ children }) => {
-  return <span className="bg-gray-200 rounded px-1 py-0.5">{children}</span>;
+  return <span className="rounded bg-gray-200 px-1 py-0.5">{children}</span>;
 };
 
 interface SkillsProps {
@@ -16,7 +17,7 @@ interface SkillsProps {
 export const Skills: React.FC<SkillsProps> = ({ children }) => {
   return (
     <Section title="Skills">
-      <div className="flex text-xs gap-2 flex-wrap">{children}</div>
+      <div className="flex flex-wrap gap-2 text-xs">{children}</div>
     </Section>
   );
 };

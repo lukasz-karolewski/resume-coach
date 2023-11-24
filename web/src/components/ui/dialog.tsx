@@ -1,14 +1,13 @@
 "use client";
 
-import React from "react";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
 import {
   XMarkIcon,
   ChevronRightIcon,
   PlusCircleIcon,
 } from "@heroicons/react/24/solid";
-
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { clsx as cn } from "clsx";
+import React from "react";
 
 const Dialog = DialogPrimitive.Root;
 const DialogTrigger = DialogPrimitive.Trigger;

@@ -11,11 +11,11 @@ export default function ContactInfo({ name, phone, email }: ContactInfoProps) {
     <div>
       <h1 className="text-3xl">{name}</h1>
       <div className="flex">
-        <PhoneIcon className="w-4 mr-2" />
+        <PhoneIcon className="mr-2 w-4" />
         {phone}
       </div>
       <div className="flex">
-        <EnvelopeIcon className="w-4 mr-2" />
+        <EnvelopeIcon className="mr-2 w-4" />
         {/* <TextToImage text={email} /> */} {email}
       </div>
     </div>

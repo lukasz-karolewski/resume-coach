@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { Noto_Serif } from "next/font/google";
 import "./globals.css";
-import TopNav from "~/components/ui/top-nav";
-import Assistant from "~/components/assistant";
-import { TRPCReactProvider } from "../trpc/react";
 import { cookies } from "next/headers";
+
+import Assistant from "~/components/assistant";
+import TopNav from "~/components/ui/top-nav";
+
+import { TRPCReactProvider } from "../trpc/react";
 
 const font = Noto_Serif({ subsets: ["latin"] });
 
@@ -25,7 +27,7 @@ export default function RootLayout({
       <body className={font.className}>
         <TRPCReactProvider cookies={cookies().toString()}>
           <TopNav />
-          <main className="min-h-screen p-6 bg-gray-100 dark:bg-gray-900 relative">
+          <main className="relative min-h-screen bg-gray-100 p-6 dark:bg-gray-900">
             {children}
           </main>
           {edit}

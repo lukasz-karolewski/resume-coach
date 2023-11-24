@@ -1,11 +1,11 @@
+import ContactInfo from "~/components/resume/contact-info";
 import EducationExperience from "~/components/resume/education-experience";
 import JobExperience from "~/components/resume/job-experience";
-import ContactInfo from "~/components/resume/contact-info";
 import Section from "~/components/resume/section";
 
 export default async function ResumePage() {
   return (
-    <div className="max-w-4xl m-auto bg-white p-12 flex flex-col gap-4 shadow-lg print:shadow-none print:p-0 dark:bg-gray-800">
+    <div className="m-auto flex max-w-4xl flex-col gap-4 bg-white p-12 shadow-lg dark:bg-gray-800 print:p-0 print:shadow-none">
       <ContactInfo
         name="Lukasz Karolewski"
         email="lkarolewski@gmail.com"
@@ -203,7 +203,7 @@ export default async function ResumePage() {
           location="Mountain View, CA"
           timeframe="6y 10mo, Sep 2008 - Jun 2015"
         >
-          <ul className="text-sm flex flex-col gap-2">
+          <ul className="flex flex-col gap-2 text-sm">
             <li>
               <strong>Enterprise Security Group</strong>
               <JobExperience.Accomplishments>
@@ -345,7 +345,7 @@ export default async function ResumePage() {
           link="https://executive.berkeley.edu/certificate-of-business-excellence"
           timeframe="2019 - 2022"
         >
-          <span className="text-sm flex flex-wrap gap-2">
+          <span className="flex flex-wrap gap-2 text-sm">
             <a href="https://executive.berkeley.edu/programs/negotiation-and-influence">
               Negotiation and Influence
             </a>
