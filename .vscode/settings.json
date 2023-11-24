@@ -2,5 +2,10 @@
   "editor.formatOnSave": true,
   "editor.formatOnPaste": true,
   "editor.linkedEditing": true,
-  "css.lint.unknownAtRules": "ignore"
+  "css.lint.unknownAtRules": "ignore",
+  "editor.gotoLocation.multipleDefinitions": "goto",
+  "editor.gotoLocation.multipleTypeDefinitions": "goto",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  }
 }
