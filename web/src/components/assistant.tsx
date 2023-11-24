@@ -6,7 +6,7 @@ import React from "react";
 const Assistant: React.FC = () => {
   return (
     <div className="fixed bottom-4 right-4 print:hidden">
-      <Avatar>test</Avatar>
+      <Avatar>Assistant</Avatar>
     </div>
   );
 };

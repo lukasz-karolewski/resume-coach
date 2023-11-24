@@ -1,8 +1,7 @@
-import EducationExperience from ".~/app/components/resume/education-experience";
-import JobExperience from ".~/app/components/resume/job-experience";
-import ContactInfo from ".~/app/components/resume/contact-info";
-import Section from ".~/app/components/resume/section";
-import Skill from ".~/app/components/resume/skill";
+import EducationExperience from "~/components/resume/education-experience";
+import JobExperience from "~/components/resume/job-experience";
+import ContactInfo from "~/components/resume/contact-info";
+import Section from "~/components/resume/section";
 
 export default async function ResumePage() {
   return (
