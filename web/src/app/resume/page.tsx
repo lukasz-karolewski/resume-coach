@@ -14,19 +14,23 @@ export default async function ResumePage() {
 
       <p className="text-justify text-sm">
         I’m a results-driven, customer-focused technology leader with 15 years
-        of experience in B2B and consumer environments, driving growth and
-        building successful products. I believe in first-principles thinking and
-        leading through context. I’m entrepreneurial and thrive in fast-paced,
-        goal-driven, growth-oriented environments. I have built a successful
-        company, an entire engineering organization in a startup environment,
-        and multiple teams in large organizations. I’ve managed managers. I’m a
-        lifelong learner and love new challenges.
+        of experience in B2B and consumer environments, successful driving
+        growth and bringing new products to market.
       </p>
       <p className="text-justify text-sm">
-        I have experience with LLM’s, prompt engineering, RAG, langchain, LLM
-        agents, machine learning, search, large-scale application, A/B testing,
-        SEO, growth, leading technology migrations without disrupting business,
-        and driving tech excellence in organization.
+        I believe in first-principles thinking and leading through context. I’m
+        entrepreneurial, and thrive in fast-paced, goal-driven, growth-oriented
+        environments. I have built a successful company, an entire eng
+        organization in a startup environment, and multiple teams in large
+        organizations. I’ve managed managers and helped grow senior IC talent.
+        I’m a lifelong learner and love new challenges.
+      </p>
+      <p className="text-justify text-sm">
+        Most recently I’ve been emerged in LLM’s, prompt engineering, vector
+        data bases and EBR,RAG, langchain, LLM agents, machine learning. I have
+        experience with search, large-scale application, A/B testing, SEO,
+        leading large technology migrations without disrupting business, and
+        driving tech excellence in organization.
       </p>
       <p className="text-justify text-sm"></p>
       {/* <Section title="Skills">
@@ -55,13 +59,24 @@ export default async function ResumePage() {
         >
           <JobExperience.Accomplishments>
             <li>
-              Delivered three Gen AI features to market. Created new teams,
-              defined technical vision, roadmap, influenced GTM strategy and
-              design, and drove execution including trust requirements,
-              automatic evaluation. Working directly with CPO and presenting to
-              CEO on monthly basis.
+              Delivered three Gen AI features to market - Message Assist,
+              Account IQ, AI-Assisted Search.
             </li>
-            <li>Filed 2 patent applications</li>
+            <li>
+              Created new teams, defined technical vision, roadmap, influenced
+              GTM strategy and design, and drove execution including trust
+              requirements, automatic evaluation. Working directly with CPO and
+              presenting to CEO on a monthly basis. My work resulted in org
+              embarking on project to completle transform product bringing 1.5B
+              in revenue.
+            </li>
+            <li>
+              Influenced LI GenAI tech stack, by collaborating with infra teams
+            </li>
+            <li>
+              Filed 2 patent applications, that were key to success of the
+              product
+            </li>
           </JobExperience.Accomplishments>
         </JobExperience>
 
