@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Noto_Serif } from "next/font/google";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
+import { auth } from "~/auth";
 import Assistant from "~/components/assistant";
 import Footer from "~/components/ui/footer";
 import TopNav from "~/components/ui/top-nav";
@@ -16,13 +18,16 @@ export const metadata: Metadata = {
   description: "AI Resume Builder",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
   edit,
 }: {
   children: React.ReactNode;
   edit: React.ReactNode;
 }) {
+  const session = await auth();
+  if (!session?.user) redirect("/api/auth/signin");
+
   return (
     <html lang="en">
       <body className={font.className}>
