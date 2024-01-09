@@ -44,7 +44,7 @@ JobExperience.Accomplishments = function Accomplishments({
   children: ReactNode;
 }) {
   return (
-    <ul className="list-disc ml-6 text-sm break-before-avoid">{children}</ul>
+    <ul className="ml-6 list-disc break-before-avoid text-sm">{children}</ul>
   );
 };
 
