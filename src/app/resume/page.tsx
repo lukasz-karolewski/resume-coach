@@ -53,7 +53,7 @@ export default async function ResumePage() {
           company="LinkedIn"
           link="https://linkedin.com"
           title="Sr Manager, Engineering"
-          timeframe="Nov 2022 - Present"
+          from={new Date("2022-11-01")}
           location="Sunnyvale, CA"
         >
           <JobExperience.Accomplishments>
@@ -83,7 +83,8 @@ export default async function ResumePage() {
           company="LinkedIn"
           link="https://linkedin.com"
           title="Sr Manager, Engineering"
-          timeframe="3y, Sep 2019 - Oct 2022"
+          from={new Date("2019-09-01")}
+          to={new Date("2022-10-31")}
           location="Sunnyvale, CA"
         >
           <JobExperience.Accomplishments>
@@ -128,7 +129,8 @@ export default async function ResumePage() {
           company="Move Inc. - realtor.com"
           title="Sr Manager, Engineering"
           location="Santa Clara, CA"
-          timeframe="3y, Oct 2016 - Sep 2019"
+          from={new Date("2016-10-01")}
+          to={new Date("2019-09-30")}
         >
           <JobExperience.Accomplishments>
             <li>
@@ -188,7 +190,8 @@ export default async function ResumePage() {
           company="TelmedIQ"
           title="CTO and VP of Engineering"
           location="Victoria, BC"
-          timeframe="1.5y, Jun 2015 - Oct 2016"
+          from={new Date("2015-06-01")}
+          to={new Date("2016-10-30")}
         >
           <JobExperience.Accomplishments>
             <li>
@@ -215,7 +218,8 @@ export default async function ResumePage() {
           company="Symantec"
           title="Principal Software Engineer"
           location="Mountain View, CA"
-          timeframe="6y 10mo, Sep 2008 - Jun 2015"
+          from={new Date("2008-09-01")}
+          to={new Date("2015-06-31")}
         >
           <ul className="flex flex-col gap-2 text-sm">
             <li>
@@ -296,7 +300,8 @@ export default async function ResumePage() {
           company="Simple S.A."
           title="Software Engineer"
           location="Warsaw, Poland"
-          timeframe="1y 1mo, Aug 2007 - Aug 2008"
+          from={new Date("2007-08-01")}
+          to={new Date("2008-08-31")}
         >
           <ul className="text-sm">
             <li>
@@ -313,7 +318,8 @@ export default async function ResumePage() {
           company="Fast Internet"
           title="Founder"
           location="Warsaw, Poland"
-          timeframe="6y, Sep 2004 - Aug 2010"
+          from={new Date("2004-09-01")}
+          to={new Date("2010-08-31")}
         >
           <ul className="text-sm">
             <li>
