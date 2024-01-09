@@ -1,14 +1,11 @@
-import React from "react";
+function Footer() {
+  const version = process.env.VERSION;
 
-const Footer: React.FC = () => {
-  const currentDate = new Date().toLocaleDateString(undefined, {
-    year: "numeric",
-  });
   return (
-    <footer className="mx-auto p-4 text-center text-sm text-gray-500 print:hidden">
-      &copy; {currentDate}
+    <footer className="mx-auto py-8 text-center text-sm">
+      &copy; {new Date().getFullYear()} lk | {version || "development"}
     </footer>
   );
-};
+}
 
 export default Footer;

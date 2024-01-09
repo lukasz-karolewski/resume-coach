@@ -7,6 +7,11 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
   server: {
+    NODE_ENV: z
+      .enum(["development", "test", "production"])
+      .default("development"),
+
+    VERSION: z.string().optional(),
     DATABASE_URL: z
       .string()
       .url()
@@ -14,9 +19,7 @@ export const env = createEnv({
         (str) => !str.includes("YOUR_MYSQL_URL_HERE"),
         "You forgot to change the default URL",
       ),
-    NODE_ENV: z
-      .enum(["development", "test", "production"])
-      .default("development"),
+
     AUTH_SECRET:
       process.env.NODE_ENV === "production"
         ? z.string()
@@ -31,6 +34,7 @@ export const env = createEnv({
     // Add ` on ID and SECRET if you want to make sure they're not empty
     GOOGLE_ID: z.string(),
     GOOGLE_SECRET: z.string(),
+
     OPENAI_API_KEY: z.string(),
   },
 
@@ -49,11 +53,15 @@ export const env = createEnv({
    */
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
+
+    VERSION: process.env.VERSION,
     DATABASE_URL: process.env.DATABASE_URL,
+
     AUTH_URL: process.env.AUTH_URL,
     AUTH_SECRET: process.env.AUTH_SECRET,
     GOOGLE_ID: process.env.GOOGLE_ID,
     GOOGLE_SECRET: process.env.GOOGLE_SECRET,
+
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
   },
   /**
