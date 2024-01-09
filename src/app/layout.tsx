@@ -12,8 +12,8 @@ import "./globals.css";
 const font = Noto_Serif({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Lukasz Karolewski",
-  description: "Lukasz Karolewski personal website",
+  title: "Resume Coach",
+  description: "AI Resume Builder",
 };
 
 export default function RootLayout({
