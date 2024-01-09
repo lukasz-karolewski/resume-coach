@@ -3,10 +3,11 @@ import { Noto_Serif } from "next/font/google";
 import "./globals.css";
 import { cookies } from "next/headers";
 
+import { TRPCReactProvider } from "../trpc/react";
+
 import Assistant from "~/components/assistant";
 import TopNav from "~/components/ui/top-nav";
-
-import { TRPCReactProvider } from "../trpc/react";
+import Footer from "~/components/ui/footer";
 
 const font = Noto_Serif({ subsets: ["latin"] });
 
@@ -30,6 +31,7 @@ export default function RootLayout({
           <main className="relative min-h-screen bg-gray-100 p-6 dark:bg-gray-900">
             {children}
           </main>
+          <Footer />
           {edit}
           <Assistant />
         </TRPCReactProvider>
