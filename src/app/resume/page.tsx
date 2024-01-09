@@ -65,8 +65,8 @@ export default async function ResumePage() {
               Created new teams, defined technical vision, roadmap, influenced
               GTM strategy and design, and drove execution including trust
               requirements, automatic evaluation. Working directly with CPO and
-              presenting to CEO on a monthly basis. My work resulted in org
-              embarking on project to completle transform product bringing 1.5B
+              presenting to CEO on a monthly basis. My work resulted in the org
+              embarking on project to completely transform product bringing 1.5B
               in revenue.
             </li>
             <li>
