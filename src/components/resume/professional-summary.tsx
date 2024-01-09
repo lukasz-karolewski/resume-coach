@@ -3,19 +3,13 @@ import React from "react";
 import Section from "./section";
 
 interface SummaryProps {
-  text: string;
+  children: React.ReactElement<"p">[];
 }
 
-export const ProfessionalSummary: React.FC<SummaryProps> = ({ text }) => {
+export const ProfessionalSummary: React.FC<SummaryProps> = ({ children }) => {
   return (
     <Section title="Summary">
-      {text.split("\n").map((paragraph, index) => {
-        return (
-          <p key={index} className="text-justify text-sm">
-            {paragraph.trim()}
-          </p>
-        );
-      })}
+      <div className="flex flex-col gap-2 text-justify text-sm">{children}</div>
     </Section>
   );
 };

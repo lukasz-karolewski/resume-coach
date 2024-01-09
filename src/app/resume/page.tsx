@@ -1,6 +1,7 @@
 import ContactInfo from "~/components/resume/contact-info";
 import EducationExperience from "~/components/resume/education-experience";
 import JobExperience from "~/components/resume/job-experience";
+import { ProfessionalSummary } from "~/components/resume/professional-summary";
 import Section from "~/components/resume/section";
 
 export default async function ResumePage() {
@@ -12,42 +13,29 @@ export default async function ResumePage() {
         phone="408 680 9149"
       />
 
-      <p className="text-justify text-sm">
-        I’m a results-driven, customer-focused technology leader with 15 years
-        of experience in B2B and consumer environments, successful driving
-        growth and bringing new products to market.
-      </p>
-      <p className="text-justify text-sm">
-        I believe in first-principles thinking and leading through context. I’m
-        entrepreneurial, and thrive in fast-paced, goal-driven, growth-oriented
-        environments. I have built a successful company, an entire eng
-        organization in a startup environment, and multiple teams in large
-        organizations. I’ve managed managers and helped grow senior IC talent.
-        I’m a lifelong learner and love new challenges.
-      </p>
-      <p className="text-justify text-sm">
-        Most recently I’ve been emerged in LLM’s, prompt engineering, vector
-        data bases and EBR,RAG, langchain, LLM agents, machine learning. I have
-        experience with search, large-scale application, A/B testing, SEO,
-        leading large technology migrations without disrupting business, and
-        driving tech excellence in organization.
-      </p>
-      {/* <Section title="Skills">
-        <div className="flex text-xs gap-2 flex-wrap">
-          <Skill>Strategic Technical Leadership</Skill>
-          <Skill>Cross-Functional Team Collaboration</Skill>
-          <Skill>Large-Scale Web Application Scalability</Skill>
-          <Skill>AI and Machine Learning Implementation</Skill>
-          <Skill>Product Roadmap Development</Skill>
-          <Skill>High-Impact Go-to-Market Strategies</Skill>
-          <Skill>Data-Driven Decision Making</Skill>
-          <Skill>Continuous Integration/Deployment (CI/CD)</Skill>
-          <Skill>Revenue Growth and Cost Optimization</Skill>
-          <Skill>Tech Talent Mentorship and Development</Skill>
-          <Skill>Agile Methodologies and SDLC Expertise</Skill>
-          <Skill>Corporate Innovation and Entrepreneurship</Skill>
-        </div>
-      </Section> */}
+      <ProfessionalSummary>
+        <p>
+          I’m a results-driven, customer-focused technology leader with 15 years
+          of experience in B2B and consumer environments, successful driving
+          growth and bringing new products to market.
+        </p>
+        <p>
+          I believe in first-principles thinking and leading through context.
+          I’m entrepreneurial, and thrive in fast-paced, goal-driven,
+          growth-oriented environments. I have built a successful company, an
+          entire eng organization in a startup environment, and multiple teams
+          in large organizations. I’ve managed managers and helped grow senior
+          IC talent. I’m a lifelong learner and love new challenges.
+        </p>
+        <p>
+          Most recently I’ve been emerged in LLM’s, prompt engineering, vector
+          databases, EBR, RAG, LLM fine-tuning, langchain and LLM agents. I also
+          have experience with search, large-scale application, A/B testing,
+          SEO, leading large technology migrations without disrupting business,
+          and driving tech excellence in organization.
+        </p>
+      </ProfessionalSummary>
+
       <Section title="Experience">
         <JobExperience
           company="LinkedIn"
