@@ -1,6 +1,12 @@
 {
+  "root": true,
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+  "ignorePatterns": ["node_modules/", ".next/", "*.d.ts"],
   "extends": [
-    "next/babel",
     "next/core-web-vitals",
     "plugin:tailwindcss/recommended",
     "plugin:prettier/recommended",

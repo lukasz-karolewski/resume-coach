@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { Noto_Serif } from "next/font/google";
-import "./globals.css";
 import { cookies } from "next/headers";
 
-import { TRPCReactProvider } from "../trpc/react";
-
 import Assistant from "~/components/assistant";
-import TopNav from "~/components/ui/top-nav";
 import Footer from "~/components/ui/footer";
+import TopNav from "~/components/ui/top-nav";
+import { TRPCReactProvider } from "~/trpc/react";
+
+import "./globals.css";
 
 const font = Noto_Serif({ subsets: ["latin"] });
 
