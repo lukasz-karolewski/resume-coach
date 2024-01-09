@@ -2,7 +2,7 @@ function Footer() {
   const version = process.env.VERSION;
 
   return (
-    <footer className="mx-auto py-8 text-center text-sm">
+    <footer className="mx-auto py-8 text-center text-sm print:hidden">
       &copy; {new Date().getFullYear()} lk | {version || "development"}
     </footer>
   );
