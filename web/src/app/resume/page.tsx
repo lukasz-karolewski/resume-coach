@@ -32,7 +32,6 @@ export default async function ResumePage() {
         leading large technology migrations without disrupting business, and
         driving tech excellence in organization.
       </p>
-      <p className="text-justify text-sm"></p>
       {/* <Section title="Skills">
         <div className="flex text-xs gap-2 flex-wrap">
           <Skill>Strategic Technical Leadership</Skill>
@@ -327,7 +326,7 @@ export default async function ResumePage() {
         </JobExperience>
       </Section>
       <Section title="Patents">
-        <ul>
+        <ul className="text-sm">
           <li>
             Semantic-aware next best action recommendation systems - 18/243883
           </li>

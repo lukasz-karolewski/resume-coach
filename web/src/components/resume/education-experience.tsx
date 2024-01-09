@@ -16,7 +16,7 @@ export default function EducationExperience({
   children?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col break-inside-avoid text-sm">
       <div className="flex justify-between">
         <strong>{school}</strong>
         <span>{timeframe}</span>

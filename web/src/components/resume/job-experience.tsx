@@ -16,8 +16,8 @@ function JobExperience({
   children: ReactNode;
 }) {
   return (
-    <div>
-      <div className="mb-2">
+    <div className="">
+      <div className="mb-2 break-inside-avoid">
         <div className="flex justify-between font-bold">
           {!link ? (
             <h3>{company}</h3>
@@ -26,7 +26,7 @@ function JobExperience({
               <a href={link}>{company}</a>
             </h3>
           )}
-          <span>{timeframe}</span>
+          <span className="text-sm">{timeframe}</span>
         </div>
         <div className="flex justify-between text-sm italic">
           <span>{title}</span>
@@ -43,7 +43,9 @@ JobExperience.Accomplishments = function Accomplishments({
 }: {
   children: ReactNode;
 }) {
-  return <ul className="list-disc text-sm">{children}</ul>;
+  return (
+    <ul className="list-disc ml-6 text-sm break-before-avoid">{children}</ul>
+  );
 };
 
 export default JobExperience;

@@ -13,7 +13,7 @@ const Section = ({ title, children, ...rest }: SectionProps) => (
     >
       {title}
 
-      <div className="hidden cursor-pointer group-hover:block print:hidden">
+      <div className="hidden cursor-pointer group-hover:block print:hidden group-hover:print:hidden">
         <Link href={`/summary`}>edit</Link>
       </div>
     </h2>
