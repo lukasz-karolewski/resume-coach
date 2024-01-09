@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { Metadata } from "next";
 import { Noto_Serif } from "next/font/google";
 import { cookies } from "next/headers";
@@ -30,7 +31,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body className={font.className}>
+      <body className={clsx(font.className, "min-w-96")}>
         <TRPCReactProvider cookies={cookies().toString()}>
           <TopNav />
           <main className="relative min-h-screen bg-gray-100 p-6 dark:bg-gray-900">
