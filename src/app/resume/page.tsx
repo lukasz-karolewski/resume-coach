@@ -28,11 +28,11 @@ export default async function ResumePage() {
           IC talent. I’m a lifelong learner and love new challenges.
         </p>
         <p>
-          Most recently I’ve been emerged in LLM’s, prompt engineering, vector
-          databases, EBR, RAG, LLM fine-tuning, langchain and LLM agents. I also
-          have experience with search, large-scale application, A/B testing,
-          SEO, leading large technology migrations without disrupting business,
-          and driving tech excellence in organization.
+          Most recently I’ve been emerged in LLM’s, prompt engineering, EBR,
+          RAG, LLM fine-tuning, langchain and LLM agents. I also have experience
+          with search, large-scale application, A/B testing, SEO, leading large
+          technology migrations without disrupting business, and driving tech
+          excellence in organization.
         </p>
       </ProfessionalSummary>
 
@@ -87,7 +87,8 @@ export default async function ResumePage() {
               teams.
             </li>
             <li>
-              Transformed search, and lead recommendations stacks driving 20
+              Transformed search, and lead recommendations stacks driving 10x
+              increase in recommendation engagement.
             </li>
             <li>
               Reduced team on-call workload by 80%, by prioritizing engineering
@@ -97,7 +98,6 @@ export default async function ResumePage() {
               Partnered with Data standardization team and improve data quality
               and freshness.
             </li>
-            {/* <li>Championed introducing Natural Language queries in search.</li> */}
             <li>
               Partnered with AI team to modernize AI tech stack, as a result
               reduced turn around to 2 weeks vs 4 months before.
@@ -291,7 +291,7 @@ export default async function ResumePage() {
           from={new Date("2007-08-01")}
           to={new Date("2008-08-31")}
         >
-          <ul className="text-sm">
+          <JobExperience.Accomplishments>
             <li>
               As a part of a four-member team designed and implemented a
               prototype of automated supply chain management system that based
@@ -299,7 +299,7 @@ export default async function ResumePage() {
               criteria picked the best bid, tracked payments and shipments. It
               was an extension of a well established ERP.
             </li>
-          </ul>
+          </JobExperience.Accomplishments>
         </JobExperience>
 
         <JobExperience
@@ -309,14 +309,14 @@ export default async function ResumePage() {
           from={new Date("2004-09-01")}
           to={new Date("2010-08-31")}
         >
-          <ul className="text-sm">
+          <JobExperience.Accomplishments>
             <li>
               Started a business providing broadband internet to a local
               community of about 40 users. Built all of the systems to support
               operations, most notably: billing, traffic shaping, captive portal
               for device registration. Sold business to a larger ISP.
             </li>
-          </ul>
+          </JobExperience.Accomplishments>
         </JobExperience>
       </Section>
       <Section title="Patents">

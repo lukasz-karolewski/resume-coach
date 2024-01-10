@@ -66,7 +66,7 @@ function JobExperience({
   };
 
   return (
-    <div className="">
+    <div>
       <div className="mb-2 break-inside-avoid">
         <div className="flex items-center justify-between font-bold">
           {!link ? (
