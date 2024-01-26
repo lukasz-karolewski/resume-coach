@@ -3,9 +3,17 @@
   "editor.formatOnPaste": true,
   "editor.linkedEditing": true,
   "css.lint.unknownAtRules": "ignore",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  },
   "editor.gotoLocation.multipleDefinitions": "goto",
   "editor.gotoLocation.multipleTypeDefinitions": "goto",
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
-  }
+  },
+  "search.exclude": {
+    "**/.next": true
+  },
+  "typescript.tsdk": "node_modules/typescript/lib"
 }
