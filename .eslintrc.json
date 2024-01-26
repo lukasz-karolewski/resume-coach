@@ -6,13 +6,18 @@
     "node": true
   },
   "ignorePatterns": ["node_modules/", ".next/", "*.d.ts"],
+  "plugins": ["prettier"],
   "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
     "next/core-web-vitals",
     "plugin:tailwindcss/recommended",
-    "plugin:prettier/recommended",
-    "plugin:import/recommended"
+    "prettier"
   ],
   "rules": {
+    "prettier/prettier": "error",
+    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/no-explicit-any": "off",
     "import/no-named-as-default-member": "off",
     "import/order": [
       "error",
