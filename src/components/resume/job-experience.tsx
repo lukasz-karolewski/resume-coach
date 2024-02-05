@@ -4,8 +4,6 @@ import { ReactNode } from "react";
 
 dayjs.extend(duration);
 
-const daysInMs = 1000 * 60 * 60 * 24;
-
 function JobExperience({
   company,
   link,
@@ -40,19 +38,11 @@ function JobExperience({
     const fromDate = dayjs(from);
     const toDate = to ? dayjs(to) : dayjs();
 
-    const duration = dayjs.duration(toDate.diff(fromDate));
+    const totalMonths = toDate.diff(fromDate, "month", true);
+    const roundedMonths = Math.round(totalMonths);
 
-    let years = duration.years();
-    let remainingMonths = duration.months();
-    const remainingDays = duration.days();
-
-    if (remainingDays > 15) {
-      remainingMonths += 1;
-    }
-    if (remainingMonths === 12) {
-      remainingMonths = 0;
-      years += 1;
-    }
+    const years = Math.floor(roundedMonths / 12);
+    const remainingMonths = roundedMonths % 12;
 
     if (years === 0) {
       return `${remainingMonths} m`;
