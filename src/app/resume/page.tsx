@@ -46,16 +46,16 @@ export default async function ResumePage() {
         >
           <JobExperience.Accomplishments>
             <li>
-              Delivered three Gen AI features to market - Message Assist,
-              Account IQ, AI-Assisted Search.
+              Delivered ~$100M incremential revenue by launching four Gen AI
+              features to market - Account IQ, LeadIQ, Message Assist,
+              AI-Assisted Search.
             </li>
             <li>
-              Created new teams, defined technical vision, roadmap, influenced
-              GTM strategy and design, and drove execution including trust
-              requirements, automatic evaluation. Working directly with CPO and
-              presenting to CEO on a monthly basis. My work resulted in the org
-              embarking on project to completely transform product bringing 1.5B
-              in revenue.
+              Defined product vision, influenced GTM strategy and designs,
+              created teams, defined technical vision, roadmap, and drove
+              execution, including trust requirements, automatic evaluation.
+              Working directly with CPO and presenting to CEO on a monthly
+              basis.
             </li>
             <li>
               Influenced LI GenAI tech stack, by collaborating with infra teams
@@ -64,6 +64,7 @@ export default async function ResumePage() {
               Filed 2 patent applications, that were key to success of the
               product
             </li>
+            <li>My work influenced product strategy for 1.5B business unit.</li>
           </JobExperience.Accomplishments>
         </JobExperience>
 
