@@ -21,6 +21,10 @@
     @apply text-2xl font-bold;
   }
 
+  h2 {
+    @apply text-xl font-bold;
+  }
+
   @page {
     size: letter;
     margin: 10mm 10mm;

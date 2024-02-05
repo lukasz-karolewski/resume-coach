@@ -2,9 +2,7 @@ import clsx from "clsx";
 import type { Metadata } from "next";
 import { Noto_Serif } from "next/font/google";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
-import { auth } from "~/auth";
 import Assistant from "~/components/assistant";
 import Footer from "~/components/ui/footer";
 import TopNav from "~/components/ui/top-nav";
@@ -26,9 +24,6 @@ export default async function RootLayout({
   children: React.ReactNode;
   edit: React.ReactNode;
 }) {
-  const session = await auth();
-  if (!session?.user) redirect("/api/auth/signin");
-
   return (
     <html lang="en">
       <body className={clsx(font.className, "min-w-96")}>

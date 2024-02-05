@@ -1,9 +1,8 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-// TODO migrate to CUID when https://github.com/prisma/prisma/issues/17102 is resolved
+// docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
+  engineType = "binary"
 }
 
 datasource db {
@@ -11,6 +10,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Auth
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -39,14 +39,20 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
-  resume        Resume[]
+  id                  String                @id @default(cuid())
+  name                String?
+  email               String?               @unique
+  emailVerified       DateTime?
+  image               String?
+  accounts            Account[]
+  sessions            Session[]
+  resume              Resume[]
+  Job                 Job[]
+  ContactInfo         ContactInfo[]
+  Skill               Skill[]
+  WorkExperience      WorkExperience[]
+  Education           Education[]
+  ProfessionalSummary ProfessionalSummary[]
 }
 
 model VerificationToken {
@@ -57,25 +63,31 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-model Resume {
-  id          String   @id @default(cuid())
-  description String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+// end Auth
 
-  contactInfo         ContactInfo?
-  professionalSummary String?
-  skills              Skill[]
-  workExperiences     WorkExperience[]
-  education           Education[]
+// App models
+
+model Job {
+  userId String
+  User   User   @relation(fields: [userId], references: [id])
+
+  id        String   @id @default(cuid())
+  url       String   @unique
+  createdAt DateTime @default(now())
+
+  company     String?
+  title       String?
+  description String?
+  notes       String?
+
+  Resume Resume[]
 }
 
 model ContactInfo {
+  userId String
+  User   User   @relation(fields: [userId], references: [id])
+
   id        String   @id @default(cuid())
-  resumeId  String   @unique
-  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   address   String?
   city      String?
   state     String?
@@ -92,20 +104,32 @@ model ContactInfo {
   updatedAt DateTime @updatedAt
 }
 
-model Skill {
+model ProfessionalSummary {
+  userId String
+  User   User   @relation(fields: [userId], references: [id])
+
   id        String   @id @default(cuid())
-  resumeId  String
-  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  summary String?
+}
+
+model Skill {
+  userId String
+  User   User   @relation(fields: [userId], references: [id])
+
+  id        String   @id @default(cuid())
   name      String
   level     Int      @default(3) // 1-5
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model WorkExperience {
+  userId String
+  User   User   @relation(fields: [userId], references: [id])
+
   id          String    @id @default(cuid())
-  resumeId    String
-  resume      Resume    @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   title       String
   company     String
   location    String?
@@ -118,9 +142,10 @@ model WorkExperience {
 }
 
 model Education {
+  userId String
+  User   User   @relation(fields: [userId], references: [id])
+
   id          String    @id @default(cuid())
-  resumeId    String
-  resume      Resume    @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   school      String
   degree      String
   field       String?
@@ -130,4 +155,14 @@ model Education {
   description String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+}
+
+model Resume {
+  userId String?
+  User   User?   @relation(fields: [userId], references: [id])
+
+  Job   Job    @relation(fields: [jobId], references: [id])
+  jobId String
+
+  id String @id @default(cuid())
 }
