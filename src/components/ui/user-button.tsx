@@ -17,7 +17,7 @@ export default async function UserButton() {
   else
     return (
       <div className="flex items-center">
-        <Avatar className="h-8 w-8">
+        <Avatar className="size-8">
           {session.user.image && (
             <AvatarImage
               src={session.user.image}
