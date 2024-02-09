@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "~/components/ui/link";
 
 import UserButton from "./user-button";
 const TopNav: React.FC = async () => {
@@ -9,8 +9,16 @@ const TopNav: React.FC = async () => {
           <h1>Resume Coach</h1>
         </Link>
 
-        <div className="grow">
-          <Link href="/resume">static resume</Link>
+        <div className="flex grow gap-4">
+          <Link className="hover:underline" href="/dashboard">
+            dashboard
+          </Link>
+          <Link className="hover:underline" href="/profile">
+            profile
+          </Link>
+          <Link className="hover:underline" href="/resume">
+            static resume
+          </Link>
         </div>
 
         <UserButton />

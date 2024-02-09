@@ -2,13 +2,11 @@ import { redirect } from "next/navigation";
 
 import { auth } from "~/auth";
 
-import "~/app/globals.css";
-
-export default async function AuthLayout({
-  children,
-}: {
+interface AuthLayoutProps {
   children: React.ReactNode;
-}) {
+}
+
+export default async function AuthLayout({ children }: AuthLayoutProps) {
   const session = await auth();
   if (!session?.user) redirect("/");
 

@@ -6,7 +6,7 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 
-export const resumeRouter = createTRPCRouter({
+export const profileRouter = createTRPCRouter({
   getUserInfo: protectedProcedure.query(async ({ ctx }) => {
     const userInfo = await Promise.all([
       ctx.db.contactInfo.findFirst({
@@ -33,11 +33,5 @@ export const resumeRouter = createTRPCRouter({
       workExperience: userInfo[3],
       education: userInfo[4],
     };
-  }),
-
-  getJobs: protectedProcedure.query(async ({ ctx }) => {
-    const jobs = await ctx.db.job.findMany();
-
-    return jobs;
   }),
 });

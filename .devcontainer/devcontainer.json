@@ -29,7 +29,8 @@
         "tomoki1207.pdf",
         "esbenp.prettier-vscode",
         "Prisma.prisma",
-        "bradlc.vscode-tailwindcss"
+        "bradlc.vscode-tailwindcss",
+        "dbaeumer.vscode-eslint"
       ]
     }
   },

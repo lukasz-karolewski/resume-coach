@@ -1,4 +1,5 @@
 import { ChatOpenAI } from "@langchain/openai";
+import { CheerioWebBaseLoader } from "langchain/document_loaders/web/cheerio";
 import { z } from "zod";
 
 import {
@@ -11,10 +12,13 @@ const chatModel = new ChatOpenAI({});
 
 export const coachRouter = createTRPCRouter({
   getResume: protectedProcedure.query(async ({ ctx }) => {
-    const resume = await ctx.db.resume.findFirst({
-      where: { userId: ctx.session.user.id },
-    });
+    const loader = new CheerioWebBaseLoader(
+      "https://www.linkedin.com/in/lukaszkarolewski/",
+    );
 
-    return resume;
+    const docs = await loader.load();
+
+    console.log(docs.length);
+    console.log(docs[0].pageContent.length);
   }),
 });

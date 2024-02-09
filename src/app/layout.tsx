@@ -4,11 +4,12 @@ import { Noto_Serif } from "next/font/google";
 import { cookies } from "next/headers";
 
 import Assistant from "~/components/assistant";
+import NiceModalProviderWrapper from "~/components/providers";
 import Footer from "~/components/ui/footer";
 import TopNav from "~/components/ui/top-nav";
 import { TRPCReactProvider } from "~/trpc/react";
 
-import "./globals.css";
+import "./styles.css";
 
 const font = Noto_Serif({ subsets: ["latin"] });
 
@@ -17,24 +18,23 @@ export const metadata: Metadata = {
   description: "AI Resume Builder",
 };
 
-export default async function RootLayout({
-  children,
-  edit,
-}: {
+interface RootLayoutProps {
   children: React.ReactNode;
-  edit: React.ReactNode;
-}) {
+}
+
+export default async function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
       <body className={clsx(font.className, "min-w-96")}>
         <TRPCReactProvider cookies={cookies().toString()}>
-          <TopNav />
-          <main className="relative min-h-screen bg-gray-100 p-6 dark:bg-gray-900">
-            {children}
-          </main>
-          <Footer />
-          {edit}
-          <Assistant />
+          <NiceModalProviderWrapper>
+            <TopNav />
+            <main className="relative min-h-screen bg-gray-100 p-6 dark:bg-gray-900">
+              {children}
+            </main>
+            <Footer />
+            <Assistant />
+          </NiceModalProviderWrapper>
         </TRPCReactProvider>
       </body>
     </html>
