@@ -1,11 +1,16 @@
+"use client";
+
 import React from "react";
 
 import { Button } from "~/components/ui/button";
-import { api } from "~/trpc/server";
+import { api } from "~/trpc/react";
 
-const Profile: React.FC = async () => {
-  const userInformation = await api.profile.getUserInfo.query();
+const Profile: React.FC = () => {
+  const { data: userInformation } = api.profile.getUserInfo.useQuery();
 
+  if (!userInformation) {
+    return <div>Loading...</div>;
+  }
   return (
     <div>
       <Button variant={"secondary"}>import your LinkedIn profile</Button>

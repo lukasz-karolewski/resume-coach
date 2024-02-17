@@ -4,7 +4,16 @@
  */
 await import("./src/env.js");
 
-/** @type {import('next').NextConfig} */
-const config = {};
+import withBundleAnalyzerBuilder from "@next/bundle-analyzer";
 
-export default config;
+/** @type {import('next').NextConfig} */
+const config = {
+  reactStrictMode: true,
+  poweredByHeader: false,
+};
+
+const withBundleAnalyzer = withBundleAnalyzerBuilder({
+  enabled: process.env.ANALYZE === "true",
+});
+
+export default withBundleAnalyzer(config);

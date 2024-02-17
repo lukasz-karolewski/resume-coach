@@ -29,7 +29,13 @@ const Dashboard: React.FC = () => {
       <div>
         Jobs you're applying to:
         {jobs.map((job) => {
-          return <div key={job.id}>{job.title}</div>;
+          return (
+            <div key={job.id}>
+              <a href={job.url} target="_blank">
+                {job.title} at {job.company}
+              </a>
+            </div>
+          );
         })}
       </div>
     </div>

@@ -6,21 +6,18 @@
     "node": true
   },
   "ignorePatterns": ["node_modules/", ".next/", "*.d.ts"],
-  "plugins": ["prettier"],
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "next/core-web-vitals",
-    "plugin:tailwindcss/recommended",
-    "prettier"
+    "plugin:tailwindcss/recommended"
   ],
   "rules": {
-    "prettier/prettier": "error",
     "@typescript-eslint/no-unused-vars": "off",
     "@typescript-eslint/no-explicit-any": "off",
     "import/no-named-as-default-member": "off",
     "import/order": [
-      "error",
+      "warn",
       {
         "groups": [
           "builtin", // Built-in imports (come from NodeJS native) go first

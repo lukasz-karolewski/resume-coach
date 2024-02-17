@@ -1,12 +1,11 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import clsx from "clsx";
-import noop from "lodash/noop";
 import { FC, Fragment, PropsWithChildren } from "react";
 
 interface MyModalProps {
   open: boolean;
-  onClose: (shouldRefresh: boolean) => void;
+  onClose?: (shouldRefresh: boolean) => void;
   title: string;
   className?: string;
 }
@@ -14,7 +13,7 @@ interface MyModalProps {
 const Modal: FC<PropsWithChildren<PropsWithChildren<MyModalProps>>> = ({
   title,
   open,
-  onClose = noop,
+  onClose,
   children,
   className = "w-full",
 }) => {
@@ -32,7 +31,7 @@ const Modal: FC<PropsWithChildren<PropsWithChildren<MyModalProps>>> = ({
     >
       <Dialog
         className="fixed inset-0 z-50 flex items-center justify-center"
-        onClose={() => onClose(false)}
+        onClose={() => onClose?.(false)}
       >
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
 
@@ -45,12 +44,12 @@ const Modal: FC<PropsWithChildren<PropsWithChildren<MyModalProps>>> = ({
           >
             <Dialog.Title
               as="div"
-              className="bg-accent flex items-center justify-between rounded-t p-6 text-lg font-medium leading-6 text-white"
+              className="flex items-center justify-between rounded-t bg-gray-500 p-6 text-lg font-medium leading-6 text-white"
             >
               {title}
               <XMarkIcon
                 className="w-6 cursor-pointer"
-                onClick={() => onClose(false)}
+                onClick={() => onClose?.(false)}
               />
             </Dialog.Title>
             <div className="overflow-y-auto">{children}</div>

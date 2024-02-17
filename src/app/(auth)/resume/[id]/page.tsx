@@ -3,11 +3,8 @@ import EducationExperience from "~/components/resume/education-experience";
 import JobExperience from "~/components/resume/job-experience";
 import Section from "~/components/resume/section";
 import { Skill, Skills } from "~/components/resume/skill";
-import { api } from "~/trpc/server";
 
 export default async function HomePage() {
-  const resume = await api.resume.getResumes.query();
-
   const data = {
     contactInfo: {
       name: "Lukasz Karolewski",
