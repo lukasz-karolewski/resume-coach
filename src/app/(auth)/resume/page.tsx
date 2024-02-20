@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 import ContactInfo from "~/components/resume/contact-info";
 import EducationExperience from "~/components/resume/education-experience";
 import JobExperience from "~/components/resume/job-experience";
@@ -15,24 +16,25 @@ export default async function ResumePage() {
 
       <ProfessionalSummary>
         <p>
-          I’m a results-driven, customer-focused technology leader with 15 years
-          of experience in B2B and consumer environments, successful driving
-          growth and bringing new products to market.
+          I’m an accomplished engineering leader with over a decade of
+          experience, I am well-positioned to excel in a Director of Engineering
+          role. My expertise in leading cross-functional teams, driving product
+          development, and implementing effective engineering processes has
+          resulted in numerous successful product launches and revenue growth.
+          My strategic thinking, technical acumen, and collaborative leadership
+          style enable me to build high-performing teams and foster a culture of
+          innovation. I have managed managers and grown senior IC talent. I am
+          passionate about using my skills to drive business outcomes and
+          deliver exceptional customer experiences.
         </p>
         <p>
-          I believe in first-principles thinking and leading through context.
-          I’m entrepreneurial, and thrive in fast-paced, goal-driven,
-          growth-oriented environments. I have built a successful company, an
-          entire eng organization in a startup environment, and multiple teams
-          in large organizations. I’ve managed managers and helped grow senior
-          IC talent. I’m a lifelong learner and love new challenges.
-        </p>
-        <p>
-          Most recently I’ve been emerged in LLM’s, prompt engineering, EBR,
-          RAG, LLM fine-tuning, langchain and LLM agents. I also have experience
-          with search, large-scale application, A/B testing, SEO, leading large
-          technology migrations without disrupting business, and driving tech
-          excellence in organization.
+          Recently I’ve been working on utilizing the power of LLMs to create
+          new, impossible-before products and delved into prompt engineering,
+          EBR, RAG, LLM fine-tuning, LangChain, and LLM agents. My experience
+          also includes managing the ROI of these investments. Additionally, I
+          have experience with search, large-scale applications, A/B testing,
+          SEO, leading large technology migrations without disrupting business,
+          and driving tech excellence in organizations.
         </p>
       </ProfessionalSummary>
 
@@ -46,25 +48,28 @@ export default async function ResumePage() {
         >
           <JobExperience.Accomplishments>
             <li>
-              Delivered ~$100M incremential revenue by launching four Gen AI
-              features to market - Account IQ, LeadIQ, Message Assist,
+              Delivered ~$100M incremental revenue by launching four Gen AI
+              features to market - Account IQ, LeadIQ, Message Assist, and
               AI-Assisted Search.
             </li>
             <li>
               Defined product vision, influenced GTM strategy and designs,
-              created teams, defined technical vision, roadmap, and drove
-              execution, including trust requirements, automatic evaluation.
-              Working directly with CPO and presenting to CEO on a monthly
-              basis.
+              created teams, defined technical vision, and roadmap, and drove
+              execution, including trust requirements, and automatic evaluation.
+              Working directly with CPO and presenting to the CEO every month.
             </li>
             <li>
-              Influenced LI GenAI tech stack, by collaborating with infra teams
+              Influenced LI GenAI tech stack, by actively collaborating with
+              infra teams.
             </li>
             <li>
-              Filed 2 patent applications, that were key to success of the
-              product
+              Filed 2 patent applications, which were key to the product's
+              success.
             </li>
-            <li>My work influenced product strategy for 1.5B business unit.</li>
+            <li>
+              Significantly contributed to shaping the long-term strategy for
+              the entire LOB.
+            </li>
           </JobExperience.Accomplishments>
         </JobExperience>
 
@@ -78,38 +83,49 @@ export default async function ResumePage() {
         >
           <JobExperience.Accomplishments>
             <li>
-              Responsible for all aspects of prospecting, outreach and mobile
-              apps for the Sales Navigator - 80% of value prop of the 1.5B
-              product.
+              Responsible for 80% of value prop of the 1.5B B2B product, growing
+              ~20% yoy. Leading lead finding (search & recommendations),
+              outreach (messaging). mobile apps and technical direction for the
+              Sales Navigator.
             </li>
             <li>
-              Created and leading Foundation Committee to drive technical
-              excellence across LSS Business unit. Leading web UI, and mobile
-              teams.
+              For each of the areas I've influenced product vision, defined
+              strategy, established metrics, organized teams, and worked with
+              them to define a technical vision to support the goals.
             </li>
             <li>
-              Transformed search, and lead recommendations stacks driving 10x
-              increase in recommendation engagement.
+              Partnered with AI team to modernize AI tech stack. Reduced
+              turnaround to 2 weeks vs 4 months before, increased number of A/B
+              tests from an average of 1 a quarter to 5. In the first year
+              recommendations CTR increased by 10x and save action by 22%.
+            </li>
+            <li>
+              Partnered with Search Infra and led search stack modernization
+              that reduced maintenance cost from 3 person quarter to 1,
+              increased Successful Search rate by 3%.
+            </li>
+            <li>
+              Drove hardware optimization initiative which resulted in $4M
+              annual savings, improved p50 latency by ~20%.
             </li>
             <li>
               Reduced team on-call workload by 80%, by prioritizing engineering
               excellence.
             </li>
             <li>
-              Partnered with Data standardization team and improve data quality
-              and freshness.
+              Proposed and established a new process to drive overall technical
+              direction and manage foundation investments for the LSS Business
+              unit.
             </li>
             <li>
-              Partnered with AI team to modernize AI tech stack, as a result
-              reduced turn around to 2 weeks vs 4 months before.
+              Partnered with the Data and DS teams to establish search quality
+              metrics, dramatically improved freshness, consistency, and
+              accuracy, which increased Successful Search Rate by 6% and CSAT by
+              2 points.
             </li>
             <li>
               Introduced CSAT metric for gathering qualitative feedback in the
-              a/b testing.
-            </li>
-            <li>
-              Drove hardware rightsizing initiative which resulted in $4M annual
-              savings, improved query performance, relevance of results.
+              a/b tests.
             </li>
           </JobExperience.Accomplishments>
         </JobExperience>
@@ -123,50 +139,50 @@ export default async function ResumePage() {
         >
           <JobExperience.Accomplishments>
             <li>
-              Responsible for web tier of the www.realtor.com site. Leading up
-              to 3&nbsp;managers and 38&nbsp;engineers organized into
-              6&nbsp;teams.
+              Responsible for the web tier of the www.realtor.com site. Leading
+              3 managers and 38 engineers organized into 6 teams.
             </li>
             <li>
-              Proposed, managed and delivered a project that overhauled SRP
+              Proposed, managed, and delivered a project that overhauled SRP
               experience. Project increased company revenue by 9% (~35M).
             </li>
             <li>
-              Built business case for rewriting realtor.com to React. Delivered
-              project in time, exceeding project goals and meeting the company’s
-              annual growth goals. On average improved above the fold render
-              time by 45%, full page load by 40%, decreased bounce rate by 20%,
-              Increased CSAT by 2 points, increased company revenue by 3% (~15M)
+              I’ve built a business case for rewriting realtor.com to React.
+              Delivered the project in time, exceeding project goals and meeting
+              the company’s annual growth goals. On average improved
+              above-the-fold render time by 45%, full page load by 40%,
+              decreased bounce rate by 20%, Increased CSAT by 2 points, and
+              increased company revenue by 3% (~15M)
             </li>
             <li>
-              Lead rewrite of business layer API’s that drove
-              13&nbsp;people/year ongoing savings in development by spending
-              1&nbsp;person/year of effort.
+              Led rewrite of business layer APIs that drove 13 people/year
+              ongoing savings in development by spending 1 person/year of
+              effort.
             </li>
             <li>
-              Drove a 95% reduction in the umber of 500 errors driving error
-              rate from ~0.2% to ~0.01% which was attributed to 2&nbsp;point
+              Drove a 95% reduction in the number of 500 errors driving the
+              error rate from ~0.2% to ~0.01% which was attributed to 2 point
               increase in CSAT and improved SEO metrics.
             </li>
             <li>
               Collaborated with QE team to implement fully automated testing,
               which allowed moving from bi-weekly release to multiple daily
-              releases, decreasing number of defects leaking to production.
+              releases, decreasing the number of defects leaking to production.
             </li>
             <li>
-              Refined hiring process in a way that increased onsite interview
-              hire rate from 10% to 60%.
+              Refined hiring process to increase onsite interview hire rate from
+              10% to 60%.
             </li>
             <li>
               Lead web technologies center of excellence, raising frontend
               technology expertise across the company.
             </li>
-            <li>Migrated www.realtor.com to https.</li>
+            <li>Led the transition of www.realtor.com to HTTPS.</li>
             <li>
-              Contributed to embracing data-driven culture by building an
+              Contributed to embracing a data-driven culture by building an
               experimentation program. Enabled the PM team to run over 30
               experiments in the first year and increased company revenue by 21%
-              over the course of two years.
+              over two years.
             </li>
             <li>
               Drove adoption of CICD reducing release process duration from 2
@@ -184,22 +200,22 @@ export default async function ResumePage() {
         >
           <JobExperience.Accomplishments>
             <li>
-              Built HIPAA compliant, streamlined communication workflow for
-              healthcare providers recognized by KLAS and Gartner as #1 vendor
-              in the space. Solution was deployed across 100 healthcare
-              organizations and 30,000 users, driving +2M revenue.
+              Built HIPAA-compliant, streamlined communication workflow for
+              healthcare providers recognized by KLAS and Gartner as the #1
+              vendor in the space. The solution was deployed across 100
+              healthcare organizations and 30,000 users, driving ~$2M in
+              revenue. The company was acquired by PerfectServe.
             </li>
             <li>
-              Joined as 3rd employee, built engineering organization hiring
-              18&nbsp;engineers and 2&nbsp;managers into DEV (be, web, android,
-              ios), QE and DevOps roles and established engineering culture.
+              Joined as 3rd employee, built engineering organization hiring 18
+              engineers and 2 managers into DEV (be, web, android, ios), QE, and
+              DevOps roles and established engineering culture.
             </li>
             <li>Negotiated contracts with customers and vendors.</li>
             <li>
               Responsible for the technical side of our company’s RFP responses.
             </li>
-            <li>Represented company at HIMSS trade show.</li>
-            <li>Worked with research firms (KLAS and Gartner).</li>
+            <li>Represented the company at the HIMSS trade show.</li>
           </JobExperience.Accomplishments>
         </JobExperience>
 
