@@ -1,11 +1,17 @@
 {
+  "files.exclude": {
+    "**/*.pyc": {
+      "when": "$(basename).py"
+    },
+    "**/__pycache__": true
+  },
+  "search.exclude": {
+    "**/.next": true,
+    "**/node_modules/": true
+  },
   "editor.formatOnSave": true,
   "editor.formatOnPaste": true,
   "editor.linkedEditing": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "[prisma]": {
-    "editor.defaultFormatter": "Prisma.prisma"
-  },
   "editor.gotoLocation.multipleDefinitions": "goto",
   "editor.gotoLocation.multipleTypeDefinitions": "goto",
   "editor.codeActionsOnSave": {
@@ -15,9 +21,19 @@
   "editor.quickSuggestions": {
     "strings": "on"
   },
-  "search.exclude": {
-    "**/.next": true
+  "typescript.tsdk": "frontend/node_modules/typescript/lib",
+  "css.lint.unknownAtRules": "ignore",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
   },
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "css.lint.unknownAtRules": "ignore"
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  },
+  "eslint.workingDirectories": [
+    {
+      "directory": "./frontend",
+      "changeProcessCWD": true
+    }
+  ]
 }
