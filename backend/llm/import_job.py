@@ -1,71 +1,35 @@
+from langchain_community.document_loaders import WebBaseLoader
+from langchain_community.vectorstores import FAISS
+from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from langchain.chains.combine_documents import createStuffDocumentsChain
-from langchain.chains.retrieval import createRetrievalChain
-from langchain_community.document_loaders import WebBaseLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import FAISS
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-// import { MozillaReadabilityTransformer } from "@langchain/community/document_transformers/mozilla_readability";
-async def extractJobDetails(url: str):
-    chatModel = ChatOpenAI()
+
+def extractJobDetails(url: str):
+    llm = ChatOpenAI()
 
     loader = WebBaseLoader(url)
-    docs = await loader.load()
-
-    splitter = RecursiveCharacterTextSplitter()
-    # transformer = MozillaReadabilityTransformer()
-
-    # sequence = splitter.pipe(transformer)
-    # cleanedUpPage = await sequence.invoke(docs)
-
-    splitDocs = await splitter.invoke(docs, {})
-
+    docs = loader.load()
     embeddings = OpenAIEmbeddings()
 
-    vectorstore = await FAISS.fromDocuments(
-        # cleanedUpPage,
-        splitDocs,
-        embeddings,
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            # ("system",
+            # "You job is to extract job detail information from text. Text was extracted from an HTML page, and may contain irrelevant information from the page.\nRespond only with the information you can extract from page contents. Do not use any other sources of information.\n\n<page contents>\n{context}\n</page contents>\n\nRespond with just the answser to the question. Do not include the question in your response.\n",),
+            # ("user",
+            # "Question: {input}\nAnswer: ",)
+            ("system", "You are world class technical documentation writer."),
+            (
+                "user",
+                "{input}",
+            ),
+        ]
     )
+    output_parser = StrOutputParser()
 
-    prompt = ChatPromptTemplate.fromMessages([
-        [
-            "system",
-            "You job is to extract job detail information from text. Text was extracted from an HTML page, and may contain irrelevant information from the page.\nRespond only with the information you can extract from page contents. Do not use any other sources of information.\n\n<page contents>\n{context}\n</page contents>\n\nRespond with just the answser to the question. Do not include the question in your response.\n",
-        ],
-        [
-            "user",
-            "Question: {input}\nAnswer: ",
-        ],
-    ])
+    chain = prompt | llm | output_parser
 
-    documentChain = await createStuffDocumentsChain({
-        "llm": chatModel,
-        "prompt": prompt,
-    })
+    output = chain.invoke({"input": "how can langsmith help with testing?"})
 
-    retriever = vectorstore.asRetriever()
-
-    retrievalChain = await createRetrievalChain({
-        "combineDocsChain": documentChain,
-        "retriever": retriever,
-    })
-
-    jobTitle = await retrievalChain.invoke({
-        "input": "What is the job title?",
-    })
-
-    jobDescription = await retrievalChain.invoke({
-        "input": "What is the job description?",
-    })
-
-    companyName = await retrievalChain.invoke({
-        "input": "What is the company name?",
-    })
-
-    return {
-        "title": jobTitle.answer,
-        "description": jobDescription.answer,
-        "companyName": companyName.answer,
-    }
+    return chain
