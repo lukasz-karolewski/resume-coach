@@ -5,3 +5,5 @@ langchain==0.1.9
 langchain-openai==0.0.7
 beautifulsoup4==4.12.3
 faiss-cpu==1.7.4
+python-dotenv==1.0.1
+redis==5.0.2
