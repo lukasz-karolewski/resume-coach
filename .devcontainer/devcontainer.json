@@ -10,7 +10,7 @@
     "docker-compose-dev.yml"
   ],
   "service": "devcontainer",
-  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "workspaceFolder": "/workspace/${localWorkspaceFolderBasename}",
   // Features to add to the dev container. More info: https://containers.dev/features.
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
