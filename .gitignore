@@ -5,7 +5,7 @@ node_modules
 /coverage
 
 # next.js
-/.next/
+.next/
 /out/
 
 # production
