@@ -2,10 +2,6 @@ from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from langserve import add_routes
 from pirate_speak.chain import chain as pirate_speak_chain
-from dotenv import load_dotenv
-
-# take environment variables from .env.
-load_dotenv()  
 
 app = FastAPI()
 
