@@ -18,7 +18,7 @@
     "@ebay/nice-modal-react": "^1.2.13",
     "@headlessui/react": "^1.7.18",
     "@heroicons/react": "^2.0.18",
-    "@langchain/openai": "^0.0.14",
+    "@langchain/openai": "^0.0.16",
     "@lexical/react": "^0.13.0",
     "@mozilla/readability": "^0.5.0",
     "@next/bundle-analyzer": "^14.1.0",
