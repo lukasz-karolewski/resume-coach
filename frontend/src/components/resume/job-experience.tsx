@@ -1,59 +1,45 @@
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
-import { ReactNode } from "react";
+
+import { formatFromTo, toYearMonthsDuration } from "~/app/utils";
 
 dayjs.extend(duration);
 
-function JobExperience({
-  company,
-  link,
-  from,
-  to,
-  title,
-  location,
-  children,
-}: {
+interface AccomplishmentsProps {
+  items: string[];
+}
+
+interface JobExperienceItem {
   company: string;
   link?: string;
   from: Date;
   to?: Date;
   title: string;
   location: string;
-  children: ReactNode;
-}) {
-  const formattedFrom = from.toLocaleDateString("en-US", {
-    timeZone: "UTC",
-    month: "short",
-    year: "numeric",
-  });
-  const formattedTo = to
-    ? to.toLocaleDateString("en-US", {
-        timeZone: "UTC",
-        month: "short",
-        year: "numeric",
-      })
-    : "Present";
+  accomplishments: string[];
+}
 
-  const toYearMonthsDuration = (from: Date, to?: Date) => {
-    const fromDate = dayjs(from);
-    const toDate = to ? dayjs(to) : dayjs();
+interface JobExperienceItemProps {
+  job: JobExperienceItem;
+}
 
-    const totalMonths = toDate.diff(fromDate, "month", true);
-    const roundedMonths = Math.round(totalMonths);
+interface JobExperienceProps {
+  jobs: JobExperienceItem[];
+}
 
-    const years = Math.floor(roundedMonths / 12);
-    const remainingMonths = roundedMonths % 12;
+const Accomplishments: React.FC<AccomplishmentsProps> = ({ items }) => {
+  return (
+    <ul className="ml-6 list-disc break-before-avoid text-sm">
+      {items.map((item, index) => (
+        <li key={index}>{item}</li>
+      ))}
+    </ul>
+  );
+};
 
-    if (years === 0) {
-      return `${remainingMonths} m`;
-    }
-
-    if (remainingMonths === 0) {
-      return `${years} y`;
-    }
-
-    return `${years} y, ${remainingMonths} m`;
-  };
+const JobExperienceItem: React.FC<JobExperienceItemProps> = ({ job }) => {
+  const { company, link, from, to, title, location, accomplishments } = job;
+  const { formattedFrom, formattedTo } = formatFromTo(from, to);
 
   return (
     <div>
@@ -76,18 +62,18 @@ function JobExperience({
           <span>{location}</span>
         </div>
       </div>
-      {children}
+      <Accomplishments items={accomplishments} />
     </div>
   );
-}
+};
 
-JobExperience.Accomplishments = function Accomplishments({
-  children,
-}: {
-  children: ReactNode;
-}) {
+const JobExperience: React.FC<JobExperienceProps> = ({ jobs }) => {
   return (
-    <ul className="ml-6 list-disc break-before-avoid text-sm">{children}</ul>
+    <div>
+      {jobs.map((job, index) => (
+        <JobExperienceItem key={index} job={job} />
+      ))}
+    </div>
   );
 };
 

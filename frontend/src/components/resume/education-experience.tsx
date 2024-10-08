@@ -1,29 +1,56 @@
-import { ReactNode } from "react";
+import { formatFromTo } from "~/app/utils";
 
-export default function EducationExperience({
-  distinction,
-  school,
-  location,
-  link,
-  timeframe,
-  children,
-}: {
+interface EducationExperience {
   distinction: string;
-  school: string;
-  link: string;
+  institution: string;
+  link?: string;
   location: string;
-  timeframe: string;
-  children?: ReactNode;
-}) {
+  startDate: Date;
+  endDate?: Date;
+}
+
+interface EducationExperienceItemProps {
+  info: EducationExperience;
+}
+
+interface EducationExperienceProps {
+  educationList: EducationExperience[];
+}
+
+function EducationExperienceItem({ info }: EducationExperienceItemProps) {
+  const {
+    distinction,
+    institution: school,
+    location,
+    link,
+    startDate,
+    endDate,
+  } = info;
+  const { formattedFrom, formattedTo } = formatFromTo(
+    info.startDate,
+    info.endDate,
+  );
+  const timeframe = `${formattedFrom} - ${formattedTo}`;
+
   return (
     <div className="flex break-inside-avoid flex-col text-sm">
       <div className="flex justify-between">
         <strong>{school}</strong>
         <span>{timeframe}</span>
       </div>
-      <a href={link}>{distinction}</a>
+      {link ? <a href={link}>{distinction}</a> : <span>{distinction}</span>}
+    </div>
+  );
+}
 
-      {!!children && <div className="pl-2">{children}</div>}
+export default function EducationExperience({
+  educationList,
+}: EducationExperienceProps) {
+  return (
+    <div>
+      {educationList.map((education, index) => (
+        <EducationExperienceItem key={index} info={education} />
+      ))}
     </div>
   );
 }

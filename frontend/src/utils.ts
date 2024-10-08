@@ -1,4 +1,5 @@
 import { ReadonlyURLSearchParams } from "next/navigation";
+import { z } from "zod";
 
 export const createUrl = (
   pathname: string,
@@ -33,8 +34,6 @@ export function zodErrorsToString(error: any) {
   }
   return errorMessage;
 }
-
-import { z } from "zod";
 
 const emptyStringToNull = z.literal("").transform(() => null);
 

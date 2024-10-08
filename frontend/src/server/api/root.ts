@@ -1,6 +1,7 @@
 import { coachRouter } from "~/server/api/routers/coach";
 import { jobRouter } from "~/server/api/routers/job";
 import { profileRouter } from "~/server/api/routers/profile";
+import { resumeRouter } from "~/server/api/routers/resume";
 import { createTRPCRouter } from "~/server/api/trpc";
 
 /**
@@ -12,6 +13,7 @@ export const appRouter = createTRPCRouter({
   coach: coachRouter,
   job: jobRouter,
   profile: profileRouter,
+  resume: resumeRouter,
 });
 
 // export type definition of API

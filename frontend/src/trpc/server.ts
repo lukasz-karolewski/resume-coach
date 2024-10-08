@@ -45,6 +45,7 @@ export const api = createTRPCClient<typeof appRouter>({
                 getRawInput: async () => op.input,
                 ctx,
                 type: op.type,
+                signal: undefined, // Add the signal property
               });
             })
             .then((data) => {

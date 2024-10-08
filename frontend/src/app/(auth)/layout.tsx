@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 import { auth } from "~/auth";
 
@@ -10,5 +11,5 @@ export default async function AuthLayout({ children }: AuthLayoutProps) {
   const session = await auth();
   if (!session?.user) redirect("/");
 
-  return <>{children}</>;
+  return <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>;
 }

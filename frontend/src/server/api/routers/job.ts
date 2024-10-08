@@ -1,11 +1,6 @@
 import { z } from "zod";
 
-import {
-  createTRPCRouter,
-  protectedProcedure,
-  publicProcedure,
-} from "~/server/api/trpc";
-import { extractJobDetails } from "~/server/llm/getJobDetails";
+import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
 export const jobRouter = createTRPCRouter({
   getJobs: protectedProcedure.query(async ({ ctx }) => {
@@ -21,30 +16,30 @@ export const jobRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const job = await ctx.db.job.create({
-        data: {
-          userId: ctx.session.user.id!,
-          url: input.url,
-        },
-      });
+      // const job = await ctx.db.job.create({
+      //   data: {
+      //     userId: ctx.session.user.id!,
+      //     url: input.url,
+      //   },
+      // });
 
-      // TODO
-      // scrape the job details
-      // sent push notification it's done
+      // // TODO
+      // // scrape the job details
+      // // sent push notification it's done
 
-      const details = await extractJobDetails(input.url);
+      // // const details = await extractJobDetails(input.url);
 
-      await ctx.db.job.update({
-        where: {
-          id: job.id,
-        },
-        data: {
-          title: details.title,
-          description: details.description,
-          company: details.companyName,
-        },
-      });
+      // await ctx.db.job.update({
+      //   where: {
+      //     id: job.id,
+      //   },
+      //   data: {
+      //     title: details.title,
+      //     description: details.description,
+      //     company: details.companyName,
+      //   },
+      // });
 
-      return job;
+      return "job added";
     }),
 });

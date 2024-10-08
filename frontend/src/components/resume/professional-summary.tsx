@@ -1,15 +1,15 @@
 import React from "react";
 
-import Section from "./section";
-
 interface SummaryProps {
-  children: React.ReactElement<"p">[];
+  info: string[];
 }
 
-export const ProfessionalSummary: React.FC<SummaryProps> = ({ children }) => {
+export const ProfessionalSummary: React.FC<SummaryProps> = ({ info }) => {
   return (
-    <Section title="Summary">
-      <div className="flex flex-col gap-2 text-justify text-sm">{children}</div>
-    </Section>
+    <div className="flex flex-col gap-2 text-justify text-sm">
+      {info.map((item, index) => (
+        <p key={index}>{item}</p>
+      ))}
+    </div>
   );
 };

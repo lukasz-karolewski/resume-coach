@@ -1,12 +1,15 @@
 import { EnvelopeIcon, PhoneIcon } from "@heroicons/react/24/solid";
 
 type ContactInfoProps = {
-  name: string;
-  phone: string;
-  email: string;
+  contactInfo: {
+    name: string;
+    phone: string;
+    email: string;
+  };
 };
 
-export default function ContactInfo({ name, phone, email }: ContactInfoProps) {
+export default function ContactInfo({ contactInfo }: ContactInfoProps) {
+  const { name, phone, email } = contactInfo;
   return (
     <div>
       <h1 className="text-3xl">{name}</h1>
@@ -16,7 +19,7 @@ export default function ContactInfo({ name, phone, email }: ContactInfoProps) {
       </div>
       <div className="flex">
         <EnvelopeIcon className="mr-2 w-4" />
-        {/* <TextToImage text={email} /> */} {email}
+        {email}
       </div>
     </div>
   );
