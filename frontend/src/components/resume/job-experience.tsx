@@ -3,7 +3,7 @@ import duration from "dayjs/plugin/duration";
 import Markdown from "markdown-to-jsx";
 
 import { formatFromTo, toYearMonthsDuration } from "~/app/utils";
-
+import { api } from "~/trpc/react";
 dayjs.extend(duration);
 
 interface Position {
@@ -55,8 +55,12 @@ const PositionItem: React.FC<PositionItemProps> = ({
   link,
   position,
 }) => {
+  const { mutate: getReview } =
+    api.coach.reviewJobAccomplishments.useMutation();
+
   const { startDate, endDate, title, location, accomplishments } = position;
   const { formattedFrom, formattedTo } = formatFromTo(startDate, endDate);
+  const thread_id = "1234";
 
   return (
     <div className="">
@@ -71,6 +75,27 @@ const PositionItem: React.FC<PositionItemProps> = ({
         </span>
       </div>
       <Accomplishments items={accomplishments} />
+      <button
+        onClick={async () => {
+          await getReview(
+            {
+              thread_id,
+              accomplihments: accomplishments,
+              user_input: "Coach me on how to improve this",
+            },
+            {
+              onSuccess: (data) => {
+                console.log(data);
+              },
+              onError: (error) => {
+                console.error(error);
+              },
+            },
+          );
+        }}
+      >
+        review
+      </button>
     </div>
   );
 };
