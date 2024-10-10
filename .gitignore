@@ -32,3 +32,4 @@ next-env.d.ts
 #prisma dev db
 frontend/prisma/dev.db
 frontend/prisma/dev.db-journal
+frontend/coverage

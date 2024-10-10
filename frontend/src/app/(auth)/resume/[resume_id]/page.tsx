@@ -22,7 +22,7 @@ export default function ResumePage({
   }
 
   return (
-    <div className="m-auto flex max-w-4xl flex-col gap-4 bg-white p-12 shadow-lg dark:bg-gray-800 print:p-0 print:shadow-none">
+    <div className="m-auto flex max-w-4xl flex-col gap-8 bg-white p-12 shadow-lg dark:bg-gray-800 print:p-0 print:shadow-none">
       <ContactInfo contactInfo={resume.contactInfo} />
 
       <Section title="Summary">
@@ -33,8 +33,12 @@ export default function ResumePage({
         <JobExperience jobs={resume.experience} />
       </Section>
 
-      <Section title="Education">
+      <Section title="Education" layout="compact">
         <EducationExperience educationList={resume.education} />
+      </Section>
+
+      <Section title="Certificates" layout="compact">
+        <EducationExperience educationList={resume.certificates} />
       </Section>
     </div>
   );

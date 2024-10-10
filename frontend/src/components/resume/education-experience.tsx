@@ -7,6 +7,7 @@ interface EducationExperience {
   location: string;
   startDate: Date;
   endDate?: Date;
+  notes?: string;
 }
 
 interface EducationExperienceItemProps {
@@ -20,25 +21,28 @@ interface EducationExperienceProps {
 function EducationExperienceItem({ info }: EducationExperienceItemProps) {
   const {
     distinction,
-    institution: school,
+    institution,
     location,
     link,
     startDate,
     endDate,
+    notes,
   } = info;
-  const { formattedFrom, formattedTo } = formatFromTo(
-    info.startDate,
-    info.endDate,
-  );
-  const timeframe = `${formattedFrom} - ${formattedTo}`;
+  const { formattedFrom, formattedTo } = formatFromTo(startDate, endDate, true);
+
+  const timeframe =
+    formattedFrom !== formattedTo
+      ? `${formattedFrom} - ${formattedTo}`
+      : formattedFrom;
 
   return (
-    <div className="flex break-inside-avoid flex-col text-sm">
-      <div className="flex justify-between">
-        <strong>{school}</strong>
-        <span>{timeframe}</span>
-      </div>
-      {link ? <a href={link}>{distinction}</a> : <span>{distinction}</span>}
+    <div className="grid break-inside-avoid grid-cols-[1fr_auto] gap-x-4 text-sm">
+      <span className="font-bold">
+        {link ? <a href={link}>{institution}</a> : institution}
+      </span>
+      <span className="text-right">{timeframe}</span>
+      <span className="col-span-2">{distinction}</span>
+      {notes && <span className="text-xs italic">{notes}</span>}
     </div>
   );
 }
@@ -47,10 +51,10 @@ export default function EducationExperience({
   educationList,
 }: EducationExperienceProps) {
   return (
-    <div>
+    <>
       {educationList.map((education, index) => (
         <EducationExperienceItem key={index} info={education} />
       ))}
-    </div>
+    </>
   );
 }

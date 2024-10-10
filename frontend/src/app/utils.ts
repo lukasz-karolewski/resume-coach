@@ -21,11 +21,11 @@ function toYearMonthsDuration(from: Date, to?: Date) {
   return `${years} y, ${remainingMonths} m`;
 }
 
-function formatFromTo(from: Date, to?: Date) {
+function formatFromTo(from: Date, to?: Date, yearOnly: boolean = false) {
   const formatDate = (date: Date) =>
     date.toLocaleDateString("en-US", {
       timeZone: "UTC",
-      month: "short",
+      month: yearOnly ? undefined : "short",
       year: "numeric",
     });
 
