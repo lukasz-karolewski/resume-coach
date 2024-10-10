@@ -1,12 +1,11 @@
 // docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider   = "prisma-client-js"
-  engineType = "binary"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -39,20 +38,14 @@ model Session {
 }
 
 model User {
-  id                  String                @id @default(cuid())
-  name                String?
-  email               String?               @unique
-  emailVerified       DateTime?
-  image               String?
-  accounts            Account[]
-  sessions            Session[]
-  resume              Resume[]
-  Job                 Job[]
-  ContactInfo         ContactInfo[]
-  Skill               Skill[]
-  WorkExperience      WorkExperience[]
-  Education           Education[]
-  ProfessionalSummary ProfessionalSummary[]
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  Job           Job[]
 }
 
 model VerificationToken {
@@ -79,90 +72,84 @@ model Job {
   title       String?
   description String?
   notes       String?
-
-  Resume Resume[]
 }
 
 model ContactInfo {
-  userId String
-  User   User   @relation(fields: [userId], references: [id])
-
-  id        String   @id @default(cuid())
-  address   String?
-  city      String?
-  state     String?
-  zip       String?
-  phone     String?
-  email     String?
-  website   String?
-  linkedin  String?
-  github    String?
-  twitter   String?
-  instagram String?
-  facebook  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model ProfessionalSummary {
-  userId String
-  User   User   @relation(fields: [userId], references: [id])
-
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  summary String?
-}
-
-model Skill {
-  userId String
-  User   User   @relation(fields: [userId], references: [id])
-
-  id        String   @id @default(cuid())
-  name      String
-  level     Int      @default(3) // 1-5
-  createdAt DateTime @default(now())
-}
-
-model WorkExperience {
-  userId String
-  User   User   @relation(fields: [userId], references: [id])
-
-  id          String    @id @default(cuid())
-  title       String
-  company     String
-  location    String?
-  startDate   DateTime
-  endDate     DateTime?
-  isCurrent   Boolean   @default(false)
-  description String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id      Int      @id @default(autoincrement())
+  name    String
+  email   String
+  phone   String
+  Resumes Resume[]
 }
 
 model Education {
-  userId String
-  User   User   @relation(fields: [userId], references: [id])
-
-  id          String    @id @default(cuid())
-  school      String
-  degree      String
-  field       String?
-  startDate   DateTime
-  endDate     DateTime?
-  isCurrent   Boolean   @default(false)
-  description String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id            Int      @id @default(autoincrement())
+  institution   String
+  distinction   String
+  startDate     DateTime
+  endDate       DateTime
+  location      String
+  link          String
+  companyDataId Int
+  Resumes       Resume?  @relation(fields: [resumesId], references: [id])
+  resumesId     Int?
 }
 
+model Skill {
+  id            Int             @id @default(autoincrement())
+  name          String          @unique // e.g. "JavaScript"
+  SkillPosition SkillPosition[]
+}
+
+model SkillPosition {
+  id         Int      @id @default(autoincrement())
+  skillId    Int
+  positionId Int
+  Skill      Skill    @relation(fields: [skillId], references: [id])
+  Position   Position @relation(fields: [positionId], references: [id])
+}
+
+model Position {
+  id            Int             @id @default(autoincrement())
+  title         String
+  description   String?
+  Experience    Experience?     @relation(fields: [experienceId], references: [id])
+  experienceId  Int?
+  SkillPosition SkillPosition[]
+}
+
+model Experience {
+  id          Int        @id @default(autoincrement())
+  companyName String
+  link        String
+  positions   Position[]
+  Resume      Resume?    @relation(fields: [resumeId], references: [id])
+  resumeId    Int?
+}
+
+// TODO - add Section model
+// enum SectionType {
+//   CONTACT
+//   SUMMARY
+//   EXPERIENCE
+//   GENERIC_LIST
+//   EDUCATION
+// }
+
+// model Section {
+//   id       Int         @id @default(autoincrement())
+//   title    String
+//   type     SectionType
+//   Resume   Resume?     @relation(fields: [resumeId], references: [id])
+//   resumeId Int?
+// }
+
 model Resume {
-  userId String?
-  User   User?   @relation(fields: [userId], references: [id])
+  id   Int    @id @default(autoincrement())
+  name String @unique
 
-  Job   Job    @relation(fields: [jobId], references: [id])
-  jobId String
-
-  id String @id @default(cuid())
+  ContactInfo   ContactInfo? @relation(fields: [contactInfoId], references: [id])
+  contactInfoId Int?
+  Education     Education[]
+  Experience    Experience[]
 }

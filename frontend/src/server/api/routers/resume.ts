@@ -122,34 +122,18 @@ const realtor: Experience = {
       startDate: new Date("2016-10-01"),
       endDate: new Date("2019-09-30"),
       accomplishments: [
-        `Responsible for the web tier of the www.realtor.com site. Leading 3 managers and 38 engineers organized into 6 teams.`,
-        `Proposed, managed, and delivered a project that overhauled SRP experience. Project increased company revenue by 9% (~35M).`,
-        `I’ve built a business case for rewriting realtor.com to React.
-                Delivered the project in time, exceeding project goals and meeting
-                the company’s annual growth goals. On average improved
-                above-the-fold render time by 45%, full page load by 40%,
-                decreased bounce rate by 20%, Increased CSAT by 2 points, and
-                increased company revenue by 3% (~15M)`,
-        `Led rewrite of business layer APIs that drove 13 people/year
-                ongoing savings in development by spending 1 person/year of
-                effort.`,
-        `Drove a 95% reduction in the number of 500 errors driving the
-                error rate from ~0.2% to ~0.01% which was attributed to 2 point
-                increase in CSAT and improved SEO metrics.`,
-        `Collaborated with QE team to implement fully automated testing,
-                which allowed moving from bi-weekly release to multiple daily
-                releases, decreasing the number of defects leaking to production.`,
-        `Refined hiring process to increase onsite interview hire rate from
-                10% to 60%.`,
-        `Lead web technologies center of excellence, raising frontend
-                technology expertise across the company.`,
-        `Led the transition of www.realtor.com to HTTPS.`,
-        `Contributed to embracing a data-driven culture by building an
-                experimentation program. Enabled the PM team to run over 30
-                experiments in the first year and increased company revenue by 21%
-                over two years.`,
-        `Drove adoption of CICD reducing release process duration from 2
-                days to 1 hour.`,
+        `- **Lead the web tier of www.realtor.com**, overseeing 3 managers and 38 engineers across 6 teams, driving strategic initiatives and operational excellence.
+        - **Spearheaded a project to overhaul the SRP experience**, resulting in a 9% revenue increase (~$35M) for the company.
+        - **Developed and executed a business case for rewriting realtor.com in React**, delivering the project on time and exceeding growth goals. Achieved a 45% improvement in above-the-fold render time, 40% in full page load time, a 20% reduction in bounce rate, a 2-point increase in CSAT, and an additional 3% revenue increase (~$15M).
+        - **Led the rewrite of business layer APIs**, generating ongoing savings of 13 person-years in development effort while only requiring 1 person-year of investment.
+        - **Achieved a 95% reduction in 500 errors**, decreasing the error rate from ~0.2% to ~0.01%, which contributed to a 2-point increase in CSAT and enhanced SEO performance.
+        - **Collaborated with the Quality Engineering team to implement fully automated testing**, enabling a shift from bi-weekly releases to multiple daily releases and significantly reducing production defects.
+        - **Refined the hiring process**, increasing the onsite interview hire rate from 10% to 60%, enhancing team capabilities.
+        - **Established a web technologies center of excellence**, elevating frontend technology expertise across the organization.
+        - **Led the successful transition of www.realtor.com to HTTPS**, enhancing site security and user trust.
+        - **Contributed to a data-driven culture by building an experimentation program**, enabling the PM team to conduct over 30 experiments in the first year, resulting in a 21% revenue increase over two years.
+        - **Drove the adoption of Continuous Integration/Continuous Deployment (CICD)**, reducing the release process duration from 2 days to 1 hour, significantly improving deployment efficiency.
+        `,
       ],
     },
   ],
