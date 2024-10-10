@@ -1,15 +1,21 @@
 import Link from "next/link";
-import { ReactNode, HTMLAttributes } from "react";
+import { HTMLAttributes, ReactNode } from "react";
 
 interface SectionProps extends HTMLAttributes<HTMLDivElement> {
   title: string;
   children: ReactNode;
+  layout?: "standard" | "compact";
 }
 
-const Section = ({ title, children, ...rest }: SectionProps) => (
-  <div className="group flex flex-col gap-4" {...rest}>
+const Section = ({
+  title,
+  children,
+  layout = "standard",
+  ...rest
+}: SectionProps) => (
+  <div className="group" {...rest}>
     <h2
-      className={`sticky top-0 flex flex-row justify-between border-b-2 border-b-gray-300 bg-white text-2xl font-semibold`}
+      className={`top-0 mb-4 flex flex-row justify-between border-b-2 border-b-gray-300 bg-white text-2xl font-semibold`}
     >
       {title}
 
@@ -17,8 +23,11 @@ const Section = ({ title, children, ...rest }: SectionProps) => (
         <Link href={`/summary`}>edit</Link>
       </div>
     </h2>
-
-    {children}
+    <div
+      className={`flex flex-col ${layout == "standard" && "gap-8"}  ${layout == "compact" && "gap-4"}`}
+    >
+      {children}
+    </div>
   </div>
 );
 
