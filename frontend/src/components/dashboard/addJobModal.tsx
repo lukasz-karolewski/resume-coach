@@ -1,5 +1,4 @@
 import NiceModal, { useModal } from "@ebay/nice-modal-react";
-import { Job } from "@prisma/client";
 import { SubmitHandler, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 
@@ -12,7 +11,9 @@ import { zodErrorsToString } from "~/utils";
 import FormField from "../ui/form-field";
 import { Input } from "../ui/input";
 
-interface AddJobModalProps {}
+interface AddJobModalProps {
+  a?: string;
+}
 type FormValues = RouterInputs["job"]["addJob"];
 
 export const AddJobModal = NiceModal.create<AddJobModalProps>(() => {
