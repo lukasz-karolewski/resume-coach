@@ -1,75 +1,93 @@
 // docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider   = "prisma-client-js"
-  engineType = "binary"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// Auth
+// region Auth
+model User {
+  id            String          @id @default(cuid())
+  name          String?
+  email         String          @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  // Optional for WebAuthn support
+  Authenticator Authenticator[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Job       Job[]
+}
+
 model Account {
-  id                String  @id @default(cuid())
   userId            String
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? //@db.Text
-  access_token      String? //@db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? //@db.Text
+  id_token          String?
   session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([provider, providerAccountId])
+  @@id([provider, providerAccountId])
 }
 
 model Session {
-  id           String   @id @default(cuid())
   sessionToken String   @unique
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
 
-model User {
-  id                  String                @id @default(cuid())
-  name                String?
-  email               String?               @unique
-  emailVerified       DateTime?
-  image               String?
-  accounts            Account[]
-  sessions            Session[]
-  resume              Resume[]
-  Job                 Job[]
-  ContactInfo         ContactInfo[]
-  Skill               Skill[]
-  WorkExperience      WorkExperience[]
-  Education           Education[]
-  ProfessionalSummary ProfessionalSummary[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model VerificationToken {
   identifier String
-  token      String   @unique
+  token      String
   expires    DateTime
 
-  @@unique([identifier, token])
+  @@id([identifier, token])
 }
 
-// end Auth
+// Optional for WebAuthn support
+model Authenticator {
+  credentialID         String  @unique
+  userId               String
+  providerAccountId    String
+  credentialPublicKey  String
+  counter              Int
+  credentialDeviceType String
+  credentialBackedUp   Boolean
+  transports           String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, credentialID])
+}
+
+// endregion Auth
 
 // App models
 
 model Job {
   userId String
-  User   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
 
   id        String   @id @default(cuid())
   url       String   @unique
@@ -80,89 +98,123 @@ model Job {
   description String?
   notes       String?
 
-  Resume Resume[]
+  resume Resume[]
 }
 
 model ContactInfo {
-  userId String
-  User   User   @relation(fields: [userId], references: [id])
-
-  id        String   @id @default(cuid())
-  address   String?
-  city      String?
-  state     String?
-  zip       String?
-  phone     String?
-  email     String?
-  website   String?
-  linkedin  String?
-  github    String?
-  twitter   String?
-  instagram String?
-  facebook  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id      Int      @id @default(autoincrement())
+  name    String
+  email   String
+  phone   String
+  resumes Resume[]
 }
 
-model ProfessionalSummary {
-  userId String
-  User   User   @relation(fields: [userId], references: [id])
+model Position {
+  id Int @id @default(autoincrement())
 
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  title           String
+  startDate       DateTime
+  endDate         DateTime
+  location        String
+  accomplishments String
 
-  summary String?
+  experienceId Int?
+  experience   Experience? @relation(fields: [experienceId], references: [id])
+
+  skillPosition PositionSkill[]
+
+  @@index([experienceId])
+}
+
+model Experience {
+  id Int @id @default(autoincrement())
+
+  companyName String
+  link        String
+  positions   Position[]
+  Resume      Resume[]
+}
+
+// Enum for Education type
+enum EducationType {
+  EDUCATION
+  CERTIFICATION
 }
 
 model Skill {
-  userId String
-  User   User   @relation(fields: [userId], references: [id])
-
-  id        String   @id @default(cuid())
-  name      String
-  level     Int      @default(3) // 1-5
-  createdAt DateTime @default(now())
+  id            Int             @id @default(autoincrement())
+  name          String          @unique // e.g. "JavaScript"
+  positionSkill PositionSkill[]
 }
 
-model WorkExperience {
-  userId String
-  User   User   @relation(fields: [userId], references: [id])
+model PositionSkill {
+  id Int @id @default(autoincrement())
 
-  id          String    @id @default(cuid())
-  title       String
-  company     String
-  location    String?
-  startDate   DateTime
-  endDate     DateTime?
-  isCurrent   Boolean   @default(false)
-  description String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  positionId Int
+  skillId    Int
+
+  position Position @relation(fields: [positionId], references: [id])
+  skill    Skill    @relation(fields: [skillId], references: [id])
+
+  @@unique([positionId, skillId])
 }
 
 model Education {
-  userId String
-  User   User   @relation(fields: [userId], references: [id])
+  id Int @id @default(autoincrement())
 
-  id          String    @id @default(cuid())
-  school      String
-  degree      String
-  field       String?
+  type        EducationType
+  institution String
+  distinction String
   startDate   DateTime
-  endDate     DateTime?
-  isCurrent   Boolean   @default(false)
-  description String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  endDate     DateTime
+  location    String
+  link        String
+  notes       String
+  Resume      Resume[]
+}
+
+model Patent {
+  id Int @id @default(autoincrement())
+
+  title       String   @db.VarChar(255) // Add length constraint
+  description String   @db.Text
+  link        String   @db.VarChar(255)
+  date        DateTime
+}
+
+enum SectionType {
+  EXPERIENCE     @map("Experience")
+  EDUCATION      @map("Education")
+  CERTIFICATION  @map("Certification")
+  SKILLS_SUMMARY @map("Skills Summary")
+  PATENTS        @map("Patents")
+}
+
+model Section {
+  id Int @id @default(autoincrement())
+
+  title String      @db.VarChar(255) // Add length constraint
+  type  SectionType
+
+  resume   Resume? @relation(fields: [resumeId], references: [id])
+  resumeId Int?
 }
 
 model Resume {
-  userId String?
-  User   User?   @relation(fields: [userId], references: [id])
+  id   Int    @id @default(autoincrement())
+  name String @unique @default("Default Resume")
 
-  Job   Job    @relation(fields: [jobId], references: [id])
-  jobId String
+  // base resume has a null jobId
+  jobId String?
+  Job   Job?    @relation(fields: [jobId], references: [id])
 
-  id String @id @default(cuid())
+  contactInfoId Int?
+  contactInfo   ContactInfo? @relation(fields: [contactInfoId], references: [id])
+  summary       String       @default("")
+
+  sections     Section[]
+  education    Education?  @relation(fields: [educationId], references: [id])
+  educationId  Int?
+  experience   Experience? @relation(fields: [experienceId], references: [id])
+  experienceId Int?
 }
