@@ -39,13 +39,31 @@ interface JobExperienceProps {
 }
 
 const Accomplishments: React.FC<AccomplishmentsProps> = ({ items }) => {
+  if (items.length === 1) {
+    return (
+      <p className="text-sm">
+        <Markdown>{items[0]}</Markdown>
+      </p>
+    );
+  }
+
   return (
     <ul className="ml-6 list-disc break-before-avoid text-sm">
-      {items.map((item, index) => (
-        <li key={index}>
-          <Markdown>{item}</Markdown>
-        </li>
-      ))}
+      {items.map((item, index) => {
+        const trimmed = item.trim();
+        if (trimmed.startsWith("**")) {
+          return (
+            <span key={index}>
+              <Markdown>{trimmed}</Markdown>
+            </span>
+          );
+        }
+        return (
+          <li key={index}>
+            <Markdown>{trimmed}</Markdown>
+          </li>
+        );
+      })}
     </ul>
   );
 };
@@ -75,7 +93,7 @@ const PositionItem: React.FC<PositionItemProps> = ({
         </span>
       </div>
       <Accomplishments items={accomplishments} />
-      <button
+      {/* <button
         onClick={async () => {
           await getReview(
             {
@@ -95,7 +113,7 @@ const PositionItem: React.FC<PositionItemProps> = ({
         }}
       >
         review
-      </button>
+      </button> */}
     </div>
   );
 };
