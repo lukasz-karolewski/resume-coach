@@ -40,3 +40,11 @@ const emptyStringToNull = z.literal("").transform(() => null);
 export function emptyToNull<T extends z.ZodTypeAny>(schema: T) {
   return schema.nullable().or(emptyStringToNull);
 }
+
+export function normalizeWhitespace(text: string): string {
+  return text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join(" ");
+}
