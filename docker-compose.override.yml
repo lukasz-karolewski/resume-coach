@@ -15,16 +15,16 @@ services:
   #   volumes:
   #     - caddy_data:/data
 
-  celery-flower:
-    restart: unless-stopped
-    image: "iserko/docker-celery-flower:latest"
-    entrypoint: "flower --port=5555 --broker_api=http://${RABBIT_USER-mtando}:${RABBIT_PASS-mtando}@${RABBIT_HOST-rabbitmq}:15672/api/"
-    environment:
-      - CELERY_BROKER_URL=amqp://${RABBIT_USER-mtando}:${RABBIT_PASS-mtando}@${RABBIT_HOST-rabbitmq}:5672/${RABBIT_VHOST-mymoney}
-    depends_on:
-      - rabbitmq
-    ports:
-      - 5555:5555
+  # celery-flower:
+  #   restart: unless-stopped
+  #   image: "iserko/docker-celery-flower:latest"
+  #   entrypoint: "flower --port=5555 --broker_api=http://${RABBIT_USER-mtando}:${RABBIT_PASS-mtando}@${RABBIT_HOST-rabbitmq}:15672/api/"
+  #   environment:
+  #     - CELERY_BROKER_URL=amqp://${RABBIT_USER-mtando}:${RABBIT_PASS-mtando}@${RABBIT_HOST-rabbitmq}:5672/${RABBIT_VHOST-mymoney}
+  #   depends_on:
+  #     - rabbitmq
+  #   ports:
+  #     - 5555:5555
 
   redis-commander:
     restart: unless-stopped
