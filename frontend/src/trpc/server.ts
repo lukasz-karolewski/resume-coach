@@ -40,12 +40,12 @@ export const api = createTRPCClient<typeof appRouter>({
           createContext()
             .then((ctx) => {
               return callTRPCProcedure({
-                procedures: appRouter._def.procedures,
-                path: op.path,
-                getRawInput: async () => op.input,
                 ctx,
+                getRawInput: async () => await op.input,
+                path: op.path,
+                router: appRouter,
+                signal: undefined, // Optional AbortSignal for cancellation - not needed in RSC context
                 type: op.type,
-                signal: undefined, // Add the signal property
               });
             })
             .then((data) => {
