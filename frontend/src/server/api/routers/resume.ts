@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import { normalizeWhitespace } from "~/utils";
 
 interface ContactInfo {
   name: string;
@@ -55,35 +56,37 @@ const linkedIn: Experience = {
   link: "https://linkedin.com",
   positions: [
     {
-      title: "Sr Manager, Engineering",
-      startDate: new Date("2022-11-01"),
+      title: "Sr Staff Engineer",
+      startDate: new Date("2024-03-01"),
       location: "Sunnyvale, CA",
       accomplishments: [
-        `Delivered ~$100M incremental revenue by launching four Gen AI
-            features to market - Account IQ, LeadIQ, Message Assist, and
-            AI-Assisted Search.`,
+        `Tech lead for Prospecting Agent, defining product and technical vision for organization of 120 engineers`,
+      ].map((item) => normalizeWhitespace(item)),
+    },
+    {
+      title: "Sr Manager, Engineering",
+      startDate: new Date("2022-12-01"),
+      endDate: new Date("2024-02-30"),
+      location: "Sunnyvale, CA",
+      accomplishments: [
+        `Delivered fastest-growing enterprise product at LinkedIn, generated ~$100M ARR lift.`,
         `Defined product vision, influenced GTM strategy and designs,
             created teams, defined technical vision, and roadmap, and drove
             execution, including trust requirements, and automatic evaluation.
-            Working directly with CPO and presenting to the CEO every month.`,
+            Regularly presenting to the executive team.`,
         `Influenced LI GenAI tech stack, by actively collaborating with
             infra teams.`,
         `Filed 2 patent applications, which were key to the product's
             success.`,
-        `Significantly contributed to shaping the long-term strategy for
-            the entire LOB.`,
-      ],
+      ].map((item) => normalizeWhitespace(item)),
     },
     {
       title: "Sr Manager, Engineering",
       startDate: new Date("2019-09-09"),
-      endDate: new Date("2022-10-31"),
+      endDate: new Date("2022-11-30"),
       location: "Sunnyvale, CA",
       accomplishments: [
-        `Responsible for 80% of value prop of the 1.5B B2B product, growing
-            ~20% yoy. Leading lead finding (search & recommendations),
-            outreach (messaging). mobile apps and technical direction for the
-            Sales Navigator.`,
+        `Led core capabilities of $1.5B B2B product, achieving ~20% YoY growth through innovative lead-finding, search, and messaging strategies.`,
         `For each of the areas I've influenced product vision, defined
             strategy, established metrics, organized teams, and worked with
             them to define a technical vision to support the goals.`,
@@ -105,9 +108,7 @@ const linkedIn: Experience = {
             metrics, dramatically improved freshness, consistency, and
             accuracy, which increased Successful Search Rate by 6% and CSAT by
             2 points.`,
-        `Introduced CSAT metric for gathering qualitative feedback in the
-            a/b tests.`,
-      ],
+      ].map((item) => normalizeWhitespace(item)),
     },
   ],
 };
@@ -150,7 +151,7 @@ const realtor: Experience = {
                 over two years.`,
         `Drove adoption of CICD reducing release process duration from 2
                 days to 1 hour.`,
-      ],
+      ].map((item) => normalizeWhitespace(item)),
     },
   ],
 };
@@ -162,21 +163,15 @@ const telmediq: Experience = {
     {
       title: "CTO and VP of Engineering",
       location: "Victoria, BC",
-      startDate: new Date("2015-06-01"),
+      startDate: new Date("2014-09-01"),
       endDate: new Date("2016-10-30"),
       accomplishments: [
-        `Built HIPAA-compliant, streamlined communication workflow for
-            healthcare providers recognized by KLAS and Gartner as the #1
-            vendor in the space. The solution was deployed across 100
-            healthcare organizations and 30,000 users, driving ~$2M in
-            revenue. The company was acquired by PerfectServe.`,
-        `Joined as 3rd employee, built engineering organization hiring 18
-            engineers and 2 managers into DEV (be, web, android, ios), QE, and
-            DevOps roles and established engineering culture.`,
-        `Negotiated contracts with customers and vendors.`,
-        `Responsible for the technical side of our company’s RFP responses.`,
-        `Represented the company at the HIMSS trade show`,
-      ],
+        `Joined as 3rd employee, built engineering organization hiring 18 engineers and 2 managers into DEV (be, web, android, ios), QE, and DevOps roles and established engineering culture.`,
+        `Led the development of a HIPAA compliant communication workflow for healthcare providers, recognized as the #1 vendor by KLAS and Gartner and acquired by PerfectServe.`,
+        `Collaborated with the CEO to define product strategy and establish company culture.`,
+        `Negotiated contracts with customers and vendors, and handled the technical side of RFPs.`,
+        `Represented TelmedIQ at trade shows and worked closely with research firms.`,
+      ].map((item) => normalizeWhitespace(item)),
     },
   ],
 };
@@ -192,44 +187,17 @@ const symantec: Experience = {
       location: "Mountain View, CA",
       accomplishments: [
         `**Enterprise Security Group**`,
-        `As a frontend architect, I was overseeing the migration of 8 
-              Symantec cloud-based products into angular, coaching and
-              mentoring frontend teams of those products.`,
-        `Initiated 'Symantec open source' ecosystem to enhance
-              collaboration across teams.`,
-        `Introduced git as an officially supported code repository.
-              Proposed to CTO as a productivity improvement and built a
-              cross-organizational support for the initiative.`,
-        `Responsible for a complete redesign of a legacy web application
-              into a SPA Angular.`,
-        `Achieved 70% code coverage in unit tests for frontend,
-              designed and implemented e2e automation reducing the number of
-              defects by 60%.`,
+        `Led migration of 8 Symantec cloud products to Angular; mentored frontend development teams.`,
+        `Initiated 'Symantec Open Source' program, creating company wide-leverage.`,
+        `Introduced Git as the official code repository, securing executive support and company-wide adoption.`,
+        `Achieved 70% frontend unit test coverage; implemented e2e automation, reducing bug introduction rate by 60%.`,
         `**Information Security Group**`,
-        `- VIP Intelligent Authentication Services Development Team.
-              Responsible for the design and implementation of multi-tiered
-              enterprise web applications as well as web services. Actively
-              participating in all phases of the software development life
-              cycle including requirement analysis, design, implementation,
-              and testing. Actively involved in the deployment of web
-              application and services to data centers as well as helping
-              resolve technical issues faced by customers while using the
-              product.`,
-        `SQL query optimization`,
-        `Redesigned build process migrating it from Ant to Gradle
-              reducing build time from 15 min to under 1 min.`,
-        `Created a new deployment model that utilized rpm and enabled
-              fully automatic deployment. Reduced deploy time to 1 hour from
-              3-day manual process before
-              `,
+        `Optimized SQL queries for VIP Intelligent Authentication Services.`,
+        `Reduced build time from 15 minutes to under 1 minute by migrating build system from Ant to Gradle`,
+        `Reduced deployment time from 3 days to 1 hour by automating CiCD pipeline.`,
         `**Internationalization team**`,
-        `Responsible for end to end analysis, design and implementation
-                of i18n features for multiple products in Information Security
-                Group.`,
-        `Created a localization process and built tooling to automate
-                localization. Used by 3 products to automate testing and
-                translation into 14 languages.`,
-      ],
+        `Designed and implemented comprehensive internationalization (i18n) strategies, tooling and process across multiple security products, translated into 14 languages.`,
+      ].map((item) => normalizeWhitespace(item)),
     },
   ],
 };
@@ -244,12 +212,10 @@ const simple: Experience = {
       startDate: new Date("2007-08-01"),
       endDate: new Date("2008-08-31"),
       accomplishments: [
-        `As a part of a four-member team designed and implemented a
-          prototype of automated supply chain management system that based
-          on inventory thresholds inquired for quotes, based on user-defined
-          criteria picked the best bid, tracked payments and shipments. It
-          was an extension of a well established ERP.`,
-      ],
+        `Designed and implemented a prototype of automated supply chain management system that based
+          on inventory thresholds inquired for quotes, picked the best bid, tracked payments and shipments. 
+          It was an extension for a market leading ERP.`,
+      ].map((item) => normalizeWhitespace(item)),
     },
   ],
 };
@@ -268,7 +234,7 @@ const internet: Experience = {
           community of about 40 users. Built all of the systems to support
           operations, most notably: billing, traffic shaping, captive portal
           for device registration. Sold business to a larger ISP.`,
-      ],
+      ].map((item) => normalizeWhitespace(item)),
     },
   ],
 };
@@ -356,23 +322,12 @@ export const resumeRouter = createTRPCRouter({
         base: {
           contactInfo,
           professionalSummary: [
-            `I'm an accomplished engineering leader with over a decade of
-            experience, I am well-positioned to excel in a Director of Engineering
-            role. My expertise in leading cross-functional teams, driving product
-            development, and implementing effective engineering processes has
-            resulted in numerous successful product launches and revenue growth.
-            My strategic thinking, technical acumen, and collaborative leadership
-            style enable me to build high-performing teams and foster a culture of
-            innovation. I have managed managers and grown senior IC talent. I am
-            passionate about using my skills to drive business outcomes and
-            deliver exceptional customer experiences.`,
-            `Recently I've been working on utilizing the power of LLMs to create
-            new, impossible-before products and delved into prompt engineering,
-            EBR, RAG, LLM fine-tuning, LangChain, and LLM agents. My experience
-            also includes managing the ROI of these investments. Additionally, I
+            `Accomplished engineering leader with over a decade driving product innovation, strategic vision, and substantial revenue growth through high-performing teams. Expert in LLM-driven solutions, search technologies, AI modernization, and operational efficiency. Known for fostering innovation, mentoring top talent, and consistently exceeding business goals.`,
+            `Recently I've been focused on taming the power of LLMs to create
+            impossible-before products and delved into world of agents, prompt engineering,
+            EBR, RAG, evals and LLM fine-tuning. My experience also includes managing the ROI of these investments. Additionally, I
             have experience with search, large-scale applications, A/B testing,
-            SEO, leading large technology migrations without disrupting business,
-            and driving tech excellence in organizations.`,
+            SEO, Growth, leading large technology migrations, and driving tech excellence in organizations.`,
           ],
           experience: [
             {
