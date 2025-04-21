@@ -15,7 +15,7 @@
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
     "ghcr.io/devcontainers/features/node": "latest",
-    "ghcr.io/devcontainers/features/python": "3.11"
+    "ghcr.io/devcontainers/features/python": "3.13"
   },
   "postCreateCommand": "pip install poetry && poetry config virtualenvs.create false",
   "shutdownAction": "stopCompose",
@@ -37,7 +37,9 @@
         "Prisma.prisma",
         "bradlc.vscode-tailwindcss",
         "dbaeumer.vscode-eslint",
-        "Orta.vscode-jest"
+        "Orta.vscode-jest",
+        "ms-python.black-formatter",
+        "ms-python.isort"
       ]
     }
   },
