@@ -4,7 +4,7 @@ import { createTRPCClient, loggerLink, TRPCClientError } from "@trpc/client";
 import { callTRPCProcedure } from "@trpc/server";
 import { observable } from "@trpc/server/observable";
 import { type TRPCErrorResponse } from "@trpc/server/rpc";
-import { cookies } from "next/headers";
+import { cookies, type UnsafeUnwrappedCookies } from "next/headers";
 import { cache } from "react";
 
 import { appRouter } from "~/server/api/root";
@@ -17,7 +17,7 @@ import { createTRPCContext } from "~/server/api/trpc";
 const createContext = cache(() => {
   return createTRPCContext({
     headers: new Headers({
-      cookie: cookies().toString(),
+      cookie: (cookies() as unknown as UnsafeUnwrappedCookies).toString(),
       "x-trpc-source": "rsc",
     }),
   });

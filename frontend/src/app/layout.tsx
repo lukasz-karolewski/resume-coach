@@ -26,7 +26,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
       <body className={clsx(font.className, "min-w-96")}>
-        <TRPCReactProvider cookies={cookies().toString()}>
+        <TRPCReactProvider cookies={(await cookies()).toString()}>
           <NiceModalProviderWrapper>
             <TopNav />
             <main className="relative min-h-screen bg-gray-100 p-6 dark:bg-gray-900">

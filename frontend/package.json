@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev --turbo",
+    "dev": "next dev --turbopack",
     "vsdebug": "next dev",
     "build": "next build",
     "analyze": "ANALYZE=true npm run build",
@@ -22,7 +22,7 @@
     "@langchain/openai": "^0.5.6",
     "@lexical/react": "^0.30.0",
     "@mozilla/readability": "^0.6.0",
-    "@next/bundle-analyzer": "^15.3.1",
+    "@next/bundle-analyzer": "15.3.1",
     "@prisma/client": "^6.6.0",
     "@radix-ui/react-avatar": "^1.1.6",
     "@radix-ui/react-dialog": "^1.1.10",
@@ -43,10 +43,10 @@
     "langchain": "^0.3.23",
     "lexical": "^0.30.0",
     "markdown-to-jsx": "^7.7.4",
-    "next": "^14.0.3",
+    "next": "15.3.1",
     "next-auth": "^5.0.0-beta.13",
-    "react": "^18",
-    "react-dom": "^18",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
     "react-hook-form": "^7.56.0",
     "react-hot-toast": "^2.5.2",
     "server-only": "^0.0.1",
@@ -59,12 +59,12 @@
     "@testing-library/react": "^16.0.1",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.7.5",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
+    "@types/react": "19.1.2",
+    "@types/react-dom": "19.1.2",
     "@typescript-eslint/eslint-plugin": "^8.8.1",
     "autoprefixer": "^10.4.20",
     "eslint": "^8.56.0",
-    "eslint-config-next": "^14.2.14",
+    "eslint-config-next": "15.3.1",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "^5.2.1",
@@ -78,5 +78,9 @@
     "tailwindcss": "^3.3.0",
     "ts-node": "^10.9.2",
     "typescript": "^5"
+  },
+  "overrides": {
+    "@types/react": "19.1.2",
+    "@types/react-dom": "19.1.2"
   }
 }
