@@ -2,7 +2,7 @@
 /* eslint-disable react/no-unescaped-entities */
 
 import NiceModal from "@ebay/nice-modal-react";
-import React from "react";
+import type React from "react";
 
 import { AddJobModal } from "~/components/dashboard/addJobModal";
 import { Button } from "~/components/ui/button";

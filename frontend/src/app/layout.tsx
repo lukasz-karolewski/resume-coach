@@ -14,8 +14,8 @@ import "./styles.css";
 const font = Noto_Serif({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Resume Coach",
   description: "AI Resume Builder",
+  title: "Resume Coach",
 };
 
 interface RootLayoutProps {

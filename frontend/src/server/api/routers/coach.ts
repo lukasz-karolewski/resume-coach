@@ -19,8 +19,8 @@ export const coachRouter = createTRPCRouter({
   reviewJobAccomplishments: protectedProcedure
     .input(
       z.object({
-        thread_id: z.string(),
         accomplihments: z.array(z.string()),
+        thread_id: z.string(),
         user_input: z.string(),
       }),
     )
@@ -73,8 +73,8 @@ export const coachRouter = createTRPCRouter({
       const config = { configurable: { thread_id: thread_id || uuidv4() } };
       const messages = [
         {
-          role: "user",
           content: user_input,
+          role: "user",
         },
       ];
 

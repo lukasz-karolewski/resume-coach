@@ -1,7 +1,7 @@
 "use client";
 
 import { Avatar } from "@radix-ui/react-avatar";
-import React from "react";
+import type React from "react";
 
 const Assistant: React.FC = () => {
   return (

@@ -46,8 +46,8 @@ interface DB {
 }
 
 const contactInfo: ContactInfo = {
-  name: "Lukasz Karolewski",
   email: "lkarolewski@gmail.com",
+  name: "Lukasz Karolewski",
   phone: "408 680 9149",
 };
 
@@ -56,22 +56,17 @@ const linkedIn: Experience = {
   link: "https://linkedin.com",
   positions: [
     {
-      title: "Sr Staff Engineer",
-      startDate: new Date("2024-03-01"),
-      location: "Sunnyvale, CA",
       accomplishments: [
         `Tech lead for Sales Assistant, defining product and technical vision for organization of 120 engineers`,
         `Driving AI strategy for Sales Navigator, including integration with MSFT Copilot for Sales`,
         `Leading cross-functional teams to deliver AI-driven features, collaborating closely with PM, Design, Data Science, and Infra teams to ensure alignment with strategic goals.`,
         `Mentoring engineering leaders and fostering a culture of innovation and technical excellence.`,
-        
       ].map((item) => normalizeWhitespace(item)),
+      location: "Sunnyvale, CA",
+      startDate: new Date("2024-03-01"),
+      title: "Sr Staff Engineer",
     },
     {
-      title: "Sr Manager, Engineering",
-      startDate: new Date("2022-12-01"),
-      endDate: new Date("2024-02-30"),
-      location: "Sunnyvale, CA",
       accomplishments: [
         `Delivered Account IQ - fastest-growing enterprise product at LinkedIn, generated ~$50M ARR lift in 6 months.`,
         `Defined product vision, influenced GTM strategy and designs,
@@ -83,12 +78,12 @@ const linkedIn: Experience = {
         `Filed 2 patent applications, which were key to the product's
             success.`,
       ].map((item) => normalizeWhitespace(item)),
+      endDate: new Date("2024-02-30"),
+      location: "Sunnyvale, CA",
+      startDate: new Date("2022-12-01"),
+      title: "Sr Manager, Engineering",
     },
     {
-      title: "Sr Manager, Engineering",
-      startDate: new Date("2019-09-09"),
-      endDate: new Date("2022-11-30"),
-      location: "Sunnyvale, CA",
       accomplishments: [
         `Led LinkedIn's Sales Solutions search, messaging and mobile teams.`,
         `For each of the areas I've influenced product vision, defined
@@ -113,6 +108,10 @@ const linkedIn: Experience = {
             accuracy, which increased Successful Search Rate by 6% and CSAT by
             2 points.`,
       ].map((item) => normalizeWhitespace(item)),
+      endDate: new Date("2022-11-30"),
+      location: "Sunnyvale, CA",
+      startDate: new Date("2019-09-09"),
+      title: "Sr Manager, Engineering",
     },
   ],
 };
@@ -122,10 +121,6 @@ const realtor: Experience = {
   link: "https://www.realtor.com/",
   positions: [
     {
-      title: "Sr Manager, Engineering",
-      location: "Santa Clara, CA",
-      startDate: new Date("2016-10-01"),
-      endDate: new Date("2019-09-30"),
       accomplishments: [
         `Responsible for the web tier of the www.realtor.com site. Leading 3 managers and 38 engineers organized into 6 teams.`,
         `Proposed, managed, and delivered a project that overhauled SRP experience. Project increased company revenue by 9% (~35M).`,
@@ -156,6 +151,10 @@ const realtor: Experience = {
         `Drove adoption of CICD reducing release process duration from 2
                 days to 1 hour.`,
       ].map((item) => normalizeWhitespace(item)),
+      endDate: new Date("2019-09-30"),
+      location: "Santa Clara, CA",
+      startDate: new Date("2016-10-01"),
+      title: "Sr Manager, Engineering",
     },
   ],
 };
@@ -165,10 +164,6 @@ const telmediq: Experience = {
   link: "https://www.telmediq.com/",
   positions: [
     {
-      title: "CTO and VP of Engineering",
-      location: "Victoria, BC",
-      startDate: new Date("2014-09-01"),
-      endDate: new Date("2016-10-30"),
       accomplishments: [
         `Joined as 3rd employee, built engineering organization hiring 18 engineers and 2 managers into DEV (be, web, android, ios), QE, and DevOps roles and established engineering culture.`,
         `Led the development of a HIPAA compliant communication workflow for healthcare providers, recognized as the #1 vendor by KLAS and Gartner and acquired by PerfectServe.`,
@@ -176,6 +171,10 @@ const telmediq: Experience = {
         `Negotiated contracts with customers and vendors, and handled the technical side of RFPs.`,
         `Represented TelmedIQ at trade shows and worked closely with research firms.`,
       ].map((item) => normalizeWhitespace(item)),
+      endDate: new Date("2016-10-30"),
+      location: "Victoria, BC",
+      startDate: new Date("2014-09-01"),
+      title: "CTO and VP of Engineering",
     },
   ],
 };
@@ -185,10 +184,6 @@ const symantec: Experience = {
   link: "https://www.symantec.com/",
   positions: [
     {
-      title: "Principal Software Engineer",
-      startDate: new Date("2008-09-01"),
-      endDate: new Date("2015-06-31"),
-      location: "Mountain View, CA",
       accomplishments: [
         `**Enterprise Security Group**`,
         `Led migration of 8 Symantec cloud products to Angular; mentored frontend development teams.`,
@@ -202,6 +197,10 @@ const symantec: Experience = {
         `**Internationalization team**`,
         `Designed and implemented comprehensive internationalization (i18n) strategies, tooling and process across multiple security products, translated into 14 languages.`,
       ].map((item) => normalizeWhitespace(item)),
+      endDate: new Date("2015-06-31"),
+      location: "Mountain View, CA",
+      startDate: new Date("2008-09-01"),
+      title: "Principal Software Engineer",
     },
   ],
 };
@@ -211,15 +210,15 @@ const simple: Experience = {
   link: "https://www.simple.com/",
   positions: [
     {
-      title: "Software Engineer",
-      location: "Warsaw, Poland",
-      startDate: new Date("2007-08-01"),
-      endDate: new Date("2008-08-31"),
       accomplishments: [
         `Designed and implemented a prototype of automated supply chain management system that based
           on inventory thresholds inquired for quotes, picked the best bid, tracked payments and shipments. 
           It was an extension for a market leading ERP.`,
       ].map((item) => normalizeWhitespace(item)),
+      endDate: new Date("2008-08-31"),
+      location: "Warsaw, Poland",
+      startDate: new Date("2007-08-01"),
+      title: "Software Engineer",
     },
   ],
 };
@@ -228,17 +227,16 @@ const internet: Experience = {
   company: "Fast Internet",
   positions: [
     {
-      title: "Founder",
-      location: "Warsaw, Poland",
-      startDate: new Date("2004-09-01"),
-      endDate: new Date("2010-08-31"),
-
       accomplishments: [
         `Started a business providing broadband internet to a local
           community of about 40 users. Built all of the systems to support
           operations, most notably: billing, traffic shaping, captive portal
           for device registration. Sold business to a larger ISP.`,
       ].map((item) => normalizeWhitespace(item)),
+      endDate: new Date("2010-08-31"),
+      location: "Warsaw, Poland",
+      startDate: new Date("2004-09-01"),
+      title: "Founder",
     },
   ],
 };
@@ -256,60 +254,60 @@ const internet: Experience = {
 
 const education: Education[] = [
   {
-    institution: "Warsaw University of Technology",
     distinction: "Master of Science in Computer Science",
-    startDate: new Date("2008-02-01"),
     endDate: new Date("2010-10-01"),
-    location: "Warsaw, Poland",
+    institution: "Warsaw University of Technology",
     link: "https://www.elka.pw.edu.pl/",
+    location: "Warsaw, Poland",
+    startDate: new Date("2008-02-01"),
   },
   {
-    institution: "Warsaw University of Technology",
     distinction: "Bachelor of Science in Computer Science",
-    startDate: new Date("2004-01-01"),
     endDate: new Date("2008-01-01"),
-    location: "Warsaw, Poland",
+    institution: "Warsaw University of Technology",
     link: "https://www.elka.pw.edu.pl/",
+    location: "Warsaw, Poland",
+    startDate: new Date("2004-01-01"),
   },
 ];
 
 const certificates: Education[] = [
   {
-    institution: "Haas School of Business, University of California Berkeley",
     distinction: "Certificate of Business Excellence",
-    startDate: new Date("2019-01-01"),
     endDate: new Date("2022-01-01"),
-    location: "Berkeley, CA",
+    institution: "Haas School of Business, University of California Berkeley",
     link: "https://executive.berkeley.edu/certificate-of-business-excellence",
+    location: "Berkeley, CA",
     notes:
       "Negotiation and Influence, Product Management, Communication Excellence, Executive Decision Making with Data Science, Corporate Business Model Innovation",
+    startDate: new Date("2019-01-01"),
   },
   {
-    institution: "Stanford University",
     distinction: "Stanford Continuing Studies",
+    endDate: new Date("2018-01-01"),
+    institution: "Stanford University",
+    link: "https://continuingstudies.stanford.edu/",
+    location: "Stanford, CA",
     notes:
       "Leadership and Decision-Making (BUS 53), The Exceptional Leader: A Framework for Impactful Leadership (WSP 199 B)",
     startDate: new Date("2017-01-01"),
-    endDate: new Date("2018-01-01"),
-    location: "Stanford, CA",
-    link: "https://continuingstudies.stanford.edu/",
   },
 
   {
-    institution: "SGH Warsaw School of Economics",
     distinction: "Certificate, IT Management and IT Governance",
-    startDate: new Date("2010-01-01"),
     endDate: new Date("2011-01-01"),
-    location: "Warsaw, Poland",
+    institution: "SGH Warsaw School of Economics",
     link: "http://www.sgh.waw.pl/en/Pages/default.aspx",
+    location: "Warsaw, Poland",
+    startDate: new Date("2010-01-01"),
   },
   {
-    institution: "Ernst & Young Academy of Business",
     distinction: "Certificate, Project Management",
-    startDate: new Date("2009-01-01"),
     endDate: new Date("2009-01-01"),
-    location: "Warsaw, Poland",
+    institution: "Ernst & Young Academy of Business",
     link: "https://www.academyofbusiness.pl/en",
+    location: "Warsaw, Poland",
+    startDate: new Date("2009-01-01"),
   },
 ];
 
@@ -324,10 +322,9 @@ export const resumeRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       const db: DB = {
         base: {
+          certificates,
           contactInfo,
-          professionalSummary: [
-            `Accomplished engineering leader with over a decade of experience driving product innovation, strategic vision, and substantial revenue growth through high-performing teams. Expert in LLM-driven solutions, search technologies, AI modernization, and operational efficiency. Known for fostering innovation, mentoring top talent, and consistently exceeding business goals. Excels in strategic planning, team leadership, and detailed execution.`,
-          ],
+          education,
           experience: [
             {
               ...linkedIn,
@@ -348,22 +345,15 @@ export const resumeRouter = createTRPCRouter({
               ...internet,
             },
           ],
-          education,
-          certificates,
+          professionalSummary: [
+            `Accomplished engineering leader with over a decade of experience driving product innovation, strategic vision, and substantial revenue growth through high-performing teams. Expert in LLM-driven solutions, search technologies, AI modernization, and operational efficiency. Known for fostering innovation, mentoring top talent, and consistently exceeding business goals. Excels in strategic planning, team leadership, and detailed execution.`,
+          ],
         },
 
         salesforce: {
+          certificates,
           contactInfo,
-          professionalSummary: [
-            `Engineering leader with over a decade of experience leading
-            cross-functional teams to build AI-driven products and solutions.
-            Strong expertise in Generative AI, Retrieval-Augmented Generation
-            (RAG), large language models (LLMs), and Agentic workflows. Proven
-            ability to define technical strategy, drive product innovation, and
-            deliver value-driven outcomes. Passionate about fostering
-            high-performing teams, mentoring engineering talent, and maintaining
-            technical excellence while delivering impactful results.`,
-          ],
+          education,
           experience: [
             {
               ...linkedIn,
@@ -396,8 +386,16 @@ export const resumeRouter = createTRPCRouter({
               ...internet,
             },
           ],
-          education,
-          certificates,
+          professionalSummary: [
+            `Engineering leader with over a decade of experience leading
+            cross-functional teams to build AI-driven products and solutions.
+            Strong expertise in Generative AI, Retrieval-Augmented Generation
+            (RAG), large language models (LLMs), and Agentic workflows. Proven
+            ability to define technical strategy, drive product innovation, and
+            deliver value-driven outcomes. Passionate about fostering
+            high-performing teams, mentoring engineering talent, and maintaining
+            technical excellence while delivering impactful results.`,
+          ],
         },
       };
 

@@ -1,6 +1,7 @@
 import Link from "~/components/ui/link";
 
 import UserButton from "./user-button";
+
 const TopNav: React.FC = async () => {
   return (
     <nav className=" print:hidden">

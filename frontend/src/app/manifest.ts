@@ -1,21 +1,21 @@
-import { MetadataRoute } from "next";
+import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Resume Wiz",
-    short_name: "Next.js App",
-    description: "Gen AI powered resume builder",
-    start_url: "/",
-    display: "standalone",
     background_color: "#fff",
-    theme_color: "#fff",
-    lang: "en",
+    description: "Gen AI powered resume builder",
+    display: "standalone",
     icons: [
       {
-        src: "/favicon.ico",
         sizes: "any",
+        src: "/favicon.ico",
         type: "image/x-icon",
       },
     ],
+    lang: "en",
+    name: "Resume Wiz",
+    short_name: "Next.js App",
+    start_url: "/",
+    theme_color: "#fff",
   };
 }

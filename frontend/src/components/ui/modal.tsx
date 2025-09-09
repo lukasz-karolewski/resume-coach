@@ -1,7 +1,7 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import clsx from "clsx";
-import { FC, Fragment, PropsWithChildren } from "react";
+import { type FC, Fragment, type PropsWithChildren } from "react";
 
 interface MyModalProps {
   open: boolean;

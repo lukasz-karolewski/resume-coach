@@ -8,8 +8,8 @@ import withBundleAnalyzerBuilder from "@next/bundle-analyzer";
 
 /** @type {import('next').NextConfig} */
 const config = {
-  reactStrictMode: true,
   poweredByHeader: false,
+  reactStrictMode: true,
 };
 
 const withBundleAnalyzer = withBundleAnalyzerBuilder({

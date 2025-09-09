@@ -1,4 +1,5 @@
-"use client";;
+"use client";
+
 import { use } from "react";
 
 import ContactInfo from "~/components/resume/contact-info";
@@ -8,11 +9,9 @@ import { ProfessionalSummary } from "~/components/resume/professional-summary";
 import Section from "~/components/resume/section";
 import { api } from "~/trpc/react";
 
-export default function ResumePage(
-  props: {
-    params: Promise<{ resume_id: string }>;
-  }
-) {
+export default function ResumePage(props: {
+  params: Promise<{ resume_id: string }>;
+}) {
   const params = use(props.params);
   const { data: resume } = api.resume.getResume.useQuery({
     company_name: params.resume_id,

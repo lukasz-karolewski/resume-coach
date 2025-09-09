@@ -24,8 +24,8 @@ function toYearMonthsDuration(from: Date, to?: Date) {
 function formatFromTo(from: Date, to?: Date, yearOnly: boolean = false) {
   const formatDate = (date: Date) =>
     date.toLocaleDateString("en-US", {
-      timeZone: "UTC",
       month: yearOnly ? undefined : "short",
+      timeZone: "UTC",
       year: "numeric",
     });
 

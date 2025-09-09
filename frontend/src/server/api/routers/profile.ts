@@ -4,9 +4,9 @@ export const profileRouter = createTRPCRouter({
   getUserInfo: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
     const resume = await ctx.db.resume.findFirst({
-      where: { Job: { userId } },
       include: {
         contactInfo: true,
+        education: true,
         experience: {
           include: {
             positions: {
@@ -16,8 +16,8 @@ export const profileRouter = createTRPCRouter({
             },
           },
         },
-        education: true,
       },
+      where: { Job: { userId } },
     });
 
     if (!resume) {
@@ -33,11 +33,11 @@ export const profileRouter = createTRPCRouter({
     const workExperience =
       experience?.positions.map(
         ({ title, startDate, endDate, location, accomplishments }) => ({
-          title,
-          startDate,
+          accomplishments,
           endDate,
           location,
-          accomplishments,
+          startDate,
+          title,
         }),
       ) ?? [];
     const skills =
@@ -46,10 +46,10 @@ export const profileRouter = createTRPCRouter({
       ) ?? [];
     return {
       contactInfo,
+      education,
       professionalSummary,
       skills,
       workExperience,
-      education,
     };
   }),
 });

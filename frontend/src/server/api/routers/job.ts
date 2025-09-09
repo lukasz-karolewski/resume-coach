@@ -3,12 +3,6 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
 export const jobRouter = createTRPCRouter({
-  getJobs: protectedProcedure.query(async ({ ctx }) => {
-    const jobs = await ctx.db.job.findMany();
-
-    return jobs;
-  }),
-
   addJob: protectedProcedure
     .input(
       z.object({
@@ -42,4 +36,9 @@ export const jobRouter = createTRPCRouter({
 
       return "job added";
     }),
+  getJobs: protectedProcedure.query(async ({ ctx }) => {
+    const jobs = await ctx.db.job.findMany();
+
+    return jobs;
+  }),
 });

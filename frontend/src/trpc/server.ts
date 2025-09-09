@@ -3,7 +3,7 @@ import "server-only";
 import { createTRPCClient, loggerLink, TRPCClientError } from "@trpc/client";
 import { callTRPCProcedure } from "@trpc/server";
 import { observable } from "@trpc/server/observable";
-import { type TRPCErrorResponse } from "@trpc/server/rpc";
+import type { TRPCErrorResponse } from "@trpc/server/rpc";
 import { cookies, type UnsafeUnwrappedCookies } from "next/headers";
 import { cache } from "react";
 
