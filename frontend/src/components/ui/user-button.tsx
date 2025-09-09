@@ -1,15 +1,7 @@
 import { auth } from "~/auth";
 
 import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
-import { Button } from "./button";
 import { SignIn, SignOut } from "./buttons-auth";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "./dropdown-menu";
 
 export default async function UserButton() {
   const session = await auth();

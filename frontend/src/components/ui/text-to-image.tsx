@@ -1,7 +1,7 @@
 "use client";
 
 import { toPng } from "html-to-image";
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 function TextToImage({ text }: { text: string }) {
   const nodeRef = useRef<HTMLDivElement>(null);
@@ -25,7 +25,7 @@ function TextToImage({ text }: { text: string }) {
           console.error("oops, something went wrong!", error);
         });
     }
-  }, [text]);
+  }, []);
 
   return <div ref={nodeRef}>{text}</div>;
 }

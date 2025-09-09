@@ -31,14 +31,14 @@ export const AddJobModal = NiceModal.create<AddJobModalProps>(() => {
       if (errorMessage) toast.error(errorMessage);
       else toast.error("Failed to save");
     },
-    onSuccess: (data: any) => {
+    onSuccess: (_data: any) => {
       toast.success("Saved");
       modal.resolve();
       modal.remove();
     },
   });
 
-  const onSubmit: SubmitHandler<FormValues> = (data, event) => {
+  const onSubmit: SubmitHandler<FormValues> = (data, _event) => {
     return create(data);
   };
 

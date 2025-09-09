@@ -21,7 +21,7 @@ export function zodErrorsToString(error: any) {
     const flattenErrors = (errors: Record<string, string[]>) => {
       for (const errorKey in errors) {
         if (errors[errorKey]) {
-          errorMessage += errors[errorKey].join(", ") + ", ";
+          errorMessage += `${errors[errorKey].join(", ")}, `;
         }
       }
     };

@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 
-const handler = (req: NextRequest) => {
+const handler = (_req: NextRequest) => {
   console.log("Hello from the jobImportComplete route!");
 };
 

@@ -24,7 +24,7 @@ const Section = ({
       </div>
     </h2>
     <div
-      className={`flex flex-col ${layout == "standard" && "gap-8"}  ${layout == "compact" && "gap-4"}`}
+      className={`flex flex-col ${layout === "standard" && "gap-8"}  ${layout === "compact" && "gap-4"}`}
     >
       {children}
     </div>

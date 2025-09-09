@@ -79,7 +79,7 @@ const PositionItem: React.FC<PositionItemProps> = ({
 
   const { startDate, endDate, title, location, accomplishments } = position;
   const { formattedFrom, formattedTo } = formatFromTo(startDate, endDate);
-  const thread_id = "1234";
+  const _thread_id = "1234";
 
   return (
     <div className="">
