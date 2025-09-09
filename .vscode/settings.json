@@ -1,42 +1,40 @@
 {
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  },
+  "chat.agent.enabled": true,
+  "css.lint.unknownAtRules": "ignore",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.biome": "always",
+    "source.organizeImports": "always",
+    "source.removeUnused": "always"
+  },
+  "editor.defaultFormatter": "biomejs.biome",
+  "editor.formatOnPaste": true,
+  "editor.formatOnSave": true,
+  "editor.gotoLocation.multipleDefinitions": "goto",
+  "editor.gotoLocation.multipleTypeDefinitions": "goto",
+  "editor.linkedEditing": true,
+  "editor.quickSuggestions": {
+    "strings": "on"
+  },
+  "eslint.workingDirectories": [
+    {
+      "changeProcessCWD": true,
+      "directory": "./frontend"
+    }
+  ],
   "files.exclude": {
+    "**/__pycache__": true,
     "**/*.pyc": {
       "when": "$(basename).py"
-    },
-    "**/__pycache__": true
+    }
   },
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.typeCheckingMode": "basic",
   "search.exclude": {
     "**/.next": true,
     "**/node_modules/": true
   },
-  "editor.formatOnSave": true,
-  "editor.formatOnPaste": true,
-  "editor.linkedEditing": true,
-  "editor.gotoLocation.multipleDefinitions": "goto",
-  "editor.gotoLocation.multipleTypeDefinitions": "goto",
-  "editor.codeActionsOnSave": {
-    "source.organizeImports": "always",
-    "source.fixAll.eslint": "always"
-  },
-  "editor.quickSuggestions": {
-    "strings": "on"
-  },
-  "typescript.tsdk": "frontend/node_modules/typescript/lib",
-  "css.lint.unknownAtRules": "ignore",
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "[python]": {
-    "editor.defaultFormatter": "ms-python.black-formatter"
-  },
-  "[prisma]": {
-    "editor.defaultFormatter": "Prisma.prisma"
-  },
-  "eslint.workingDirectories": [
-    {
-      "directory": "./frontend",
-      "changeProcessCWD": true
-    }
-  ],
-  "python.analysis.autoImportCompletions": true,
-  "python.analysis.typeCheckingMode": "basic",
-  "chat.agent.enabled": true,
+  "typescript.tsdk": "frontend/node_modules/typescript/lib"
 }
