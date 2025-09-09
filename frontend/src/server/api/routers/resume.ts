@@ -73,7 +73,7 @@ const linkedIn: Experience = {
       endDate: new Date("2024-02-30"),
       location: "Sunnyvale, CA",
       accomplishments: [
-        `Delivered fastest-growing enterprise product at LinkedIn, generated ~$50M ARR lift.`,
+        `Delivered Account IQ - fastest-growing enterprise product at LinkedIn, generated ~$50M ARR lift in 6 months.`,
         `Defined product vision, influenced GTM strategy and designs,
             created teams, defined technical vision, and roadmap, and drove
             execution, including trust requirements, and automatic evaluation.
@@ -90,7 +90,7 @@ const linkedIn: Experience = {
       endDate: new Date("2022-11-30"),
       location: "Sunnyvale, CA",
       accomplishments: [
-        `Led core capabilities of $1.5B B2B product, achieving ~20% YoY growth through innovative lead-finding, search, and messaging strategies.`,
+        `Led LinkedIn's Sales Solutions search, messaging and mobile teams.`,
         `For each of the areas I've influenced product vision, defined
             strategy, established metrics, organized teams, and worked with
             them to define a technical vision to support the goals.`,
@@ -326,12 +326,7 @@ export const resumeRouter = createTRPCRouter({
         base: {
           contactInfo,
           professionalSummary: [
-            `Accomplished engineering leader with over a decade driving product innovation, strategic vision, and substantial revenue growth through high-performing teams. Expert in LLM-driven solutions, search technologies, AI modernization, and operational efficiency. Known for fostering innovation, mentoring top talent, and consistently exceeding business goals.`,
-            `Recently I've been focused on taming the power of LLMs to create
-            impossible-before products and delved into world of agents, prompt engineering,
-            EBR, RAG, evals and LLM fine-tuning. My experience also includes managing the ROI of these investments. Additionally, I
-            have experience with search, large-scale applications, A/B testing,
-            SEO, Growth, leading large technology migrations, and driving tech excellence in organizations.`,
+            `Accomplished engineering leader with over a decade of experience driving product innovation, strategic vision, and substantial revenue growth through high-performing teams. Expert in LLM-driven solutions, search technologies, AI modernization, and operational efficiency. Known for fostering innovation, mentoring top talent, and consistently exceeding business goals. Excels in strategic planning, team leadership, and detailed execution.`,
           ],
           experience: [
             {
