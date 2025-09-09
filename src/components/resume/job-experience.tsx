@@ -54,12 +54,14 @@ const Accomplishments: React.FC<AccomplishmentsProps> = ({ items }) => {
         const trimmed = item.trim();
         if (trimmed.startsWith("**")) {
           return (
+            // biome-ignore lint/suspicious/noArrayIndexKey: tbd
             <span key={index}>
               <Markdown>{trimmed}</Markdown>
             </span>
           );
         }
         return (
+          // biome-ignore lint/suspicious/noArrayIndexKey: tbd
           <li key={index}>
             <Markdown>{trimmed}</Markdown>
           </li>
@@ -69,17 +71,11 @@ const Accomplishments: React.FC<AccomplishmentsProps> = ({ items }) => {
   );
 };
 
-const PositionItem: React.FC<PositionItemProps> = ({
-  company,
-  link,
-  position,
-}) => {
-  const { mutate: getReview } =
-    api.coach.reviewJobAccomplishments.useMutation();
+const PositionItem: React.FC<PositionItemProps> = ({ position }) => {
+  api.coach.reviewJobAccomplishments.useMutation();
 
   const { startDate, endDate, title, location, accomplishments } = position;
   const { formattedFrom, formattedTo } = formatFromTo(startDate, endDate);
-  const _thread_id = "1234";
 
   return (
     <div className="">
@@ -133,6 +129,7 @@ const JobExperienceItem: React.FC<JobExperienceItemProps> = ({ job }) => {
       >
         {positions.map((position, index) => (
           <PositionItem
+            // biome-ignore lint/suspicious/noArrayIndexKey: tbd
             key={index}
             company={company}
             link={link}
@@ -148,6 +145,7 @@ const JobExperience: React.FC<JobExperienceProps> = ({ jobs }) => {
   return (
     <>
       {jobs.map((job, index) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: tbd
         <JobExperienceItem key={index} job={job} />
       ))}
     </>

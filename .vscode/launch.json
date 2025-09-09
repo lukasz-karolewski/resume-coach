@@ -1,53 +1,53 @@
 {
-  "version": "0.2.0",
   "configurations": [
     {
-      "name": "Next.js: debug server-side",
-      "type": "node-terminal",
-      "request": "launch",
+      "command": "npm run vsdebug",
       "cwd": "${workspaceFolder}/frontend",
-      "command": "npm run vsdebug"
+      "name": "Next.js: debug server-side",
+      "request": "launch",
+      "type": "node-terminal"
     },
     {
-      "name": "Next.js: debug client-side",
-      "type": "chrome",
-      "request": "launch",
       "cwd": "${workspaceFolder}/frontend",
+      "name": "Next.js: debug client-side",
+      "request": "launch",
+      "type": "chrome",
       "url": "http://localhost:3000"
     },
     {
-      "name": "Next.js: debug full stack",
-      "type": "node-terminal",
-      "request": "launch",
-      "cwd": "${workspaceFolder}/frontend",
       "command": "npm run vsdebug",
+      "cwd": "${workspaceFolder}/frontend",
+      "name": "Next.js: debug full stack",
+      "request": "launch",
       "serverReadyAction": {
+        "action": "debugWithChrome",
         "pattern": "- Local:.+(https?://.+)",
-        "uriFormat": "%s",
-        "action": "debugWithChrome"
-      }
+        "uriFormat": "%s"
+      },
+      "type": "node-terminal"
     },
     {
-      "name": "Celery: debug worker",
-      "type": "debugpy",
-      "request": "launch",
-      "module": "celery",
-      "cwd": "${workspaceFolder}/backend",
       "args": [
         "-A",
         "celery_app",
         "worker",
         "--concurrency=1",
         "--loglevel=debug"
-      ]
+      ],
+      "cwd": "${workspaceFolder}/backend",
+      "module": "celery",
+      "name": "Celery: debug worker",
+      "request": "launch",
+      "type": "debugpy"
     },
     {
-      "name": "FastAPI: debug server",
-      "type": "debugpy",
-      "request": "launch",
-      "module": "uvicorn",
       "args": ["main:app", "--reload"],
-      "cwd": "${workspaceFolder}/backend"
+      "cwd": "${workspaceFolder}/backend",
+      "module": "uvicorn",
+      "name": "FastAPI: debug server",
+      "request": "launch",
+      "type": "debugpy"
     }
-  ]
+  ],
+  "version": "0.2.0"
 }
