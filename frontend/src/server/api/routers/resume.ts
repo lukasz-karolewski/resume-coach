@@ -60,7 +60,11 @@ const linkedIn: Experience = {
       startDate: new Date("2024-03-01"),
       location: "Sunnyvale, CA",
       accomplishments: [
-        `Tech lead for Prospecting Agent, defining product and technical vision for organization of 120 engineers`,
+        `Tech lead for Sales Assistant, defining product and technical vision for organization of 120 engineers`,
+        `Driving AI strategy for Sales Navigator, including integration with MSFT Copilot for Sales`,
+        `Leading cross-functional teams to deliver AI-driven features, collaborating closely with PM, Design, Data Science, and Infra teams to ensure alignment with strategic goals.`,
+        `Mentoring engineering leaders and fostering a culture of innovation and technical excellence.`,
+        
       ].map((item) => normalizeWhitespace(item)),
     },
     {
@@ -69,7 +73,7 @@ const linkedIn: Experience = {
       endDate: new Date("2024-02-30"),
       location: "Sunnyvale, CA",
       accomplishments: [
-        `Delivered fastest-growing enterprise product at LinkedIn, generated ~$100M ARR lift.`,
+        `Delivered fastest-growing enterprise product at LinkedIn, generated ~$50M ARR lift.`,
         `Defined product vision, influenced GTM strategy and designs,
             created teams, defined technical vision, and roadmap, and drove
             execution, including trust requirements, and automatic evaluation.
