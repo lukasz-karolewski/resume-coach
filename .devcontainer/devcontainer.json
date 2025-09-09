@@ -5,8 +5,8 @@
   // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
   // "image": "mcr.microsoft.com/devcontainers/base:jammy",
   "dockerComposeFile": [
-    "../docker-compose.yml",
-    "../docker-compose.override.yml",
+    // "../docker-compose.yml"
+    // "../docker-compose.override.yml",
     "docker-compose-dev.yml"
   ],
   "service": "devcontainer",
@@ -27,6 +27,7 @@
   "customizations": {
     "vscode": {
       "extensions": [
+        "biomejs.biome",
         "ms-azuretools.vscode-docker",
         "mhutchie.git-graph",
         "GitHub.copilot",
@@ -36,8 +37,6 @@
         "esbenp.prettier-vscode",
         "Prisma.prisma",
         "bradlc.vscode-tailwindcss",
-        "dbaeumer.vscode-eslint",
-        "Orta.vscode-jest",
         "ms-python.black-formatter",
         "ms-python.isort"
       ]

@@ -38,5 +38,5 @@
   ],
   "python.analysis.autoImportCompletions": true,
   "python.analysis.typeCheckingMode": "basic",
-  "chat.agent.enabled": true
+  "chat.agent.enabled": true,
 }
