@@ -19,7 +19,7 @@ const Section = ({
     >
       {title}
 
-      <div className="hidden cursor-pointer group-hover:block print:hidden group-hover:print:hidden">
+      <div className="hidden cursor-pointer group-hover:block print:hidden print:group-hover:hidden">
         <Link href={`/summary`}>edit</Link>
       </div>
     </h2>

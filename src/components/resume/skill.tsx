@@ -7,7 +7,7 @@ interface SkillProps {
 }
 
 export const Skill: React.FC<SkillProps> = ({ children }) => {
-  return <span className="rounded bg-gray-200 px-1 py-0.5">{children}</span>;
+  return <span className="rounded-sm bg-gray-200 px-1 py-0.5">{children}</span>;
 };
 
 interface SkillsProps {
