@@ -1,5 +1,7 @@
 // docs: https://pris.ly/d/prisma-schema
-
+// https://authjs.dev/guides/edge-compatibility
+// https://www.prisma.io/docs/orm/prisma-client/deployment/edge/overview
+// https://authjs.dev/getting-started/adapters/prisma
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma/client"
@@ -42,14 +44,16 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String       @id @default(cuid())
   name          String?
-  email         String?   @unique
-  emailVerified DateTime? @map("email_verified")
+  email         String?      @unique
+  emailVerified DateTime?    @map("email_verified")
   image         String?
   accounts      Account[]
   sessions      Session[]
   Job           Job[]
+  Resume        Resume[]
+  ChatThread    ChatThread[]
 
   @@map("users")
 }
@@ -96,12 +100,12 @@ model Position {
 
   title           String
   startDate       DateTime
-  endDate         DateTime
+  endDate         DateTime?
   location        String
-  accomplishments String
+  accomplishments String // JSON array stored as string
 
   experienceId Int?
-  experience   Experience? @relation(fields: [experienceId], references: [id])
+  experience   Experience? @relation(fields: [experienceId], references: [id], onDelete: Cascade)
 
   skillPosition PositionSkill[]
 
@@ -112,9 +116,14 @@ model Experience {
   id Int @id @default(autoincrement())
 
   companyName String
-  link        String
-  positions   Position[]
-  Resume      Resume[]
+  link        String?
+
+  resumeId Int?
+  resume   Resume? @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  positions Position[]
+
+  @@index([resumeId])
 }
 
 // Enum for Education type
@@ -151,8 +160,12 @@ model Education {
   endDate     DateTime
   location    String
   link        String
-  notes       String
-  Resume      Resume[]
+  notes       String?
+
+  resumeId Int?
+  resume   Resume? @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([resumeId])
 }
 
 model Patent {
@@ -184,19 +197,62 @@ model Section {
 
 model Resume {
   id   Int    @id @default(autoincrement())
-  name String @unique @default("Default Resume")
+  name String @default("Default Resume")
 
-  // base resume has a null jobId
+  // User ownership - direct relation
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Optional job association (null for base resumes)
   jobId String?
-  Job   Job?    @relation(fields: [jobId], references: [id])
+  Job   Job?    @relation(fields: [jobId], references: [id], onDelete: SetNull)
 
   contactInfoId Int?
   contactInfo   ContactInfo? @relation(fields: [contactInfoId], references: [id])
-  summary       String       @default("")
 
-  sections     Section[]
-  education    Education?  @relation(fields: [educationId], references: [id])
-  educationId  Int?
-  experience   Experience? @relation(fields: [experienceId], references: [id])
-  experienceId Int?
+  // Professional summary stored as JSON array
+  summary String @default("[]")
+
+  sections Section[]
+
+  // Multiple education and experience entries
+  education  Education[]
+  experience Experience[]
+
+  // Chat thread working on this resume copy
+  ChatThread ChatThread[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([jobId])
+}
+
+model ChatThread {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resumeId  Int?
+  resume    Resume?  @relation(fields: [resumeId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages ChatMessage[]
+
+  @@index([userId])
+  @@index([resumeId])
+  @@map("chat_threads")
+}
+
+model ChatMessage {
+  id        String     @id @default(cuid())
+  threadId  String
+  thread    ChatThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  role      String // "user", "assistant", "system"
+  content   String
+  createdAt DateTime   @default(now())
+
+  @@index([threadId])
+  @@map("chat_messages")
 }

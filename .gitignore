@@ -34,3 +34,11 @@ frontend/prisma/dev.db
 frontend/prisma/dev.db-journal
 frontend/coverage
 generated/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+prisma/*.db

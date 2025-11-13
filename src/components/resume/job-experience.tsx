@@ -3,7 +3,6 @@ import duration from "dayjs/plugin/duration";
 import Markdown from "markdown-to-jsx";
 
 import { formatFromTo, toYearMonthsDuration } from "~/app/utils";
-import { api } from "~/trpc/react";
 
 dayjs.extend(duration);
 
@@ -72,8 +71,6 @@ const Accomplishments: React.FC<AccomplishmentsProps> = ({ items }) => {
 };
 
 const PositionItem: React.FC<PositionItemProps> = ({ position }) => {
-  api.coach.reviewJobAccomplishments.useMutation();
-
   const { startDate, endDate, title, location, accomplishments } = position;
   const { formattedFrom, formattedTo } = formatFromTo(startDate, endDate);
 

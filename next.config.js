@@ -8,6 +8,16 @@ import withBundleAnalyzerBuilder from "@next/bundle-analyzer";
 
 /** @type {import('next').NextConfig} */
 const config = {
+  images: {
+    remotePatterns: [
+      {
+        hostname: "*.googleusercontent.com",
+        pathname: "**",
+        port: "",
+        protocol: "https",
+      },
+    ],
+  },
   poweredByHeader: false,
   reactStrictMode: true,
 };

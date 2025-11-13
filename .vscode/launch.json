@@ -1,22 +1,19 @@
 {
   "configurations": [
     {
-      "command": "npm run vsdebug",
-      "cwd": "${workspaceFolder}/frontend",
+      "command": "npm run dev",
       "name": "Next.js: debug server-side",
       "request": "launch",
       "type": "node-terminal"
     },
     {
-      "cwd": "${workspaceFolder}/frontend",
       "name": "Next.js: debug client-side",
       "request": "launch",
       "type": "chrome",
       "url": "http://localhost:3000"
     },
     {
-      "command": "npm run vsdebug",
-      "cwd": "${workspaceFolder}/frontend",
+      "command": "npm run dev",
       "name": "Next.js: debug full stack",
       "request": "launch",
       "serverReadyAction": {
@@ -25,28 +22,6 @@
         "uriFormat": "%s"
       },
       "type": "node-terminal"
-    },
-    {
-      "args": [
-        "-A",
-        "celery_app",
-        "worker",
-        "--concurrency=1",
-        "--loglevel=debug"
-      ],
-      "cwd": "${workspaceFolder}/backend",
-      "module": "celery",
-      "name": "Celery: debug worker",
-      "request": "launch",
-      "type": "debugpy"
-    },
-    {
-      "args": ["main:app", "--reload"],
-      "cwd": "${workspaceFolder}/backend",
-      "module": "uvicorn",
-      "name": "FastAPI: debug server",
-      "request": "launch",
-      "type": "debugpy"
     }
   ],
   "version": "0.2.0"

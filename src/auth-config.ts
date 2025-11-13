@@ -9,9 +9,7 @@ export default {
     },
     session: (params) => {
       // By default, only exposes a name, email, image. Need to add back the id at minimum.
-      if ("user" in params) {
-        params.session.user.id = params.token.userId as string;
-      }
+      params.session.user.id = params.token.userId as string;
       return params.session;
     },
   },
