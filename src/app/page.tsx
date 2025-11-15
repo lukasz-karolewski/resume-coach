@@ -1,10 +1,14 @@
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { auth } from "~/auth";
+import { SignIn } from "~/components/ui/buttons-auth";
 
 /* eslint-disable react/no-unescaped-entities */
 export default async function HomePage() {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(), // you need to pass the headers object.
+  });
 
   if (session?.user) redirect("/dashboard");
 
@@ -25,12 +29,7 @@ export default async function HomePage() {
         >
           Sign up
         </a>
-        <a
-          href="/api/auth/signin"
-          className="rounded-md bg-gray-200 py-2 text-center text-gray-800"
-        >
-          Log in
-        </a>
+        <SignIn provider="google" className="w-full" />
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import { HumanMessage } from "@langchain/core/messages";
+import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "~/auth";
@@ -11,7 +12,9 @@ import { db } from "~/server/db";
  */
 export async function POST(req: NextRequest) {
   // Authenticate the user
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(), // you need to pass the headers object.
+  });
 
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

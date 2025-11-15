@@ -23,9 +23,8 @@ export const env = createEnv({
   runtimeEnv: {
     AUTH_GOOGLE_ID: process.env.AUTH_GOOGLE_ID,
     AUTH_GOOGLE_SECRET: process.env.AUTH_GOOGLE_SECRET,
-    AUTH_SECRET: process.env.AUTH_SECRET,
-
-    AUTH_URL: process.env.AUTH_URL,
+    BETTER_AUTH_SECRET: process.env.AUTH_SECRET,
+    BETTER_AUTH_URL: process.env.AUTH_URL,
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
 
@@ -39,11 +38,11 @@ export const env = createEnv({
     // Add ` on ID and SECRET if you want to make sure they're not empty
     AUTH_GOOGLE_ID: z.string(),
     AUTH_GOOGLE_SECRET: z.string(),
-    AUTH_SECRET:
+    BETTER_AUTH_SECRET:
       process.env.NODE_ENV === "production"
         ? z.string()
         : z.string().optional(),
-    AUTH_URL: z.preprocess(
+    BETTER_AUTH_URL: z.preprocess(
       // This makes Vercel deployments not fail if you don't set NEXTAUTH_URL
       // Since NextAuth.js automatically uses the VERCEL_URL if present.
       (str) => process.env.VERCEL_URL ?? str,

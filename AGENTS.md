@@ -5,6 +5,9 @@ next 16
 react 19
 tailwind 4
 vitest 4
+better-auth
+
+make sure to use latest api of the frameworks/libraries, if your not familiar with latest api, use context7
 
 # General
 - always apply general coding best practices for the framework you're working with 

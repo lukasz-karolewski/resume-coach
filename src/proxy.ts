@@ -1,7 +1,9 @@
-import NextAuth from "next-auth";
-import authConfig from "./auth-config";
+// import NextAuth from "next-auth";
+// import authConfig from "./auth-client";
 
-export const { auth } = NextAuth(authConfig);
+// export const { auth } = NextAuth(authConfig);
+
+const auth = async () => {};
 
 export default auth;
 
