@@ -100,61 +100,63 @@ export default function ResumePage() {
               >
                 <div className="mb-3 flex-1">
                   <h3 className="mb-2 text-lg font-semibold">{resume.name}</h3>
-                <div className="space-y-1 text-sm text-gray-600">
-                  {resume.Job && (
-                    <p className="truncate">
-                      <span className="font-medium">Job:</span>{" "}
-                      {resume.Job.title || resume.Job.company || "Untitled Job"}
+                  <div className="space-y-1 text-sm text-gray-600">
+                    {resume.Job && (
+                      <p className="truncate">
+                        <span className="font-medium">Job:</span>{" "}
+                        {resume.Job.title ||
+                          resume.Job.company ||
+                          "Untitled Job"}
+                      </p>
+                    )}
+                    {resume.contactInfo && (
+                      <p className="truncate">
+                        <span className="font-medium">Contact:</span>{" "}
+                        {resume.contactInfo.email}
+                      </p>
+                    )}
+                    <p>
+                      <span className="font-medium">Experience:</span>{" "}
+                      {resume._count.experience} companies
                     </p>
-                  )}
-                  {resume.contactInfo && (
-                    <p className="truncate">
-                      <span className="font-medium">Contact:</span>{" "}
-                      {resume.contactInfo.email}
+                    <p>
+                      <span className="font-medium">Education:</span>{" "}
+                      {resume._count.education} entries
                     </p>
+                    <p className="text-xs text-gray-400">
+                      Updated: {new Date(resume.updatedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <Link href={`/resume/${resume.id}`}>
+                    <Button className="w-full" variant="default">
+                      View & Edit
+                    </Button>
+                  </Link>
+                  {!isTemplate && (
+                    <div className="flex gap-2">
+                      <Button
+                        className="flex-1"
+                        variant="outline"
+                        onClick={() => handleDuplicate(resume.id, resume.name)}
+                        disabled={duplicateMutation.isPending}
+                      >
+                        Duplicate
+                      </Button>
+                      <Button
+                        className="flex-1"
+                        variant="destructive"
+                        onClick={() => handleDelete(resume.id, resume.name)}
+                        disabled={deleteMutation.isPending}
+                      >
+                        Delete
+                      </Button>
+                    </div>
                   )}
-                  <p>
-                    <span className="font-medium">Experience:</span>{" "}
-                    {resume._count.experience} companies
-                  </p>
-                  <p>
-                    <span className="font-medium">Education:</span>{" "}
-                    {resume._count.education} entries
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    Updated: {new Date(resume.updatedAt).toLocaleDateString()}
-                  </p>
                 </div>
               </div>
-
-              <div className="flex flex-col gap-2">
-                <Link href={`/resume/${resume.id}`}>
-                  <Button className="w-full" variant="default">
-                    View & Edit
-                  </Button>
-                </Link>
-                {!isTemplate && (
-                  <div className="flex gap-2">
-                    <Button
-                      className="flex-1"
-                      variant="outline"
-                      onClick={() => handleDuplicate(resume.id, resume.name)}
-                      disabled={duplicateMutation.isPending}
-                    >
-                      Duplicate
-                    </Button>
-                    <Button
-                      className="flex-1"
-                      variant="destructive"
-                      onClick={() => handleDelete(resume.id, resume.name)}
-                      disabled={deleteMutation.isPending}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
             );
           })}
         </div>

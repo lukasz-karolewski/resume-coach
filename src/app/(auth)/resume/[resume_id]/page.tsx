@@ -14,23 +14,23 @@ export default function ResumePage(props: {
   params: Promise<{ resume_id: string }>;
 }) {
   const params = use(props.params);
-  
+
   // Try to parse as number (for database resumes with numeric IDs)
   const numericId = Number.parseInt(params.resume_id, 10);
   const isNumericId = !Number.isNaN(numericId);
-  
+
   // Use getById for numeric IDs, getResume for string names
   const { data: resumeById } = api.resume.getById.useQuery(
     { id: numericId },
-    { enabled: isNumericId }
+    { enabled: isNumericId },
   );
-  
+
   const { data: resumeByName } = api.resume.getResume.useQuery(
     {
       company_name: params.resume_id,
       version: "v1",
     },
-    { enabled: !isNumericId }
+    { enabled: !isNumericId },
   );
 
   const resume = resumeById || resumeByName;

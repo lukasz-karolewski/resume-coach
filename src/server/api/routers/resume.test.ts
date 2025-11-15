@@ -427,17 +427,17 @@ describe("Resume Router", () => {
 
       // Should return 2 DB resumes + 2 mock resumes
       expect(result.length).toBeGreaterThanOrEqual(4);
-      
+
       // First two should be the DB resumes (ordered by updatedAt desc)
       const dbResumes = result.filter((r) => r.id > 0);
       expect(dbResumes).toHaveLength(2);
       expect(dbResumes[0]?.summary).toEqual(["Summary"]);
       expect(dbResumes[1]?.summary).toEqual([]);
-      
+
       // Should also have mock resumes with negative IDs
       const mockTemplateResumes = result.filter((r) => r.id < 0);
       expect(mockTemplateResumes.length).toBeGreaterThan(0);
-      
+
       expect(mockDb.resume.findMany).toHaveBeenCalledWith({
         include: expect.any(Object),
         orderBy: { updatedAt: "desc" },

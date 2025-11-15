@@ -321,17 +321,17 @@ export const resumeRouter = createTRPCRouter({
         const mockTemplates = Object.values(mockDB);
         const templateIndex = Math.abs(input.id) - 1;
         const template = mockTemplates[templateIndex];
-        
+
         if (!template) {
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Template not found",
           });
         }
-        
+
         return template;
       }
-      
+
       const resume = await ctx.db.resume.findFirst({
         include: {
           contactInfo: true,
