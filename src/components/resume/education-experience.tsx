@@ -3,11 +3,11 @@ import { formatFromTo } from "~/app/utils";
 interface EducationExperience {
   distinction: string;
   institution: string;
-  link?: string;
+  link?: string | null;
   location: string;
   startDate: Date;
-  endDate?: Date;
-  notes?: string;
+  endDate?: Date | null;
+  notes?: string | null;
 }
 
 interface EducationExperienceItemProps {
@@ -19,15 +19,7 @@ interface EducationExperienceProps {
 }
 
 function EducationExperienceItem({ info }: EducationExperienceItemProps) {
-  const {
-    distinction,
-    institution,
-    location,
-    link,
-    startDate,
-    endDate,
-    notes,
-  } = info;
+  const { distinction, institution, link, startDate, endDate, notes } = info;
   const { formattedFrom, formattedTo } = formatFromTo(startDate, endDate, true);
 
   const timeframe =

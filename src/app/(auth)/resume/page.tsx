@@ -91,13 +91,15 @@ export default function ResumePage() {
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {resumes?.map((resume) => (
-            <div
-              key={resume.id}
-              className="flex flex-col rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md"
-            >
-              <div className="mb-3 flex-1">
-                <h3 className="mb-2 text-lg font-semibold">{resume.name}</h3>
+          {resumes?.map((resume) => {
+            const isTemplate = resume.id < 0; // Template resumes have negative IDs
+            return (
+              <div
+                key={resume.id}
+                className="flex flex-col rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md"
+              >
+                <div className="mb-3 flex-1">
+                  <h3 className="mb-2 text-lg font-semibold">{resume.name}</h3>
                 <div className="space-y-1 text-sm text-gray-600">
                   {resume.Job && (
                     <p className="truncate">
@@ -131,41 +133,32 @@ export default function ResumePage() {
                     View & Edit
                   </Button>
                 </Link>
-                <div className="flex gap-2">
-                  <Button
-                    className="flex-1"
-                    variant="outline"
-                    onClick={() => handleDuplicate(resume.id, resume.name)}
-                    disabled={duplicateMutation.isPending}
-                  >
-                    Duplicate
-                  </Button>
-                  <Button
-                    className="flex-1"
-                    variant="destructive"
-                    onClick={() => handleDelete(resume.id, resume.name)}
-                    disabled={deleteMutation.isPending}
-                  >
-                    Delete
-                  </Button>
-                </div>
+                {!isTemplate && (
+                  <div className="flex gap-2">
+                    <Button
+                      className="flex-1"
+                      variant="outline"
+                      onClick={() => handleDuplicate(resume.id, resume.name)}
+                      disabled={duplicateMutation.isPending}
+                    >
+                      Duplicate
+                    </Button>
+                    <Button
+                      className="flex-1"
+                      variant="destructive"
+                      onClick={() => handleDelete(resume.id, resume.name)}
+                      disabled={deleteMutation.isPending}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
-
-      <div className="mt-8 border-t border-gray-200 pt-6">
-        <h2 className="mb-4 text-xl font-semibold">Legacy Resume Templates</h2>
-        <div className="flex gap-4">
-          <Link href="/resume/base">
-            <Button variant="outline">Base Template</Button>
-          </Link>
-          <Link href="/resume/Salesforce">
-            <Button variant="outline">Salesforce Template</Button>
-          </Link>
-        </div>
-      </div>
 
       <Modal
         open={isCreateModalOpen}

@@ -8,15 +8,15 @@ dayjs.extend(duration);
 
 interface Position {
   startDate: Date;
-  endDate?: Date;
+  endDate?: Date | null;
   title: string;
   location: string;
   accomplishments: string[];
 }
 
 interface JobExperienceItem {
-  company: string;
-  link?: string;
+  companyName: string;
+  link?: string | null;
   positions: Position[];
 }
 
@@ -25,8 +25,8 @@ interface AccomplishmentsProps {
 }
 
 interface PositionItemProps {
-  company: string;
-  link?: string;
+  companyName: string;
+  link?: string | null;
   position: Position;
 }
 
@@ -113,13 +113,13 @@ const PositionItem: React.FC<PositionItemProps> = ({ position }) => {
 };
 
 const JobExperienceItem: React.FC<JobExperienceItemProps> = ({ job }) => {
-  const { company, link, positions } = job;
+  const { companyName, link, positions } = job;
   const hasMultiplePositions = positions.length > 1;
 
   return (
     <div className="">
       <div className="mb-2 flex items-center justify-between font-bold">
-        <h2>{!link ? company : <a href={link}>{company}</a>}</h2>
+        <h2>{!link ? companyName : <a href={link}>{companyName}</a>}</h2>
       </div>
       <div
         className={`flex break-before-avoid flex-col gap-6 ${hasMultiplePositions ? "border-l-2 pl-4" : ""}`}
@@ -128,7 +128,7 @@ const JobExperienceItem: React.FC<JobExperienceItemProps> = ({ job }) => {
           <PositionItem
             // biome-ignore lint/suspicious/noArrayIndexKey: tbd
             key={index}
-            company={company}
+            companyName={companyName}
             link={link}
             position={position}
           />

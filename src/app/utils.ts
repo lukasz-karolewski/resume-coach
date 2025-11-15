@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 
-function toYearMonthsDuration(from: Date, to?: Date) {
+function toYearMonthsDuration(from: Date, to?: Date | null) {
   const fromDate = dayjs(from);
   const toDate = to ? dayjs(to) : dayjs();
 
@@ -21,7 +21,7 @@ function toYearMonthsDuration(from: Date, to?: Date) {
   return `${years} y, ${remainingMonths} m`;
 }
 
-function formatFromTo(from: Date, to?: Date, yearOnly: boolean = false) {
+function formatFromTo(from: Date, to?: Date | null, yearOnly: boolean = false) {
   const formatDate = (date: Date) =>
     date.toLocaleDateString("en-US", {
       month: yearOnly ? undefined : "short",

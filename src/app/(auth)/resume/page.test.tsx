@@ -101,6 +101,39 @@ describe("ResumePage", () => {
       updatedAt: new Date("2024-02-10"),
       userId: "user-123",
     },
+    // Mock template resumes (with negative IDs)
+    {
+      _count: {
+        education: 1,
+        experience: 1,
+      },
+      contactInfo: null,
+      contactInfoId: -1,
+      createdAt: new Date("2024-01-01"),
+      id: -1,
+      Job: null,
+      jobId: null,
+      name: "Base Template",
+      summary: "[]",
+      updatedAt: new Date("2024-01-01"),
+      userId: "user-123",
+    },
+    {
+      _count: {
+        education: 1,
+        experience: 1,
+      },
+      contactInfo: null,
+      contactInfoId: -2,
+      createdAt: new Date("2024-01-01"),
+      id: -2,
+      Job: null,
+      jobId: null,
+      name: "Salesforce Template",
+      summary: "[]",
+      updatedAt: new Date("2024-01-01"),
+      userId: "user-123",
+    },
   ];
 
   const mockJobs = [
@@ -207,10 +240,10 @@ describe("ResumePage", () => {
     ).toBeInTheDocument();
   });
 
-  test("shows legacy template links", () => {
+  test("shows template resumes in the list", () => {
     render(<ResumePage />);
 
-    expect(screen.getByText("Legacy Resume Templates")).toBeInTheDocument();
+    // Mock templates should appear in the main resume list now
     expect(screen.getByText("Base Template")).toBeInTheDocument();
     expect(screen.getByText("Salesforce Template")).toBeInTheDocument();
   });
@@ -219,7 +252,8 @@ describe("ResumePage", () => {
     render(<ResumePage />);
 
     const viewButtons = screen.getAllByText("View & Edit");
-    expect(viewButtons).toHaveLength(2);
+    // 2 user resumes + 2 template resumes = 4 total
+    expect(viewButtons).toHaveLength(4);
   });
 
   test("renders duplicate and delete buttons for each resume", () => {
@@ -228,6 +262,7 @@ describe("ResumePage", () => {
     const duplicateButtons = screen.getAllByText("Duplicate");
     const deleteButtons = screen.getAllByText("Delete");
 
+    // Only user resumes (not templates) should have duplicate/delete buttons
     expect(duplicateButtons).toHaveLength(2);
     expect(deleteButtons).toHaveLength(2);
   });

@@ -17,7 +17,7 @@ const Profile: React.FC = () => {
       <div>
         What we know about you:
         <div>workExperience{userInformation.workExperience.length}</div>
-        <div>education{userInformation.education?.notes}</div>
+        <div>education{userInformation.education.length}</div>
         <div>skills{userInformation.skills.length}</div>
       </div>
     </div>

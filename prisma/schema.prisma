@@ -210,8 +210,8 @@ model Resume {
   contactInfoId Int?
   contactInfo   ContactInfo? @relation(fields: [contactInfoId], references: [id])
 
-  // Professional summary stored as JSON array
-  summary String @default("[]")
+  // Professional summary as plain text
+  summary String @default("")
 
   sections Section[]
 

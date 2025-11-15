@@ -31,18 +31,20 @@ export const profileRouter = createTRPCRouter({
       experience,
     } = resume;
     const workExperience =
-      experience?.positions.map(
-        ({ title, startDate, endDate, location, accomplishments }) => ({
-          accomplishments,
-          endDate,
-          location,
-          startDate,
-          title,
-        }),
+      experience?.flatMap((exp) =>
+        exp.positions.map(
+          ({ title, startDate, endDate, location, accomplishments }) => ({
+            accomplishments,
+            endDate,
+            location,
+            startDate,
+            title,
+          }),
+        ),
       ) ?? [];
     const skills =
-      experience?.positions.flatMap((p) =>
-        p.skillPosition.map((sp) => sp.skill),
+      experience?.flatMap((exp) =>
+        exp.positions.flatMap((p) => p.skillPosition.map((sp) => sp.skill)),
       ) ?? [];
     return {
       contactInfo,

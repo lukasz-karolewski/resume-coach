@@ -5,10 +5,14 @@ type ContactInfoProps = {
     name: string;
     phone: string;
     email: string;
-  };
+  } | null;
 };
 
 export default function ContactInfo({ contactInfo }: ContactInfoProps) {
+  if (!contactInfo) {
+    return null;
+  }
+
   const { name, phone, email } = contactInfo;
   return (
     <div>

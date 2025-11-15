@@ -43,11 +43,37 @@ export const createResumeCopyTool = tool(
       const newResume = await db.resume.create({
         data: {
           contactInfoId: sourceResume.contactInfoId,
-          educationId: sourceResume.educationId,
-          experienceId: sourceResume.experienceId,
+          education: {
+            create: sourceResume.education.map((edu) => ({
+              distinction: edu.distinction,
+              endDate: edu.endDate,
+              institution: edu.institution,
+              link: edu.link,
+              location: edu.location,
+              notes: edu.notes,
+              startDate: edu.startDate,
+              type: edu.type,
+            })),
+          },
+          experience: {
+            create: sourceResume.experience.map((exp) => ({
+              companyName: exp.companyName,
+              link: exp.link,
+              positions: {
+                create: exp.positions.map((pos) => ({
+                  accomplishments: pos.accomplishments,
+                  endDate: pos.endDate,
+                  location: pos.location,
+                  startDate: pos.startDate,
+                  title: pos.title,
+                })),
+              },
+            })),
+          },
           jobId: sourceResume.jobId,
           name: copyName,
           summary: sourceResume.summary,
+          userId: sourceResume.userId,
         },
       });
 
@@ -231,41 +257,39 @@ export const addExperienceTool = tool(
         return JSON.stringify({ error: "Resume not found" });
       }
 
-      let experienceId = resume.experienceId;
+      // Check if experience for this company already exists
+      const existingExperience = resume.experience.find(
+        (exp) => exp.companyName === companyName,
+      );
 
-      // Create experience if it doesn't exist
-      if (!experienceId) {
-        const newExperience = await db.experience.create({
+      if (existingExperience) {
+        // Add position to existing experience
+        await db.position.create({
+          data: {
+            accomplishments: JSON.stringify(accomplishments),
+            endDate: endDate ? new Date(endDate) : null,
+            experienceId: existingExperience.id,
+            location,
+            startDate: new Date(startDate),
+            title,
+          },
+        });
+      } else {
+        // Create new experience with position
+        await db.experience.create({
           data: {
             companyName,
-            link: "",
+            link: null,
             positions: {
               create: {
-                accomplishments: accomplishments.join("\n"),
-                endDate: new Date(endDate),
+                accomplishments: JSON.stringify(accomplishments),
+                endDate: endDate ? new Date(endDate) : null,
                 location,
                 startDate: new Date(startDate),
                 title,
               },
             },
-          },
-        });
-        experienceId = newExperience.id;
-
-        await db.resume.update({
-          data: { experienceId },
-          where: { id: resumeId },
-        });
-      } else {
-        // Add position to existing experience
-        await db.position.create({
-          data: {
-            accomplishments: accomplishments.join("\n"),
-            endDate: new Date(endDate),
-            experienceId,
-            location,
-            startDate: new Date(startDate),
-            title,
+            resumeId,
           },
         });
       }
@@ -287,7 +311,10 @@ export const addExperienceTool = tool(
     schema: z.object({
       accomplishments: z.array(z.string()).describe("List of accomplishments"),
       companyName: z.string().describe("Company name"),
-      endDate: z.string().describe("End date (ISO format)"),
+      endDate: z
+        .string()
+        .optional()
+        .describe("End date (ISO format), optional for current jobs"),
       location: z.string().describe("Job location"),
       resumeId: z.number().describe("The ID of the resume"),
       startDate: z.string().describe("Start date (ISO format)"),

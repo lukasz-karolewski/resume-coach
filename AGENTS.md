@@ -23,3 +23,6 @@ always write unit tests for any new code you add or for any code you modify. Use
 when you modify prisma schema, generate the new prisma client by running npx prisma generate.
 
 never start a dev server yourself using npm run dev, i will always have it started for you in auto-reload mode.
+
+# Generic 
+- do not ever summarize conversation unless i explicitly ask you to.
