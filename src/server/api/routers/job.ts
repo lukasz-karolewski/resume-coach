@@ -1,44 +1,25 @@
-import { z } from "zod";
+"server-only";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import { addJob, addJobSchema, getJobs } from "~/server/lib/job";
+import { withErrorHandling } from "~/server/utils";
 
 export const jobRouter = createTRPCRouter({
   addJob: protectedProcedure
-    .input(
-      z.object({
-        url: z.string().url(),
-      }),
-    )
+    .input(addJobSchema)
     .mutation(async ({ input, ctx }) => {
-      // const job = await ctx.db.job.create({
-      //   data: {
-      //     userId: ctx.session.user.id!,
-      //     url: input.url,
-      //   },
-      // });
-
-      // // TODO
-      // // scrape the job details
-      // // sent push notification it's done
-
-      // // const details = await extractJobDetails(input.url);
-
-      // await ctx.db.job.update({
-      //   where: {
-      //     id: job.id,
-      //   },
-      //   data: {
-      //     title: details.title,
-      //     description: details.description,
-      //     company: details.companyName,
-      //   },
-      // });
-
-      return "job added";
+      const userId = ctx.session.user.id!;
+      return withErrorHandling(
+        () => addJob(ctx.db, userId, input),
+        "Failed to add job",
+      );
     }),
-  getJobs: protectedProcedure.query(async ({ ctx }) => {
-    const jobs = await ctx.db.job.findMany();
 
-    return jobs;
+  getJobs: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id!;
+    return withErrorHandling(
+      () => getJobs(ctx.db, userId),
+      "Failed to get jobs",
+    );
   }),
 });

@@ -1,57 +1,15 @@
+"server-only";
+
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import { getUserInfo } from "~/server/lib/profile";
+import { withErrorHandling } from "~/server/utils";
 
 export const profileRouter = createTRPCRouter({
   getUserInfo: protectedProcedure.query(async ({ ctx }) => {
-    const userId = ctx.session.user.id;
-    const resume = await ctx.db.resume.findFirst({
-      include: {
-        contactInfo: true,
-        education: true,
-        experience: {
-          include: {
-            positions: {
-              include: {
-                skillPosition: { include: { skill: true } },
-              },
-            },
-          },
-        },
-      },
-      where: { Job: { userId } },
-    });
-
-    if (!resume) {
-      throw new Error("Resume not found");
-    }
-
-    const {
-      contactInfo,
-      summary: professionalSummary,
-      education,
-      experience,
-    } = resume;
-    const workExperience =
-      experience?.flatMap((exp) =>
-        exp.positions.map(
-          ({ title, startDate, endDate, location, accomplishments }) => ({
-            accomplishments,
-            endDate,
-            location,
-            startDate,
-            title,
-          }),
-        ),
-      ) ?? [];
-    const skills =
-      experience?.flatMap((exp) =>
-        exp.positions.flatMap((p) => p.skillPosition.map((sp) => sp.skill)),
-      ) ?? [];
-    return {
-      contactInfo,
-      education,
-      professionalSummary,
-      skills,
-      workExperience,
-    };
+    const userId = ctx.session.user.id!;
+    return withErrorHandling(
+      () => getUserInfo(ctx.db, userId),
+      "Failed to get user info",
+    );
   }),
 });

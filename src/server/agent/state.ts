@@ -1,3 +1,5 @@
+"server-only";
+
 import type { BaseMessage } from "@langchain/core/messages";
 import { MessagesAnnotation } from "@langchain/langgraph";
 

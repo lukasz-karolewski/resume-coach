@@ -29,7 +29,7 @@ src/server/
 ### **API Routers (`src/server/api/routers/*.ts`)** - Thin Controllers
 These files are **presentation/transport layer only** and should:
 
-1. **Start with `"server-only"` directive** to prevent client-side imports
+1. **Start with `"server-only"` directive** to prevent client-side imports, no not use `"use server"` it's for React Server Components
 2. **Define tRPC procedures** (queries/mutations) with appropriate middleware
 3. **Extract context** (session, db, userId) from tRPC context
 4. **Delegate to business logic** - call functions from `lib/` with minimal processing

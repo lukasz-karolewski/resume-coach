@@ -1,3 +1,5 @@
+"server-only";
+
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import {
   END,

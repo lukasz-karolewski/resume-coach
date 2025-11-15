@@ -1,3 +1,5 @@
+"server-only";
+
 import { MemorySaver } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
 
