@@ -2,10 +2,8 @@ import clsx from "clsx";
 import type { Metadata } from "next";
 import { Noto_Serif } from "next/font/google";
 import { cookies } from "next/headers";
-
-import { TRPCReactProvider } from "~/trpc/react";
-
 import NiceModalProviderWrapper from "~/components/providers";
+import { TRPCReactProvider } from "~/trpc/react";
 import "./styles.css";
 
 const font = Noto_Serif({ subsets: ["latin"] });

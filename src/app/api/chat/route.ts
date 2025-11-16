@@ -1,10 +1,8 @@
-import { HumanMessage } from "@langchain/core/messages";
 import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "~/auth";
-import { createCoachAgent } from "~/server/agent";
-import { db } from "~/server/db";
+import { executeChatStream } from "~/server/agent";
 
 /**
  * POST /api/chat
@@ -21,6 +19,7 @@ export async function POST(req: NextRequest) {
   }
 
   const userId = session.user.id;
+
   try {
     // Parse request body
     const body = (await req.json()) as {
@@ -38,44 +37,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Find or create chat thread
-    let thread:
-      | Awaited<ReturnType<typeof db.chatThread.findFirst>>
-      | Awaited<ReturnType<typeof db.chatThread.create>>;
-    if (threadId) {
-      thread = await db.chatThread.findFirst({
-        where: {
-          id: threadId,
-          userId,
-        },
-      });
-
-      if (!thread) {
-        return NextResponse.json(
-          { error: "Thread not found" },
-          { status: 404 },
-        );
-      }
-    } else {
-      // Create new thread
-      thread = await db.chatThread.create({
-        data: {
-          resumeId: resumeId ?? null,
-          userId,
-        },
-      });
-    }
-
-    // Create the agent
-    const agent = createCoachAgent();
-
-    // Prepare configuration for the agent
-    const config = {
-      configurable: {
-        thread_id: thread.id,
-      },
-    };
-
     // Create a TransformStream for SSE
     const encoder = new TextEncoder();
     const stream = new TransformStream();
@@ -87,75 +48,15 @@ export async function POST(req: NextRequest) {
       await writer.write(encoder.encode(message));
     };
 
-    // Run the agent in the background
+    // Execute the chat stream in the background
     (async () => {
       try {
-        // Store the user message
-        await db.chatMessage.create({
-          data: {
-            content: message,
-            role: "user",
-            threadId: thread.id,
-          },
-        });
-
-        await sendEvent("message", {
-          content: message,
-          role: "user",
-        });
-
-        // Invoke the agent with streaming
-        const input = {
-          messages: [new HumanMessage(message)],
-        };
-
-        let assistantMessage = "";
-
-        // Stream events from the agent
-        for await (const event of agent.streamEvents(input, {
-          ...config,
-          version: "v2",
-        })) {
-          // Handle different event types
-          if (event.event === "on_chat_model_stream") {
-            // LLM is streaming a response
-            const chunk = event.data?.chunk;
-            if (chunk?.content) {
-              assistantMessage += chunk.content;
-              await sendEvent("chunk", {
-                content: chunk.content,
-              });
-            }
-          } else if (event.event === "on_tool_start") {
-            // Tool execution started
-            await sendEvent("tool_start", {
-              input: event.data?.input,
-              runId: event.run_id,
-              tool: event.name,
-            });
-          } else if (event.event === "on_tool_end") {
-            // Tool execution ended
-            await sendEvent("tool_end", {
-              output: event.data?.output,
-              runId: event.run_id,
-              tool: event.name,
-            });
-          }
-        }
-
-        // Store the assistant's final message
-        if (assistantMessage) {
-          await db.chatMessage.create({
-            data: {
-              content: assistantMessage,
-              role: "assistant",
-              threadId: thread.id,
-            },
-          });
-        }
-
-        await sendEvent("done", {
-          threadId: thread.id,
+        await executeChatStream({
+          message,
+          resumeId,
+          sendEvent,
+          threadId,
+          userId,
         });
       } catch (error) {
         console.error("Agent error:", error);

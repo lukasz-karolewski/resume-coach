@@ -1,71 +1,165 @@
 "server-only";
 
-import { ChatPromptTemplate } from "@langchain/core/prompts";
-import {
-  END,
-  MessagesAnnotation,
-  START,
-  StateGraph,
-} from "@langchain/langgraph";
-import { ToolNode } from "@langchain/langgraph/prebuilt";
-import { COACH_SYSTEM_PROMPT, createLLM, createMemory } from "./config";
+import { HumanMessage } from "@langchain/core/messages";
+import { RedisSaver } from "@langchain/langgraph-checkpoint-redis";
+import { ChatOpenAI } from "@langchain/openai";
+import { createAgent } from "langchain";
+import { db } from "../db";
+import { systemPrompt } from "./prompt";
+import { CoachAgentContext } from "./state";
 import { allTools } from "./tools";
+
+const checkpointer = await RedisSaver.fromUrl("redis://localhost:6379");
 
 /**
  * Create the ReAct agent graph
  */
 export function createCoachAgent() {
-  const llm = createLLM();
-  const memory = createMemory();
+  const model = new ChatOpenAI({
+    frequencyPenalty: 0,
+    model: "gpt-4o-mini",
+    presencePenalty: 0,
+    temperature: 0.1,
+  });
 
-  // Bind tools to the LLM
-  const llmWithTools = llm.bindTools(allTools);
+  const agent = createAgent({
+    checkpointer,
+    contextSchema: CoachAgentContext,
+    model,
+    systemPrompt,
+    tools: allTools,
+  });
 
-  // Create the prompt with system message
-  const prompt = ChatPromptTemplate.fromMessages([
-    ["system", COACH_SYSTEM_PROMPT],
-    ["placeholder", "{messages}"],
-  ]);
+  return agent;
+}
 
-  // Define the agent node that calls the LLM
-  const callModel = async (state: typeof MessagesAnnotation.State) => {
-    const chain = prompt.pipe(llmWithTools);
-    const response = await chain.invoke({ messages: state.messages });
-    return { messages: [response] };
+/**
+ * SSE event sender helper type
+ */
+type SendEvent = (event: string, data: unknown) => Promise<void>;
+
+/**
+ * Parameters for the chat stream
+ */
+interface ChatStreamParams {
+  message: string;
+  threadId?: string;
+  resumeId?: number;
+  userId: string;
+  sendEvent: SendEvent;
+}
+
+/**
+ * Execute the chat agent and stream responses
+ * This handles:
+ * - Finding or creating chat thread
+ * - Storing user message
+ * - Running the agent with streaming
+ * - Storing assistant response
+ * - Sending SSE events
+ */
+export async function executeChatStream({
+  threadId,
+  resumeId,
+  userId,
+  message,
+  sendEvent,
+}: ChatStreamParams): Promise<{ threadId: string }> {
+  // Find or create chat thread
+  let thread = threadId
+    ? await db.chatThread.findFirst({
+        where: {
+          id: threadId,
+          userId,
+        },
+      })
+    : null;
+
+  if (!thread) {
+    thread = await db.chatThread.create({
+      data: {
+        resumeId: resumeId ?? null,
+        userId,
+      },
+    });
+  }
+
+  const agent = createCoachAgent();
+
+  // // Store the user message
+  // await db.chatMessage.create({
+  //   data: {
+  //     content: message,
+  //     role: "user",
+  //     threadId: thread.id,
+  //   },
+  // });
+
+  // await sendEvent("message", {
+  //   content: message,
+  //   role: "user",
+  // });
+
+  // Invoke the agent with streaming
+  const input = {
+    messages: [new HumanMessage(message)],
+    testValue: "DEADBEEF",
   };
 
-  // Define routing logic: continue to tools or end?
-  const shouldContinue = (state: typeof MessagesAnnotation.State) => {
-    const messages = state.messages;
-    const lastMessage = messages[messages.length - 1];
+  // let assistantMessage = "";
 
-    // If the LLM makes a tool call, route to the "tools" node
-    if (
-      lastMessage &&
-      "tool_calls" in lastMessage &&
-      Array.isArray(lastMessage.tool_calls) &&
-      lastMessage.tool_calls.length > 0
-    ) {
-      return "tools";
+  // Stream events from the agent
+  for await (const event of agent.streamEvents(input, {
+    configurable: {
+      thread_id: thread.id,
+    },
+    context: {
+      currentResumeId: resumeId ?? null,
+      userId,
+    },
+    version: "v2",
+  })) {
+    // Handle different event types
+    if (event.event === "on_chat_model_stream") {
+      // LLM is streaming a response
+      const chunk = event.data?.chunk;
+      if (chunk?.content) {
+        // assistantMessage += chunk.content;
+        await sendEvent("chunk", {
+          content: chunk.content,
+        });
+      }
+    } else if (event.event === "on_tool_start") {
+      // Tool execution started
+      await sendEvent("tool_start", {
+        input: event.data?.input,
+        runId: event.run_id,
+        tool: event.name,
+      });
+    } else if (event.event === "on_tool_end") {
+      // Tool execution ended
+      await sendEvent("tool_end", {
+        output: event.data?.output,
+        runId: event.run_id,
+        tool: event.name,
+      });
     }
-    // Otherwise, end the conversation
-    return END;
-  };
+  }
 
-  // Create the tool node
-  const toolNode = new ToolNode(allTools);
+  // // Store the assistant's final message
+  // if (assistantMessage) {
+  //   await db.chatMessage.create({
+  //     data: {
+  //       content: assistantMessage,
+  //       role: "assistant",
+  //       threadId: thread.id,
+  //     },
+  //   });
+  // }
 
-  // Build the graph
-  const workflow = new StateGraph(MessagesAnnotation)
-    .addNode("agent", callModel)
-    .addNode("tools", toolNode)
-    .addEdge(START, "agent")
-    .addConditionalEdges("agent", shouldContinue, {
-      tools: "tools",
-      [END]: END,
-    })
-    .addEdge("tools", "agent"); // After tools, go back to agent
+  await sendEvent("done", {
+    threadId: thread.id,
+  });
 
-  // Compile with memory checkpointer
-  return workflow.compile({ checkpointer: memory });
+  return { threadId: thread.id };
 }

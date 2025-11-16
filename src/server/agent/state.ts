@@ -1,19 +1,25 @@
 "server-only";
 
-import type { BaseMessage } from "@langchain/core/messages";
-import { MessagesAnnotation } from "@langchain/langgraph";
+import { MessagesZodState } from "@langchain/langgraph";
+import * as z from "zod";
 
 /**
- * Extended state for the ReAct agent
- * Includes conversation messages and metadata about the working resume
+ * Runtime context schema for the ReAct agent
+ * This context is accessible to tools via config.context
+ * and is passed during agent invocation.
  */
-export interface AgentState {
-  messages: BaseMessage[];
-  resumeId: number | null;
-  userId: string;
-}
+export const CoachAgentContext = z.object({
+  currentResumeId: z.number().nullable(),
+  userId: z.string(),
+});
 
 /**
- * Use MessagesAnnotation as base and extend with custom fields
+ * Custom state schema for the agent
+ * Extends the default MessagesZodState with custom fields
+ * that can be read and modified during agent execution.
  */
-export const CoachAgentAnnotation = MessagesAnnotation.spec;
+export const CoachAgentState = z.object({
+  messages: MessagesZodState.shape.messages,
+  // Custom state field example - can be modified by tools
+  testValue: z.string().optional(),
+});

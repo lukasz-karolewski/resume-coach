@@ -15,37 +15,12 @@ services:
   #   volumes:
   #     - caddy_data:/data
 
-  # celery-flower:
-  #   restart: unless-stopped
-  #   image: "iserko/docker-celery-flower:latest"
-  #   entrypoint: "flower --port=5555 --broker_api=http://${RABBIT_USER-mtando}:${RABBIT_PASS-mtando}@${RABBIT_HOST-rabbitmq}:15672/api/"
-  #   environment:
-  #     - CELERY_BROKER_URL=amqp://${RABBIT_USER-mtando}:${RABBIT_PASS-mtando}@${RABBIT_HOST-rabbitmq}:5672/${RABBIT_VHOST-mymoney}
-  #   depends_on:
-  #     - rabbitmq
-  #   ports:
-  #     - 5555:5555
-
-  redis-commander:
-    restart: unless-stopped
-    image: rediscommander/redis-commander
-    environment:
-      - REDIS_HOSTS=${REDIS_HOST-redis}
-    depends_on:
-      - redis
+  redis:
+    # Override to use full stack with RedisInsight UI for local development
+    image: "redis/redis-stack:latest"
     ports:
-      - 8081:8081
-
-  pgadmin:
-    restart: unless-stopped
-    image: dpage/pgadmin4:latest
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
-      - PGADMIN_DEFAULT_PASSWORD=root
-    depends_on:
-      - postgres
-    ports:
-      - 8090:80
+      - 6379:6379
+      - 13333:8001  # RedisInsight UI (custom port for local dev)
 
   smtp:
     restart: unless-stopped
@@ -55,18 +30,6 @@ services:
       - 8025:8025
     healthcheck:
       test: nc -z 127.0.0.1 1025
-
-  # db-backup:
-  #   image: lkarolewski/pg-dockup:latest
-  #   depends_on:
-  #     - postgres
-  #   environment:
-  #     - POSTGRES_HOST=${POSTGRES_HOST-postgres}
-  #     - POSTGRES_DB=${POSTGRES_DB-mymoney}
-  #     - POSTGRES_USER=${POSTGRES_USER-mtando}
-  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD-mtando}
-  #   # disabling run in dev env, used by ./bin/dev/backup* scripts
-  #   command: ["date"]
 
 volumes:
   caddy_data:

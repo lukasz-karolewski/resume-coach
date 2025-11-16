@@ -3,7 +3,6 @@
 {
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [],
-
   // Configure tool-specific properties.
   "customizations": {
     "vscode": {
@@ -25,8 +24,8 @@
   // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
   // "image": "mcr.microsoft.com/devcontainers/base:jammy",
   "dockerComposeFile": [
-    // "../docker-compose.yml"
-    // "../docker-compose.override.yml",
+    "../docker-compose.yml",
+    "../docker-compose.override.yml",
     "docker-compose-dev.yml"
   ],
   // Features to add to the dev container. More info: https://containers.dev/features.
@@ -37,7 +36,6 @@
   },
   "name": "Ubuntu",
   "postCreateCommand": "pip install poetry && poetry config virtualenvs.create false",
-
   // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
   "remoteUser": "root",
   "service": "devcontainer",

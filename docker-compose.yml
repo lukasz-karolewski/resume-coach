@@ -1,0 +1,14 @@
+services:
+  redis:
+    restart: unless-stopped
+    image: "redis/redis-stack-server:latest"
+    ports:
+      - 6379:6379
+    volumes:
+      - redisdata:/data
+    environment:
+      # Enable persistence - save to disk every 60 seconds if at least 1 key changed
+      - REDIS_ARGS=--save 60 1
+
+volumes:
+  redisdata:

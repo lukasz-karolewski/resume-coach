@@ -16,6 +16,13 @@ const Assistant: React.FC = () => {
     }
   }, []);
 
+  // resume/id
+  const resumeId =
+    typeof window !== "undefined" &&
+    window.location.pathname.startsWith("/resume/")
+      ? Number(window.location.pathname.split("/").filter(Boolean)[1])
+      : undefined;
+
   const {
     messages,
     isLoading,
@@ -29,6 +36,7 @@ const Assistant: React.FC = () => {
       setThreadId(newThreadId);
       sessionStorage.setItem("chatThreadId", newThreadId);
     },
+    resumeId,
     threadId,
   });
 
