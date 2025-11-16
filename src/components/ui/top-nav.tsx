@@ -11,11 +11,11 @@ const TopNav: React.FC = async () => {
         </Link>
 
         <div className="flex grow gap-4">
+          <Link className="hover:underline" href="/resume">
+            resumes
+          </Link>
           <Link className="hover:underline" href="/profile">
             profile
-          </Link>
-          <Link className="hover:underline" href="/resume">
-            jobs & resumes
           </Link>
         </div>
 

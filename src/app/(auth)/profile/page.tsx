@@ -15,10 +15,8 @@ const Profile: React.FC = () => {
     <div>
       <Button variant={"secondary"}>import your LinkedIn profile</Button>
       <div>
-        What we know about you:
-        <div>workExperience{userInformation.workExperience.length}</div>
-        <div>education{userInformation.education.length}</div>
-        <div>skills{userInformation.skills.length}</div>
+        <p>Name: {userInformation.name}</p>
+        <p>Email: {userInformation.email}</p>
       </div>
     </div>
   );

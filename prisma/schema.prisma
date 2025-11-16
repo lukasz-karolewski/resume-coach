@@ -28,6 +28,8 @@ model User {
   resumes       Resume[]
   chatThreads   ChatThread[]
 
+  linkedInProfileURL String? // Store LinkedIn profile URL
+
   @@unique([email])
   @@map("user")
 }
