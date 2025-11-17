@@ -11,7 +11,7 @@ interface Position {
   endDate?: Date | null;
   title: string;
   location: string;
-  accomplishments: string[];
+  accomplishments: string; // Markdown string
 }
 
 interface JobExperienceItem {
@@ -21,7 +21,7 @@ interface JobExperienceItem {
 }
 
 interface AccomplishmentsProps {
-  items: string[];
+  markdown: string;
 }
 
 interface PositionItemProps {
@@ -38,35 +38,11 @@ interface JobExperienceProps {
   jobs: JobExperienceItem[];
 }
 
-const Accomplishments: React.FC<AccomplishmentsProps> = ({ items }) => {
-  if (items.length === 1) {
-    return (
-      <p className="text-sm">
-        <Markdown>{items[0]}</Markdown>
-      </p>
-    );
-  }
-
+const Accomplishments: React.FC<AccomplishmentsProps> = ({ markdown }) => {
   return (
-    <ul className="ml-6 list-disc break-before-avoid text-sm">
-      {items.map((item, index) => {
-        const trimmed = item.trim();
-        if (trimmed.startsWith("**")) {
-          return (
-            // biome-ignore lint/suspicious/noArrayIndexKey: tbd
-            <span key={index}>
-              <Markdown>{trimmed}</Markdown>
-            </span>
-          );
-        }
-        return (
-          // biome-ignore lint/suspicious/noArrayIndexKey: tbd
-          <li key={index}>
-            <Markdown>{trimmed}</Markdown>
-          </li>
-        );
-      })}
-    </ul>
+    <div className="text-sm">
+      <Markdown>{markdown}</Markdown>
+    </div>
   );
 };
 
@@ -86,7 +62,7 @@ const PositionItem: React.FC<PositionItemProps> = ({ position }) => {
           {formattedTo}
         </span>
       </div>
-      <Accomplishments items={accomplishments} />
+      <Accomplishments markdown={accomplishments} />
       {/* <button
         onClick={async () => {
           await getReview(

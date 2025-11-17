@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "~/auth";
-import { executeChatStream } from "~/server/agent";
+import { executeChatStream } from "~/server/agent/graph";
 
 /**
  * POST /api/chat

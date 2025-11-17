@@ -1,6 +1,6 @@
 "server-only";
 
-import { tool } from "@langchain/core/tools";
+import { type ToolRuntime, tool } from "@langchain/core/tools";
 import { z } from "zod";
 import { db } from "~/server/db";
 import {
@@ -22,6 +22,7 @@ import {
   updateSummary,
   updateSummarySchema,
 } from "~/server/lib/resume";
+import type { contextSchema, stateSchema } from "./graph";
 
 // TODO https://docs.langchain.com/oss/javascript/langchain/tools#stream-writer
 
@@ -29,17 +30,20 @@ import {
  * Tool: Create a working copy of a resume for editing
  */
 export const createResumeCopyTool = tool(
-  async ({ sourceResumeId }) => {
+  async (
+    { sourceResumeId },
+    // runtime: ToolRuntime<typeof stateSchema, typeof contextSchema>,
+  ) => {
     try {
       const result = await createResumeCopy(db, { sourceResumeId });
-      return JSON.stringify(result);
+      return result;
     } catch (error) {
-      return JSON.stringify({
+      return {
         error:
           error instanceof Error
             ? error.message
             : "Failed to create resume copy",
-      });
+      };
     }
   },
   {
@@ -60,14 +64,14 @@ export const updateAccomplishmentsTool = tool(
         accomplishments,
         positionId,
       });
-      return JSON.stringify(result);
+      return result;
     } catch (error) {
-      return JSON.stringify({
+      return {
         error:
           error instanceof Error
             ? error.message
             : "Failed to update accomplishments",
-      });
+      };
     }
   },
   {
@@ -82,21 +86,34 @@ export const updateAccomplishmentsTool = tool(
  * Tool: Update the professional summary
  */
 export const updateSummaryTool = tool(
-  async ({ resumeId, summary }) => {
+  async (
+    { summary },
+    runtime: ToolRuntime<typeof stateSchema, typeof contextSchema>,
+  ) => {
+    if (!runtime.context.currentResumeId) {
+      return {
+        error: "No Resume is being currently edited.",
+      };
+    }
+
     try {
-      const result = await updateSummary(db, { resumeId, summary });
-      return JSON.stringify(result);
+      const result = await updateSummary(db, {
+        resumeId: runtime.context.currentResumeId,
+        summary,
+      });
+      return result;
     } catch (error) {
-      return JSON.stringify({
+      return {
         error:
           error instanceof Error ? error.message : "Failed to update summary",
-      });
+      };
     }
   },
   {
-    description: "Update the professional summary section of the resume.",
+    description:
+      "Update the professional summary section of the currently edited resume.",
     name: "updateSummary",
-    schema: updateSummarySchema,
+    schema: updateSummarySchema.omit({ resumeId: true }), // resumeId comes from context
   },
 );
 
@@ -107,12 +124,12 @@ export const getResumeTool = tool(
   async ({ resumeId }) => {
     try {
       const result = await getResumeForAgent(db, { resumeId });
-      return JSON.stringify(result);
+      return result;
     } catch (error) {
-      return JSON.stringify({
+      return {
         error:
           error instanceof Error ? error.message : "Failed to fetch resume",
-      });
+      };
     }
   },
   {
@@ -146,12 +163,12 @@ export const addExperienceTool = tool(
         startDate,
         title,
       });
-      return JSON.stringify(result);
+      return result;
     } catch (error) {
-      return JSON.stringify({
+      return {
         error:
           error instanceof Error ? error.message : "Failed to add experience",
-      });
+      };
     }
   },
   {
@@ -168,12 +185,12 @@ export const updateSkillsTool = tool(
   async ({ positionId, skills }) => {
     try {
       const result = await updateSkills(db, { positionId, skills });
-      return JSON.stringify(result);
+      return result;
     } catch (error) {
-      return JSON.stringify({
+      return {
         error:
           error instanceof Error ? error.message : "Failed to update skills",
-      });
+      };
     }
   },
   {
@@ -192,14 +209,14 @@ export const fetchJobDescriptionTool = tool(
     try {
       console.log(config.context.userId);
       const result = await fetchJobDescription({ url });
-      return JSON.stringify(result);
+      return result;
     } catch (error) {
-      return JSON.stringify({
+      return {
         error:
           error instanceof Error
             ? error.message
             : "Failed to fetch job description",
-      });
+      };
     }
   },
   {
@@ -217,12 +234,12 @@ export const listResumesTool = tool(
   async ({ userId }) => {
     try {
       const result = await listResumesForUser(db, userId);
-      return JSON.stringify(result);
+      return result;
     } catch (error) {
-      return JSON.stringify({
+      return {
         error:
           error instanceof Error ? error.message : "Failed to list resumes",
-      });
+      };
     }
   },
   {

@@ -22,7 +22,7 @@ export const contextSchema = z.object({
   userId: z.string(),
 });
 
-const stateSchema = z.object({
+export const stateSchema = z.object({
   preferences: z.record(z.string(), z.any()),
 });
 

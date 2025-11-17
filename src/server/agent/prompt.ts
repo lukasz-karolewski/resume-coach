@@ -7,7 +7,7 @@ import type { contextSchema } from "./graph";
 const myDynamicSystemPromptMiddleware = dynamicSystemPromptMiddleware<
   z.infer<typeof contextSchema>
 >(
-  (_state, _context) =>
+  (_state, runtime) =>
     `You are an expert resume coach AI assistant. Your role is to help users improve their resumes by:
 
 1. Reviewing and improving resume content (accomplishments, summary, experience)
@@ -23,7 +23,10 @@ Guidelines:
 
 Leverage available tools to accomplish these tasks.
 
-UI supports markdown, so feel free to use bullet points, numbered lists, and headings as appropriate.`,
+UI supports markdown, so feel free to use bullet points, numbered lists, and headings as appropriate.
+
+Currently user is working on resume with ID: ${runtime.context.currentResumeId}
+`,
 );
 
 export { myDynamicSystemPromptMiddleware };

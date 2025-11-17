@@ -8,8 +8,8 @@ describe("db-mock-data", () => {
     expect(mockDB.base.contactInfo).toBeDefined();
     expect(mockDB.base.contactInfo.name).toBe("Lukasz Karolewski");
     expect(mockDB.base.contactInfo.email).toBe("lkarolewski@gmail.com");
-    // summary is now a parsed array (not a JSON string)
-    expect(Array.isArray(mockDB.base.summary)).toBe(true);
+    // summary is now a markdown string
+    expect(typeof mockDB.base.summary).toBe("string");
     expect(mockDB.base.summary.length).toBeGreaterThan(0);
     expect(mockDB.base.experience).toBeInstanceOf(Array);
     expect(mockDB.base.education).toBeInstanceOf(Array);
@@ -18,8 +18,8 @@ describe("db-mock-data", () => {
   it("should have salesforce company data", () => {
     expect(mockDB.salesforce).toBeDefined();
     expect(mockDB.salesforce.contactInfo).toBeDefined();
-    // summary is now a parsed array (not a JSON string)
-    expect(Array.isArray(mockDB.salesforce.summary)).toBe(true);
+    // summary is now a markdown string
+    expect(typeof mockDB.salesforce.summary).toBe("string");
     expect(mockDB.salesforce.summary.length).toBeGreaterThan(0);
     expect(mockDB.salesforce.experience).toBeInstanceOf(Array);
     expect(mockDB.salesforce.education).toBeInstanceOf(Array);
@@ -32,8 +32,8 @@ describe("db-mock-data", () => {
     expect(linkedIn?.positions).toBeInstanceOf(Array);
     expect(linkedIn?.positions.length).toBeGreaterThan(0);
     expect(linkedIn?.positions[0]?.accomplishments).toBeDefined();
-    // accomplishments is now a parsed array (not a JSON string)
-    expect(Array.isArray(linkedIn?.positions[0]?.accomplishments)).toBe(true);
+    // accomplishments is now a markdown string
+    expect(typeof linkedIn?.positions[0]?.accomplishments).toBe("string");
     expect(linkedIn?.positions[0]?.accomplishments.length).toBeGreaterThan(0);
   });
 

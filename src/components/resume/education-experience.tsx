@@ -44,8 +44,8 @@ export default function EducationExperience({
 }: EducationExperienceProps) {
   return (
     <>
-      {educationList.map((education, index) => (
-        <EducationExperienceItem key={index} info={education} />
+      {educationList.map((education) => (
+        <EducationExperienceItem key={education.id} info={education} />
       ))}
     </>
   );

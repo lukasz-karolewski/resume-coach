@@ -10,7 +10,7 @@ import { mockDB } from "~/server/db-mock-data";
 // ============================================================================
 
 export const positionSchema = z.object({
-  accomplishments: z.array(z.string()),
+  accomplishments: z.string(), // Markdown string
   endDate: z.date().optional(),
   id: z.number().optional(),
   location: z.string(),
@@ -34,7 +34,7 @@ export const educationSchema = z.object({
   location: z.string(),
   notes: z.string().optional(),
   startDate: z.date(),
-  type: z.nativeEnum(EducationType),
+  type: z.enum(EducationType),
 });
 
 export const contactInfoSchema = z.object({
@@ -50,7 +50,7 @@ export const createResumeSchema = z.object({
   experience: z.array(experienceSchema).default([]),
   jobId: z.string().optional(),
   name: z.string().default("New Resume"),
-  professionalSummary: z.array(z.string()).default([]),
+  professionalSummary: z.string().default(""), // Markdown string
 });
 
 export const updateResumeSchema = z.object({
@@ -59,7 +59,7 @@ export const updateResumeSchema = z.object({
   experience: z.array(experienceSchema).optional(),
   id: z.number(),
   name: z.string().optional(),
-  professionalSummary: z.array(z.string()).optional(),
+  professionalSummary: z.string().optional(), // Markdown string
 });
 
 export const duplicateResumeSchema = z.object({
@@ -89,7 +89,7 @@ export const createResumeCopySchema = z.object({
 });
 
 export const updateAccomplishmentsSchema = z.object({
-  accomplishments: z.array(z.string()),
+  accomplishments: z.string(), // Markdown string
   positionId: z.number(),
 });
 
@@ -103,7 +103,7 @@ export const getResumeForAgentSchema = z.object({
 });
 
 export const addExperienceSchema = z.object({
-  accomplishments: z.array(z.string()),
+  accomplishments: z.string(), // Markdown string
   companyName: z.string(),
   endDate: z.string().optional(),
   location: z.string(),
@@ -129,9 +129,6 @@ export async function createResume(
   userId: string,
   input: z.infer<typeof createResumeSchema>,
 ) {
-  console.log("DEBUG resume.create input:", JSON.stringify(input, null, 2));
-  console.log("DEBUG userId:", userId);
-
   // Validate jobId if provided
   if (input.jobId) {
     const job = await db.job.findFirst({
@@ -191,7 +188,7 @@ export async function createResume(
           link: exp.link,
           positions: {
             create: exp.positions.map((pos) => ({
-              accomplishments: JSON.stringify(pos.accomplishments),
+              accomplishments: pos.accomplishments,
               endDate: pos.endDate,
               location: pos.location,
               startDate: pos.startDate,
@@ -202,7 +199,7 @@ export async function createResume(
       },
       jobId: input.jobId ?? null,
       name: input.name,
-      summary: JSON.stringify(input.professionalSummary),
+      summary: input.professionalSummary,
       userId: userId,
     },
     include: {
@@ -359,17 +356,7 @@ export async function duplicateResume(
     },
   });
 
-  return {
-    ...duplicate,
-    experience: duplicate.experience.map((exp) => ({
-      ...exp,
-      positions: exp.positions.map((pos) => ({
-        ...pos,
-        accomplishments: JSON.parse(pos.accomplishments as string) as string[],
-      })),
-    })),
-    summary: JSON.parse(duplicate.summary) as string[],
-  };
+  return duplicate;
 }
 
 /**
@@ -428,18 +415,7 @@ export async function getResumeById(
     });
   }
 
-  // Parse JSON fields
-  return {
-    ...resume,
-    experience: resume.experience.map((exp) => ({
-      ...exp,
-      positions: exp.positions.map((pos) => ({
-        ...pos,
-        accomplishments: JSON.parse(pos.accomplishments) as string[],
-      })),
-    })),
-    summary: JSON.parse(resume.summary) as string[],
-  };
+  return resume;
 }
 
 /**
@@ -479,18 +455,7 @@ export async function getResumeByCompanyName(
     });
   }
 
-  // Parse JSON fields
-  return {
-    ...resume,
-    experience: resume.experience.map((exp) => ({
-      ...exp,
-      positions: exp.positions.map((pos) => ({
-        ...pos,
-        accomplishments: JSON.parse(pos.accomplishments) as string[],
-      })),
-    })),
-    summary: JSON.parse(resume.summary) as string[],
-  };
+  return resume;
 }
 
 /**
@@ -521,11 +486,7 @@ export async function listResumes(
     },
   });
 
-  // Parse JSON fields from database resumes
-  const dbResumes = resumes.map((resume) => ({
-    ...resume,
-    summary: JSON.parse(resume.summary) as string[],
-  }));
+  const dbResumes = resumes;
 
   // Add mock resumes with proper structure for the list view
   // Note: Mock resumes are read-only templates, use negative IDs to distinguish them
@@ -631,7 +592,7 @@ export async function updateResume(
       if (exp && dbExp) {
         await db.position.createMany({
           data: exp.positions.map((pos) => ({
-            accomplishments: JSON.stringify(pos.accomplishments),
+            accomplishments: pos.accomplishments,
             endDate: pos.endDate,
             experienceId: dbExp.id,
             location: pos.location,
@@ -671,7 +632,7 @@ export async function updateResume(
     data: {
       ...(input.name && { name: input.name }),
       ...(input.professionalSummary && {
-        summary: JSON.stringify(input.professionalSummary),
+        summary: input.professionalSummary,
       }),
     },
     include: {
@@ -686,17 +647,7 @@ export async function updateResume(
     where: { id: input.id },
   });
 
-  return {
-    ...updated,
-    experience: updated.experience.map((exp) => ({
-      ...exp,
-      positions: exp.positions.map((pos) => ({
-        ...pos,
-        accomplishments: JSON.parse(pos.accomplishments) as string[],
-      })),
-    })),
-    summary: JSON.parse(updated.summary) as string[],
-  };
+  return updated;
 }
 
 // ============================================================================
@@ -794,7 +745,7 @@ export async function updateAccomplishments(
 ) {
   const position = await db.position.update({
     data: {
-      accomplishments: input.accomplishments.join("\n"),
+      accomplishments: input.accomplishments,
     },
     where: { id: input.positionId },
   });
@@ -896,7 +847,7 @@ export async function addExperience(
     // Add position to existing experience
     await db.position.create({
       data: {
-        accomplishments: JSON.stringify(input.accomplishments),
+        accomplishments: input.accomplishments,
         endDate: input.endDate ? new Date(input.endDate) : null,
         experienceId: existingExperience.id,
         location: input.location,
@@ -912,7 +863,7 @@ export async function addExperience(
         link: null,
         positions: {
           create: {
-            accomplishments: JSON.stringify(input.accomplishments),
+            accomplishments: input.accomplishments,
             endDate: input.endDate ? new Date(input.endDate) : null,
             location: input.location,
             startDate: new Date(input.startDate),
