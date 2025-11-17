@@ -1,32 +1,38 @@
 "server-only";
 
-import { HumanMessage } from "@langchain/core/messages";
 import { RedisSaver } from "@langchain/langgraph-checkpoint-redis";
 import { ChatOpenAI } from "@langchain/openai";
-import { createAgent } from "langchain";
+import { createAgent, HumanMessage } from "langchain";
+import * as z from "zod";
 import { db } from "../db";
-import { systemPrompt } from "./prompt";
-import { CoachAgentContext } from "./state";
+import { myDynamicSystemPromptMiddleware } from "./prompt";
 import { allTools } from "./tools";
 
 const checkpointer = await RedisSaver.fromUrl("redis://localhost:6379");
 
-/**
- * Create the ReAct agent graph
- */
-export function createCoachAgent() {
-  const model = new ChatOpenAI({
-    frequencyPenalty: 0,
-    model: "gpt-4o-mini",
-    presencePenalty: 0,
-    temperature: 0.1,
-  });
+const model = new ChatOpenAI({
+  frequencyPenalty: 0,
+  model: "gpt-4o-mini",
+  presencePenalty: 0,
+  temperature: 0.1,
+});
 
+export const contextSchema = z.object({
+  currentResumeId: z.number().nullable(),
+  userId: z.string(),
+});
+
+const stateSchema = z.object({
+  preferences: z.record(z.string(), z.any()),
+});
+
+export function createCoachAgent() {
   const agent = createAgent({
     checkpointer,
-    contextSchema: CoachAgentContext,
+    contextSchema,
+    middleware: [myDynamicSystemPromptMiddleware],
     model,
-    systemPrompt,
+    stateSchema,
     tools: allTools,
   });
 
@@ -100,26 +106,28 @@ export async function executeChatStream({
   //   role: "user",
   // });
 
-  // Invoke the agent with streaming
-  const input = {
-    messages: [new HumanMessage(message)],
-    testValue: "DEADBEEF",
-  };
-
   // let assistantMessage = "";
 
   // Stream events from the agent
-  for await (const event of agent.streamEvents(input, {
-    configurable: {
-      thread_id: thread.id,
+  // TODO migrate to use stream() and Standard content blocks
+  // https://docs.langchain.com/oss/javascript/langchain/messages#content-block-reference
+  for await (const event of agent.streamEvents(
+    {
+      messages: [new HumanMessage(message)],
+      preferences: {},
     },
-    context: {
-      currentResumeId: resumeId ?? null,
-      userId,
+    {
+      configurable: {
+        thread_id: thread.id,
+      },
+      context: {
+        currentResumeId: resumeId ?? null,
+        userId,
+      },
+      version: "v2",
     },
-    version: "v2",
-  })) {
-    // Handle different event types
+  )) {
+    // Handle different event types https://v03.api.js.langchain.com/classes/_langchain_core.language_models_chat_models.BaseChatModel.html#streamEvents
     if (event.event === "on_chat_model_stream") {
       // LLM is streaming a response
       const chunk = event.data?.chunk;

@@ -23,6 +23,8 @@ import {
   updateSummarySchema,
 } from "~/server/lib/resume";
 
+// TODO https://docs.langchain.com/oss/javascript/langchain/tools#stream-writer
+
 /**
  * Tool: Create a working copy of a resume for editing
  */
@@ -186,8 +188,9 @@ export const updateSkillsTool = tool(
  * Uses LLM to extract structured information from HTML
  */
 export const fetchJobDescriptionTool = tool(
-  async ({ url }) => {
+  async ({ url }, config) => {
     try {
+      console.log(config.context.userId);
       const result = await fetchJobDescription({ url });
       return JSON.stringify(result);
     } catch (error) {
