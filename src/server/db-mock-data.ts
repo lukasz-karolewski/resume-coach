@@ -171,20 +171,20 @@ const telmediqPositions = [
 const symantecPositions = [
   {
     accomplishments: `
-  **Enterprise Security Group**
-  - Led migration of 8 Symantec cloud products to Angular; mentored frontend development teams.
-  - Initiated 'Symantec Open Source' program, creating company wide-leverage.
-  - Introduced Git as the official code repository, securing executive support and company-wide adoption.
-  - Achieved 70% frontend unit test coverage; implemented e2e automation, reducing bug introduction rate by 60%.
-  
-  **Information Security Group**
-  - Optimized SQL queries for VIP Intelligent Authentication Services.
-  - Reduced build time from 15 minutes to under 1 minute by migrating build system from Ant to Gradle
-  - Reduced deployment time from 3 days to 1 hour by automating CiCD pipeline.
-  
-  **Internationalization team**
-  - Designed and implemented comprehensive internationalization (i18n) strategies, tooling and process across multiple security products, translated into 14 languages.
-    `,
+### Enterprise Security Group
+- Led migration of 8 Symantec cloud products to Angular; mentored frontend development teams.
+- Initiated 'Symantec Open Source' program, creating company wide-leverage.
+- Introduced Git as the official code repository, securing executive support and company-wide adoption.
+- Achieved 70% frontend unit test coverage; implemented e2e automation, reducing bug introduction rate by 60%.
+
+### Information Security Group
+- Optimized SQL queries for VIP Intelligent Authentication Services.
+- Reduced build time from 15 minutes to under 1 minute by migrating build system from Ant to Gradle
+- Reduced deployment time from 3 days to 1 hour by automating CiCD pipeline.
+
+### Internationalization team
+- Designed and implemented comprehensive internationalization (i18n) strategies, tooling and process across multiple security products, translated into 14 languages.
+`,
     endDate: new Date("2015-06-31"),
     experienceId: 4,
     id: 6,
@@ -197,7 +197,7 @@ const symantecPositions = [
 const simplePositions = [
   {
     accomplishments:
-      "  - Designed and implemented a prototype of automated supply chain management system that based on inventory thresholds inquired for quotes, picked the best bid, tracked payments and shipments. It was an extension for a market leading ERP.",
+      "Designed and implemented a prototype of automated supply chain management system that based on inventory thresholds inquired for quotes, picked the best bid, tracked payments and shipments. It was an extension for a market leading ERP.",
     endDate: new Date("2008-08-31"),
     experienceId: 5,
     id: 7,
@@ -210,7 +210,7 @@ const simplePositions = [
 const internetPositions = [
   {
     accomplishments:
-      "  - Started a business providing broadband internet to a local community of about 40 users. Built all of the systems to support operations, most notably: billing, traffic shaping, captive portal for device registration. Sold business to a larger ISP.",
+      "Started a business providing broadband internet to a local community of about 40 users. Built all of the systems to support operations, most notably: billing, traffic shaping, captive portal for device registration. Sold business to a larger ISP.",
     endDate: new Date("2010-08-31"),
     experienceId: 6,
     id: 8,

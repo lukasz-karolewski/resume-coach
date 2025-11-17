@@ -1,8 +1,7 @@
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
-import Markdown from "markdown-to-jsx";
-
 import { formatFromTo, toYearMonthsDuration } from "~/app/utils";
+import { MarkdownContent } from "~/components/ui/markdownContent";
 
 dayjs.extend(duration);
 
@@ -40,8 +39,8 @@ interface JobExperienceProps {
 
 const Accomplishments: React.FC<AccomplishmentsProps> = ({ markdown }) => {
   return (
-    <div className="text-sm">
-      <Markdown>{markdown}</Markdown>
+    <div className="text-sm list-decimal list-inside">
+      <MarkdownContent>{markdown}</MarkdownContent>
     </div>
   );
 };
@@ -63,27 +62,6 @@ const PositionItem: React.FC<PositionItemProps> = ({ position }) => {
         </span>
       </div>
       <Accomplishments markdown={accomplishments} />
-      {/* <button
-        onClick={async () => {
-          await getReview(
-            {
-              thread_id,
-              accomplihments: accomplishments,
-              user_input: "Coach me on how to improve this",
-            },
-            {
-              onSuccess: (data) => {
-                console.log(data);
-              },
-              onError: (error) => {
-                console.error(error);
-              },
-            },
-          );
-        }}
-      >
-        review
-      </button> */}
     </div>
   );
 };
