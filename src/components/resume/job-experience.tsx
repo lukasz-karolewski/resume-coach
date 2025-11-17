@@ -2,22 +2,14 @@ import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import { formatFromTo, toYearMonthsDuration } from "~/app/utils";
 import { MarkdownContent } from "~/components/ui/markdownContent";
+import type { RouterOutputs } from "~/trpc/shared";
 
 dayjs.extend(duration);
 
-interface Position {
-  startDate: Date;
-  endDate?: Date | null;
-  title: string;
-  location: string;
-  accomplishments: string; // Markdown string
-}
+type JobExperienceItem =
+  RouterOutputs["resume"]["getResume"]["experience"][number];
 
-interface JobExperienceItem {
-  companyName: string;
-  link?: string | null;
-  positions: Position[];
-}
+type Position = JobExperienceItem["positions"][number];
 
 interface AccomplishmentsProps {
   markdown: string;
@@ -78,10 +70,9 @@ const JobExperienceItem: React.FC<JobExperienceItemProps> = ({ job }) => {
       <div
         className={`flex break-before-avoid flex-col gap-6 ${hasMultiplePositions ? "border-l-2 pl-4" : ""}`}
       >
-        {positions.map((position, index) => (
+        {positions.map((position) => (
           <PositionItem
-            // biome-ignore lint/suspicious/noArrayIndexKey: tbd
-            key={index}
+            key={position.id}
             companyName={companyName}
             link={link}
             position={position}
@@ -95,9 +86,8 @@ const JobExperienceItem: React.FC<JobExperienceItemProps> = ({ job }) => {
 const JobExperience: React.FC<JobExperienceProps> = ({ jobs }) => {
   return (
     <>
-      {jobs.map((job, index) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: tbd
-        <JobExperienceItem key={index} job={job} />
+      {jobs.map((job) => (
+        <JobExperienceItem key={job.id} job={job} />
       ))}
     </>
   );

@@ -20,20 +20,10 @@ export default function ResumePage(props: {
   const isNumericId = !Number.isNaN(numericId);
 
   // Use getById for numeric IDs, getResume for string names
-  const { data: resumeById } = api.resume.getById.useQuery(
+  const { data: resume } = api.resume.getById.useQuery(
     { id: numericId },
     { enabled: isNumericId },
   );
-
-  const { data: resumeByName } = api.resume.getResume.useQuery(
-    {
-      company_name: params.resume_id,
-      version: "v1",
-    },
-    { enabled: !isNumericId },
-  );
-
-  const resume = resumeById || resumeByName;
 
   if (!resume) {
     return <div>Loading...</div>;

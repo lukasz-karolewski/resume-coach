@@ -72,7 +72,6 @@ export const getResumeByIdSchema = z.object({ id: z.number() });
 
 export const getResumeSchema = z.object({
   company_name: z.string(),
-  version: z.string(),
 });
 
 export const listResumesSchema = z
@@ -404,46 +403,6 @@ export async function getResumeById(
     },
     where: {
       id: input.id,
-      userId: userId,
-    },
-  });
-
-  if (!resume) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Resume not found",
-    });
-  }
-
-  return resume;
-}
-
-/**
- * Get resume by company name and version
- */
-export async function getResumeByCompanyName(
-  db: PrismaClient,
-  userId: string,
-  input: z.infer<typeof getResumeSchema>,
-) {
-  // if id in mockDB, return else, query actual DB
-  if (Object.keys(mockDB).includes(input.company_name.toLowerCase())) {
-    return mockDB[input.company_name.toLowerCase()];
-  }
-
-  // Query actual DB if not in mockDB
-  const resume = await db.resume.findFirst({
-    include: {
-      contactInfo: true,
-      education: true,
-      experience: {
-        include: {
-          positions: true,
-        },
-      },
-    },
-    where: {
-      name: input.company_name,
       userId: userId,
     },
   });

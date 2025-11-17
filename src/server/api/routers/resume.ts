@@ -8,10 +8,8 @@ import {
   deleteResumeSchema,
   duplicateResume,
   duplicateResumeSchema,
-  getResumeByCompanyName,
   getResumeById,
   getResumeByIdSchema,
-  getResumeSchema,
   listResumes,
   listResumesSchema,
   updateResume,
@@ -60,17 +58,6 @@ export const resumeRouter = createTRPCRouter({
       const userId = ctx.session.user.id!;
       return withErrorHandling(
         () => getResumeById(ctx.db, userId, input),
-        "Failed to get resume",
-      );
-    }),
-
-  // Get resume by company name and version
-  getResume: protectedProcedure
-    .input(getResumeSchema)
-    .query(async ({ input, ctx }) => {
-      const userId = ctx.session.user.id!;
-      return withErrorHandling(
-        () => getResumeByCompanyName(ctx.db, userId, input),
         "Failed to get resume",
       );
     }),

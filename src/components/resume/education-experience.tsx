@@ -1,14 +1,8 @@
 import { formatFromTo } from "~/app/utils";
+import type { RouterOutputs } from "~/trpc/shared";
 
-interface EducationExperience {
-  distinction: string;
-  institution: string;
-  link?: string | null;
-  location: string;
-  startDate: Date;
-  endDate?: Date | null;
-  notes?: string | null;
-}
+type EducationExperience =
+  RouterOutputs["resume"]["getResume"]["education"][number];
 
 interface EducationExperienceItemProps {
   info: EducationExperience;

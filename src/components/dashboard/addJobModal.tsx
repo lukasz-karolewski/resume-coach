@@ -26,12 +26,12 @@ export const AddJobModal = NiceModal.create<AddJobModalProps>(() => {
   } = useForm<FormValues>();
 
   const { mutate: create } = api.job.addJob.useMutation({
-    onError: (error: any) => {
+    onError: (error) => {
       const errorMessage = zodErrorsToString(error);
       if (errorMessage) toast.error(errorMessage);
       else toast.error("Failed to save");
     },
-    onSuccess: (_data: any) => {
+    onSuccess: (_data) => {
       toast.success("Saved");
       modal.resolve();
       modal.remove();
