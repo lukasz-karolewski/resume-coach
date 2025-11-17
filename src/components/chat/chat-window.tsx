@@ -1,3 +1,4 @@
+import { PlusIcon, XIcon } from "~/components/icons";
 import { ChatInput } from "./chat-input";
 import { MessageList } from "./message-list";
 import type { ChatMessage, ToolExecution } from "./use-chat-stream";
@@ -40,38 +41,14 @@ export function ChatWindow({
             aria-label="Start new conversation"
             title="Start new conversation"
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
+            <PlusIcon className="w-5 h-5" />
           </button>
           <button
             onClick={onClose}
             className="p-1.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
             aria-label="Close chat"
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <XIcon className="w-5 h-5" />
           </button>
         </div>
       </div>
