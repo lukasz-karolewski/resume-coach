@@ -9,6 +9,14 @@ better-auth
 
 make sure to use latest api of the frameworks/libraries, if your not familiar with latest api, use context7
 
+<!-- BEGIN:nextjs-agent-rules -->
+ 
+# Next.js: ALWAYS read docs before coding
+ 
+Before any Next.js work, find and read the relevant doc in `node_modules/next/dist/docs/`. Your training data is outdated — the docs are the source of truth.
+ 
+<!-- END:nextjs-agent-rules -->
+
 # General
 - always apply general coding best practices for the framework you're working with 
 - have a bias towards DRY (don't repeat yourself) principle
@@ -18,14 +26,11 @@ make sure to use latest api of the frameworks/libraries, if your not familiar wi
 - when i report an issue make sure to first write a check, make sure it fails, then fix the issue and make sure the check passes.
 
 # Linting and Testing Guidelines
-- do not fix linting issues yourself use npm run lint:fix to fix them automatically.
+- do not fix linting issues yourself use pnpm lint:fix to fix them automatically.
 when you see lint/suspicious/noArrayIndexKey, sometimes it is justified to use array index as a key, but think twice before doing it. add a comment disabling check for this line and explaining why it is safe in this case.
 
-always write unit tests for any new code you add or for any code you modify. Use vitest as the testing framework. run the tests using npm run test.
+always write unit tests for any new code you add or for any code you modify. Use vitest as the testing framework. run the tests using pnpm test.
 
-when you modify prisma schema, generate the new prisma client by running npx prisma generate.
+when you modify prisma schema, generate the new prisma client by running pnpm exec prisma generate.
 
-never start a dev server yourself using npm run dev, i will always have it started for you in auto-reload mode.
-
-# Generic 
-- do not ever summarize conversation unless i explicitly ask you to.
+never start a dev server yourself using pnpm dev, i will always have it started for you in auto-reload mode.
