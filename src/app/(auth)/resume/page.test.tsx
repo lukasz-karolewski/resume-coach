@@ -240,6 +240,28 @@ describe("ResumePage", () => {
     ).toBeInTheDocument();
   });
 
+  test("submits a string professional summary when creating a resume", () => {
+    const mutate = vi.fn();
+
+    mockCreateMutation.mockReturnValue({
+      isPending: false,
+      mutate,
+    });
+
+    render(<ResumePage />);
+
+    fireEvent.click(screen.getByText("+ Create New Resume"));
+    fireEvent.click(screen.getByText("Create Resume"));
+
+    expect(mutate).toHaveBeenCalledWith({
+      education: [],
+      experience: [],
+      jobId: undefined,
+      name: "New Resume",
+      professionalSummary: "",
+    });
+  });
+
   test("shows template resumes in the list", () => {
     render(<ResumePage />);
 

@@ -2,7 +2,7 @@ import { formatFromTo } from "~/app/utils";
 import type { RouterOutputs } from "~/trpc/shared";
 
 type EducationExperience =
-  RouterOutputs["resume"]["getResume"]["education"][number];
+  RouterOutputs["resume"]["getById"]["education"][number];
 
 interface EducationExperienceItemProps {
   info: EducationExperience;

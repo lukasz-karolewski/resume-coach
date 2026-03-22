@@ -1,6 +1,8 @@
 services:
   devcontainer:
-    image: mcr.microsoft.com/devcontainers/base:ubuntu
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
     volumes:
       - .:/workspace/resume-coach:cached
       # for Docker from inside the container. See https://aka.ms/vscode-remote/samples/docker-from-docker-compose for details.

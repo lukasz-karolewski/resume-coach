@@ -1,7 +1,7 @@
 {
   "configurations": [
     {
-      "command": "npm run dev",
+      "command": "pnpm dev",
       "name": "Next.js: debug server-side",
       "request": "launch",
       "type": "node-terminal"
@@ -13,7 +13,7 @@
       "url": "http://localhost:3000"
     },
     {
-      "command": "npm run dev",
+      "command": "pnpm dev",
       "name": "Next.js: debug full stack",
       "request": "launch",
       "serverReadyAction": {

@@ -48,9 +48,10 @@ const mockSession: Session = {
 
 // Create caller helper
 const createCaller = () => {
-  const ctx = {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    db: mockDb as any,
+  const ctx: Parameters<typeof resumeRouter.createCaller>[0] = {
+    db: mockDb as unknown as Parameters<
+      typeof resumeRouter.createCaller
+    >[0]["db"],
     headers: new Headers(),
     session: mockSession,
   };
@@ -146,7 +147,7 @@ describe("Resume Router", () => {
             link: "https://techcorp.com",
             positions: [
               {
-                accomplishments: ["Led team", "Improved performance"],
+                accomplishments: "- Led team\n- Improved performance",
                 endDate: new Date("2023-12-31"),
                 location: "San Francisco, CA",
                 startDate: new Date("2020-01-01"),
@@ -156,7 +157,7 @@ describe("Resume Router", () => {
           },
         ],
         name: "My Resume",
-        professionalSummary: ["Summary line 1", "Summary line 2"],
+        professionalSummary: "Summary line 1\n\nSummary line 2",
       });
 
       // Contact info is created separately before resume
@@ -334,11 +335,10 @@ describe("Resume Router", () => {
       const caller = createCaller();
       const result = await caller.getById({ id: 1 });
 
-      expect(result.summary).toEqual(["Summary 1", "Summary 2"]);
-      expect(result.experience[0]?.positions[0]?.accomplishments).toEqual([
-        "Achievement 1",
-        "Achievement 2",
-      ]);
+      expect(result.summary).toBe(JSON.stringify(["Summary 1", "Summary 2"]));
+      expect(result.experience[0]?.positions[0]?.accomplishments).toBe(
+        JSON.stringify(["Achievement 1", "Achievement 2"]),
+      );
       expect(mockDb.resume.findFirst).toHaveBeenCalledWith({
         include: expect.any(Object),
         where: { id: 1, userId: "user-123" },
@@ -431,8 +431,8 @@ describe("Resume Router", () => {
       // First two should be the DB resumes (ordered by updatedAt desc)
       const dbResumes = result.filter((r) => r.id > 0);
       expect(dbResumes).toHaveLength(2);
-      expect(dbResumes[0]?.summary).toEqual(["Summary"]);
-      expect(dbResumes[1]?.summary).toEqual([]);
+      expect(dbResumes[0]?.summary).toBe(JSON.stringify(["Summary"]));
+      expect(dbResumes[1]?.summary).toBe("[]");
 
       // Should also have mock resumes with negative IDs
       const mockTemplateResumes = result.filter((r) => r.id < 0);
@@ -493,11 +493,11 @@ describe("Resume Router", () => {
       const result = await caller.update({
         id: 1,
         name: "New Name",
-        professionalSummary: ["New summary"],
+        professionalSummary: "New summary",
       });
 
       expect(result.name).toBe("New Name");
-      expect(result.summary).toEqual(["New summary"]);
+      expect(result.summary).toBe(JSON.stringify(["New summary"]));
     });
 
     test("should throw NOT_FOUND when updating non-existent resume", async () => {

@@ -8,7 +8,11 @@ import { db } from "../db";
 import { myDynamicSystemPromptMiddleware } from "./prompt";
 import { allTools } from "./tools";
 
-const checkpointer = await RedisSaver.fromUrl("redis://localhost:6379");
+const redisUrl = process.env.REDIS_URL ?? "redis://localhost:6379";
+
+let checkpointerPromise: Promise<
+  Awaited<ReturnType<typeof RedisSaver.fromUrl>>
+> | null = null;
 
 const model = new ChatOpenAI({
   frequencyPenalty: 0,
@@ -26,7 +30,15 @@ export const stateSchema = z.object({
   preferences: z.record(z.string(), z.any()),
 });
 
-export function createCoachAgent() {
+async function getCheckpointer() {
+  checkpointerPromise ??= RedisSaver.fromUrl(redisUrl);
+
+  return checkpointerPromise;
+}
+
+export async function createCoachAgent() {
+  const checkpointer = await getCheckpointer();
+
   const agent = createAgent({
     checkpointer,
     contextSchema,
@@ -90,7 +102,7 @@ export async function executeChatStream({
     });
   }
 
-  const agent = createCoachAgent();
+  const agent = await createCoachAgent();
 
   // // Store the user message
   // await db.chatMessage.create({

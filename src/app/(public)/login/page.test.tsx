@@ -95,7 +95,9 @@ describe("LoginPage", () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText("Invalid credentials")).toBeInTheDocument();
+      expect(
+        screen.getByText("Invalid email or password. Please try again."),
+      ).toBeInTheDocument();
     });
   });
 

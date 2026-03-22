@@ -7,7 +7,7 @@ import EducationExperience from "~/components/resume/education-experience";
 import JobExperience from "~/components/resume/job-experience";
 import { ProfessionalSummary } from "~/components/resume/professional-summary";
 import Section from "~/components/resume/section";
-import { EducationType } from "~/generated/prisma/client";
+import { EducationType } from "~/generated/prisma/enums";
 import { api } from "~/trpc/react";
 
 export default function ResumePage(props: {

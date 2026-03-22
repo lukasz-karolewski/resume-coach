@@ -103,7 +103,11 @@ describe("SignUpPage", () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText("Email already exists")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "This email is already registered. Please sign in instead.",
+        ),
+      ).toBeInTheDocument();
     });
   });
 

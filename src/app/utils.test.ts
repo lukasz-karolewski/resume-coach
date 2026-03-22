@@ -1,5 +1,13 @@
-import { describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { formatFromTo, toYearMonthsDuration } from "./utils";
+
+beforeEach(() => {
+  vi.useFakeTimers();
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 describe("toYearMonthsDuration", () => {
   test("should return correct duration in months when less than a year", () => {
@@ -21,15 +29,11 @@ describe("toYearMonthsDuration", () => {
   });
 
   test("should return correct duration from a past date to now", () => {
+    vi.setSystemTime(new Date(2026, 2, 22));
+
     const from = new Date(2020, 0, 1); // January 1, 2020
-    const now = new Date();
-    const expectedYears = now.getFullYear() - 2020;
-    const expectedMonths = now.getMonth();
-    const expectedDuration =
-      expectedMonths === 0
-        ? `${expectedYears} y`
-        : `${expectedYears} y, ${expectedMonths} m`;
-    expect(toYearMonthsDuration(from)).toBe(expectedDuration);
+
+    expect(toYearMonthsDuration(from)).toBe("6 y, 3 m");
   });
 
   test("should handle same start and end date", () => {

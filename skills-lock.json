@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "skills": {
+    "better-auth-best-practices": {
+      "computedHash": "a4c830509e85557b59339d8d93a4e243e9e59c686e7678854d39230e12c2a6dc",
+      "source": "better-auth/skills",
+      "sourceType": "github"
+    },
+    "frontend-design": {
+      "computedHash": "063a0e6448123cd359ad0044cc46b0e490cc7964d45ef4bb9fd842bd2ffbca67",
+      "source": "anthropics/skills",
+      "sourceType": "github"
+    },
+    "vercel-cli": {
+      "source": "vercel/vercel",
+      "sourceType": "github",
+      "computedHash": "657b90f14ba7bb8b68279d50c7c5d0b9033dc0a847e345eb18fdfbe8e46aaa3b"
+    },
+    "vercel-composition-patterns": {
+      "computedHash": "f98931159fa9c7fed043bcd18a891a46dcf89ababa38df13a4c5b7b30dc0ce07",
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github"
+    },
+    "vercel-react-best-practices": {
+      "computedHash": "c858d2d9023e73edb4e5504868cb0e36313e58fd56af12ef888b43c5634a3c17",
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github"
+    },
+    "web-design-guidelines": {
+      "computedHash": "a6a44d5498f7e8f68289902f3dedfc6f38ae0cee1e96527c80724cf27f727c2a",
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github"
+    }
+  }
+}

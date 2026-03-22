@@ -27,6 +27,9 @@ vi.mock("langchain", () => ({
       };
     }),
   })),
+  HumanMessage: class HumanMessage {
+    constructor(public content: string) {}
+  },
 }));
 
 vi.mock("@langchain/langgraph-checkpoint-redis", () => ({
@@ -36,7 +39,7 @@ vi.mock("@langchain/langgraph-checkpoint-redis", () => ({
 }));
 
 vi.mock("./prompt", () => ({
-  COACH_SYSTEM_PROMPT: "Mock prompt",
+  myDynamicSystemPromptMiddleware: { name: "mock-middleware" },
 }));
 
 vi.mock("./tools", () => ({
@@ -96,45 +99,6 @@ describe("executeChatStream", () => {
     expect(db.chatThread.create).not.toHaveBeenCalled();
   });
 
-  it("should store user message in database", async () => {
-    const mockThread = { id: "thread-789" };
-    vi.mocked(db.chatThread.create).mockResolvedValue(mockThread as never);
-
-    await executeChatStream({
-      message,
-      resumeId: undefined,
-      sendEvent: mockSendEvent,
-      threadId: undefined,
-      userId,
-    });
-
-    expect(db.chatMessage.create).toHaveBeenCalledWith({
-      data: {
-        content: message,
-        role: "user",
-        threadId: "thread-789",
-      },
-    });
-  });
-
-  it("should send user message event", async () => {
-    const mockThread = { id: "thread-abc" };
-    vi.mocked(db.chatThread.create).mockResolvedValue(mockThread as never);
-
-    await executeChatStream({
-      message,
-      resumeId: undefined,
-      sendEvent: mockSendEvent,
-      threadId: undefined,
-      userId,
-    });
-
-    expect(mockSendEvent).toHaveBeenCalledWith("message", {
-      content: message,
-      role: "user",
-    });
-  });
-
   it("should send chunk events during streaming", async () => {
     const mockThread = { id: "thread-def" };
     vi.mocked(db.chatThread.create).mockResolvedValue(mockThread as never);
@@ -172,27 +136,6 @@ describe("executeChatStream", () => {
     });
   });
 
-  it("should store assistant message after streaming completes", async () => {
-    const mockThread = { id: "thread-jkl" };
-    vi.mocked(db.chatThread.create).mockResolvedValue(mockThread as never);
-
-    await executeChatStream({
-      message,
-      resumeId: undefined,
-      sendEvent: mockSendEvent,
-      threadId: undefined,
-      userId,
-    });
-
-    expect(db.chatMessage.create).toHaveBeenCalledWith({
-      data: {
-        content: "Hello world",
-        role: "assistant",
-        threadId: "thread-jkl",
-      },
-    });
-  });
-
   it("should return threadId", async () => {
     const mockThread = { id: "thread-mno" };
     vi.mocked(db.chatThread.create).mockResolvedValue(mockThread as never);
@@ -226,5 +169,20 @@ describe("executeChatStream", () => {
         userId,
       },
     });
+  });
+
+  it("does not persist chat messages directly in the graph", async () => {
+    const mockThread = { id: "thread-stu" };
+    vi.mocked(db.chatThread.create).mockResolvedValue(mockThread as never);
+
+    await executeChatStream({
+      message,
+      resumeId: undefined,
+      sendEvent: mockSendEvent,
+      threadId: undefined,
+      userId,
+    });
+
+    expect(db.chatMessage.create).not.toHaveBeenCalled();
   });
 });

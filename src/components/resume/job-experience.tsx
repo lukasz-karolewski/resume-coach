@@ -7,7 +7,7 @@ import type { RouterOutputs } from "~/trpc/shared";
 dayjs.extend(duration);
 
 type JobExperienceItem =
-  RouterOutputs["resume"]["getResume"]["experience"][number];
+  RouterOutputs["resume"]["getById"]["experience"][number];
 
 type Position = JobExperienceItem["positions"][number];
 

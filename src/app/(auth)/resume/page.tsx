@@ -43,7 +43,7 @@ export default function ResumePage() {
       experience: [],
       jobId: selectedJobId,
       name: newResumeName || "New Resume",
-      professionalSummary: [],
+      professionalSummary: "",
     });
   };
 
