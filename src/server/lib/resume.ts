@@ -68,11 +68,7 @@ export const duplicateResumeSchema = z.object({
   name: z.string().optional(),
 });
 
-export const getResumeByIdSchema = z.object({ id: z.number() });
-
-export const getResumeSchema = z.object({
-  company_name: z.string(),
-});
+export const getResumeSchema = z.object({ id: z.number() });
 
 export const listResumesSchema = z
   .object({
@@ -95,10 +91,6 @@ export const updateAccomplishmentsSchema = z.object({
 export const updateSummarySchema = z.object({
   resumeId: z.number(),
   summary: z.string(),
-});
-
-export const getResumeForAgentSchema = z.object({
-  resumeId: z.number(),
 });
 
 export const addExperienceSchema = z.object({
@@ -361,10 +353,10 @@ export async function duplicateResume(
 /**
  * Get resume by ID
  */
-export async function getResumeById(
+export async function getResume(
   db: PrismaClient,
   userId: string,
-  input: z.infer<typeof getResumeByIdSchema>,
+  input: z.infer<typeof getResumeSchema>,
 ) {
   // Handle negative IDs as mock templates
   if (input.id < 0) {
@@ -400,6 +392,7 @@ export async function getResumeById(
         },
       },
       Job: true,
+      sections: true,
     },
     where: {
       id: input.id,
@@ -618,30 +611,49 @@ export async function updateResume(
  */
 export async function createResumeCopy(
   db: PrismaClient,
+  userId: string,
   input: z.infer<typeof createResumeCopySchema>,
 ) {
-  // Fetch the source resume with all relations
-  const sourceResume = await db.resume.findUnique({
-    include: {
-      contactInfo: true,
-      education: true,
-      experience: {
-        include: {
-          positions: {
-            include: {
-              skillPosition: {
-                include: {
-                  skill: true,
+  const sourceResume =
+    input.sourceResumeId < 0
+      ? (() => {
+          const mockTemplates = Object.values(mockDB);
+          const templateIndex = Math.abs(input.sourceResumeId) - 1;
+          const template = mockTemplates[templateIndex];
+
+          if (!template) {
+            return null;
+          }
+
+          return {
+            ...template,
+            sections: [],
+          };
+        })()
+      : await db.resume.findFirst({
+          include: {
+            contactInfo: true,
+            education: true,
+            experience: {
+              include: {
+                positions: {
+                  include: {
+                    skillPosition: {
+                      include: {
+                        skill: true,
+                      },
+                    },
+                  },
                 },
               },
             },
+            sections: true,
           },
-        },
-      },
-      sections: true,
-    },
-    where: { id: input.sourceResumeId },
-  });
+          where: {
+            id: input.sourceResumeId,
+            userId,
+          },
+        });
 
   if (!sourceResume) {
     throw new Error("Source resume not found");
@@ -653,7 +665,15 @@ export async function createResumeCopy(
 
   const newResume = await db.resume.create({
     data: {
-      contactInfoId: sourceResume.contactInfoId,
+      ...(sourceResume.contactInfo && {
+        contactInfo: {
+          create: {
+            email: sourceResume.contactInfo.email,
+            name: sourceResume.contactInfo.name,
+            phone: sourceResume.contactInfo.phone,
+          },
+        },
+      }),
       education: {
         create: sourceResume.education.map((edu) => ({
           distinction: edu.distinction,
@@ -683,8 +703,14 @@ export async function createResumeCopy(
       },
       jobId: sourceResume.jobId,
       name: copyName,
+      sections: {
+        create: sourceResume.sections.map((section) => ({
+          title: section.title,
+          type: section.type,
+        })),
+      },
       summary: sourceResume.summary,
-      userId: sourceResume.userId,
+      userId,
     },
   });
 
@@ -730,53 +756,6 @@ export async function updateSummary(
 
   return {
     resumeId: resume.id,
-    success: true,
-  };
-}
-
-/**
- * Get resume details for viewing/editing by agent
- */
-export async function getResumeForAgent(
-  db: PrismaClient,
-  input: z.infer<typeof getResumeForAgentSchema>,
-) {
-  const resume = await db.resume.findUnique({
-    include: {
-      contactInfo: true,
-      education: true,
-      experience: {
-        include: {
-          positions: {
-            include: {
-              skillPosition: {
-                include: {
-                  skill: true,
-                },
-              },
-            },
-          },
-        },
-      },
-      sections: true,
-    },
-    where: { id: input.resumeId },
-  });
-
-  if (!resume) {
-    throw new Error("Resume not found");
-  }
-
-  return {
-    resume: {
-      contactInfo: resume.contactInfo,
-      education: resume.education,
-      experience: resume.experience,
-      id: resume.id,
-      name: resume.name,
-      sections: resume.sections,
-      summary: resume.summary,
-    },
     success: true,
   };
 }
@@ -877,58 +856,6 @@ export async function updateSkills(
   return {
     positionId: input.positionId,
     skills: input.skills,
-    success: true,
-  };
-}
-
-/**
- * List all resumes for the user (used by agent)
- */
-export async function listResumesForUser(db: PrismaClient, userId: string) {
-  const resumes = await db.resume.findMany({
-    include: {
-      Job: {
-        select: {
-          company: true,
-          title: true,
-        },
-      },
-    },
-    orderBy: {
-      id: "desc",
-    },
-    where: {
-      Job: {
-        userId: userId,
-      },
-    },
-  });
-
-  // Also get base resumes (without jobId)
-  const baseResumes = await db.resume.findMany({
-    orderBy: {
-      id: "desc",
-    },
-    where: {
-      jobId: null,
-    },
-  });
-
-  return {
-    resumes: [
-      ...baseResumes.map((r) => ({
-        id: r.id,
-        jobCompany: null,
-        jobTitle: null,
-        name: r.name,
-      })),
-      ...resumes.map((r) => ({
-        id: r.id,
-        jobCompany: r.Job?.company ?? null,
-        jobTitle: r.Job?.title ?? null,
-        name: r.name,
-      })),
-    ],
     success: true,
   };
 }

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { PrismaClient } from "~/generated/prisma/client";
-import { createResume, getResumeById, updateResume } from "./resume";
+import { createResume, getResume, updateResume } from "./resume";
 
 describe("Resume Markdown Storage", () => {
   let mockDb: Partial<PrismaClient>;
@@ -135,7 +135,7 @@ describe("Resume Markdown Storage", () => {
 
     (mockDb.resume!.findFirst as any).mockResolvedValue(mockResume);
 
-    const result = await getResumeById(mockDb as PrismaClient, userId, {
+    const result = await getResume(mockDb as PrismaClient, userId, {
       id: 1,
     });
 

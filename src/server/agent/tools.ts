@@ -12,9 +12,8 @@ import {
   addExperienceSchema,
   createResumeCopy,
   createResumeCopySchema,
-  getResumeForAgent,
-  getResumeForAgentSchema,
-  listResumesForUser,
+  getResume,
+  listResumes,
   updateAccomplishments,
   updateAccomplishmentsSchema,
   updateSkills,
@@ -32,10 +31,12 @@ import type { contextSchema, stateSchema } from "./graph";
 export const createResumeCopyTool = tool(
   async (
     { sourceResumeId },
-    // runtime: ToolRuntime<typeof stateSchema, typeof contextSchema>,
+    runtime: ToolRuntime<typeof stateSchema, typeof contextSchema>,
   ) => {
     try {
-      const result = await createResumeCopy(db, { sourceResumeId });
+      const result = await createResumeCopy(db, runtime.context.userId, {
+        sourceResumeId,
+      });
       return result;
     } catch (error) {
       return {
@@ -121,10 +122,12 @@ export const updateSummaryTool = tool(
  * Tool: Get resume details for viewing/editing
  */
 export const getResumeTool = tool(
-  async ({ resumeId }) => {
+  async (
+    { resumeId },
+    runtime: ToolRuntime<typeof stateSchema, typeof contextSchema>,
+  ) => {
     try {
-      const result = await getResumeForAgent(db, { resumeId });
-      return result;
+      return await getResume(db, runtime.context.userId, { id: resumeId });
     } catch (error) {
       return {
         error:
@@ -136,7 +139,9 @@ export const getResumeTool = tool(
     description:
       "Fetch complete resume details including all sections, experience, and education.",
     name: "getResume",
-    schema: getResumeForAgentSchema,
+    schema: z.object({
+      resumeId: z.number(),
+    }),
   },
 );
 
@@ -231,10 +236,12 @@ export const fetchJobDescriptionTool = tool(
  * Tool: List all resumes for the user
  */
 export const listResumesTool = tool(
-  async ({ userId }) => {
+  async (
+    _input,
+    runtime: ToolRuntime<typeof stateSchema, typeof contextSchema>,
+  ) => {
     try {
-      const result = await listResumesForUser(db, userId);
-      return result;
+      return await listResumes(db, runtime.context.userId);
     } catch (error) {
       return {
         error:
@@ -246,9 +253,7 @@ export const listResumesTool = tool(
     description:
       "List all available resumes for the user. Returns resume IDs and names.",
     name: "listResumes",
-    schema: z.object({
-      userId: z.string().describe("The user ID to list resumes for"),
-    }),
+    schema: z.object({}),
   },
 );
 

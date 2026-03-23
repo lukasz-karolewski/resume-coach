@@ -8,7 +8,7 @@ import { db } from "../db";
 import { myDynamicSystemPromptMiddleware } from "./prompt";
 import { allTools } from "./tools";
 
-const redisUrl = process.env.REDIS_URL ?? "redis://localhost:6379";
+const redisUrl = process.env.REDIS_URL ?? "redis://redis:6379";
 
 let checkpointerPromise: Promise<
   Awaited<ReturnType<typeof RedisSaver.fromUrl>>
