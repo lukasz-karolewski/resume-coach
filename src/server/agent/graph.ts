@@ -28,7 +28,10 @@ export const stateSchema = z.object({
 });
 
 async function getCheckpointer() {
-  checkpointerPromise ??= RedisSaver.fromUrl(redisUrl);
+  checkpointerPromise ??= RedisSaver.fromUrl(redisUrl).catch((error) => {
+    checkpointerPromise = null;
+    throw error;
+  });
 
   return checkpointerPromise;
 }

@@ -76,4 +76,41 @@ describe("graph Redis initialization", () => {
     expect(redisFromUrl).toHaveBeenCalledTimes(1);
     expect(createAgent).toHaveBeenCalledTimes(1);
   });
+
+  test("retries Redis initialization after a transient failure", async () => {
+    const [{ db }, { executeChatStream }] = await Promise.all([
+      import("../db"),
+      import("./graph"),
+    ]);
+
+    vi.mocked(db.chatThread.create).mockResolvedValue({
+      id: "thread-123",
+    } as never);
+
+    redisFromUrl
+      .mockRejectedValueOnce(new Error("Redis unavailable"))
+      .mockResolvedValueOnce({});
+
+    await expect(
+      executeChatStream({
+        message: "Hello",
+        resumeId: undefined,
+        sendEvent: vi.fn().mockResolvedValue(undefined),
+        threadId: undefined,
+        userId: "user-123",
+      }),
+    ).rejects.toThrow("Redis unavailable");
+
+    await expect(
+      executeChatStream({
+        message: "Hello again",
+        resumeId: undefined,
+        sendEvent: vi.fn().mockResolvedValue(undefined),
+        threadId: undefined,
+        userId: "user-123",
+      }),
+    ).resolves.toEqual({ threadId: "thread-123" });
+
+    expect(redisFromUrl).toHaveBeenCalledTimes(2);
+  });
 });
