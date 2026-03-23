@@ -3,6 +3,7 @@ FROM ubuntu:24.04
 ENV DEV_CONTAINER=1
 ENV NVM_DIR=/home/ubuntu/.nvm
 ENV BASH_ENV=/home/ubuntu/.bash_env
+ENV ZSH=/home/ubuntu/.oh-my-zsh
 
 # Update package lists and install essential dependencies
 RUN apt-get update && apt-get install -y \
@@ -32,20 +33,17 @@ RUN apt-get update && apt-get install -y \
     iproute2 \
     jq
 
+# Install Oh My Zsh for the ubuntu user and make zsh the default shell.
+RUN chsh -s /usr/bin/zsh ubuntu && \
+    su - ubuntu -c "RUNZSH=no CHSH=no KEEP_ZSHRC=no ZSH='$ZSH' sh -c \"\$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)\""
+
 # Install Node.js via nvm (official install method)
 ARG NODE_VERSION=node
 RUN NVM_VERSION="$(curl -fsSL https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -r '.tag_name')" && \
-    mkdir -p /home/ubuntu && chown -R ubuntu:ubuntu /home/ubuntu && \
-    touch "$BASH_ENV" && chown ubuntu:ubuntu "$BASH_ENV" && \
-    echo 'export NVM_DIR="/home/ubuntu/.nvm"' >> "$BASH_ENV" && \
-    echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> "$BASH_ENV" && \
-    echo 'nvm use --silent default >/dev/null 2>&1 || true' >> "$BASH_ENV" && \
-    echo '. "$BASH_ENV"' >> /home/ubuntu/.bashrc && \
-    echo 'export NVM_DIR="/home/ubuntu/.nvm"' >> /home/ubuntu/.zshrc && \
-    echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> /home/ubuntu/.zshrc && \
-    echo 'nvm use --silent default >/dev/null 2>&1 || true' >> /home/ubuntu/.zshrc && \
-    chown ubuntu:ubuntu /home/ubuntu/.bashrc /home/ubuntu/.zshrc && \
     su - ubuntu -c "PROFILE='$BASH_ENV' bash -lc 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh | bash'" && \
+    su - ubuntu -c "printf '%s\n' 'export NVM_DIR=\"/home/ubuntu/.nvm\"' '[ -s \"\$NVM_DIR/nvm.sh\" ] && . \"\$NVM_DIR/nvm.sh\"' 'nvm use --silent default >/dev/null 2>&1 || true' > '$BASH_ENV'" && \
+    su - ubuntu -c "grep -qxF '. \"$BASH_ENV\"' /home/ubuntu/.bashrc || printf '\n. \"$BASH_ENV\"\n' >> /home/ubuntu/.bashrc" && \
+    su - ubuntu -c "grep -qxF '. \"$BASH_ENV\"' /home/ubuntu/.zshrc || printf '\n. \"$BASH_ENV\"\n' >> /home/ubuntu/.zshrc" && \
     su - ubuntu -c "bash -lc 'source $NVM_DIR/nvm.sh && nvm install $NODE_VERSION && nvm alias default $NODE_VERSION && nvm use default && npm install -g npm@latest'"
 
 # Install latest Docker
@@ -53,7 +51,6 @@ RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
     apt-get update && \
     apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-
 
 # dive to inspect docker images
 RUN DIVE_VERSION=$(curl -sL "https://api.github.com/repos/wagoodman/dive/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/') && \

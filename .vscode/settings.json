@@ -36,5 +36,6 @@
   "search.exclude": {
     "**/.next": true,
     "**/node_modules/": true
-  }
+  },
+  "terminal.integrated.defaultProfile.linux": "zsh"
 }

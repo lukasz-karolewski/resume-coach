@@ -31,5 +31,5 @@ services:
     healthcheck:
       test: nc -z 127.0.0.1 1025
 
-volumes:
-  caddy_data:
+# volumes:
+#   caddy_data:
