@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ChatIcon } from "~/components/icons";
 import { ChatWindow } from "./chat/chat-window";
@@ -8,6 +9,8 @@ import { useChatStream } from "./chat/use-chat-stream";
 const Assistant: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [threadId, setThreadId] = useState<string | undefined>();
+  const pathname = usePathname();
+  const router = useRouter();
 
   // Load threadId from sessionStorage on mount
   useEffect(() => {
@@ -17,14 +20,11 @@ const Assistant: React.FC = () => {
     }
   }, []);
 
-  // resume/id
-  const resumeId =
-    typeof window !== "undefined" &&
-    window.location.pathname.startsWith("/resume/")
-      ? Number(window.location.pathname.split("/").filter(Boolean)[1])
-      : undefined;
+  const resumePathMatch = pathname?.match(/^\/resume\/(-?\d+)$/);
+  const resumeId = resumePathMatch ? Number(resumePathMatch[1]) : undefined;
 
   const {
+    cancelRequest,
     messages,
     isLoading,
     error,
@@ -36,6 +36,12 @@ const Assistant: React.FC = () => {
     onThreadCreated: (newThreadId) => {
       setThreadId(newThreadId);
       sessionStorage.setItem("chatThreadId", newThreadId);
+    },
+    onViewResume: (nextResumeId) => {
+      setThreadId(undefined);
+      sessionStorage.removeItem("chatThreadId");
+      resetChat();
+      router.push(`/resume/${nextResumeId}`);
     },
     resumeId,
     threadId,
@@ -63,9 +69,11 @@ const Assistant: React.FC = () => {
         <ChatWindow
           messages={messages}
           onSendMessage={sendMessage}
+          onStopMessage={cancelRequest}
           isLoading={isLoading}
           currentChunk={currentChunk}
           toolExecutions={toolExecutions}
+          sessionId={threadId}
           error={error}
           onClose={() => setIsOpen(false)}
           onNewThread={handleNewThread}

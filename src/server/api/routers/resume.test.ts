@@ -691,6 +691,41 @@ describe("Resume Router", () => {
       expect(result.name).toBe("Custom Name");
     });
 
+    test("should duplicate a mock template into a real resume", async () => {
+      const duplicatedResume = {
+        contactInfo: {
+          email: "lkarolewski@gmail.com",
+          id: 2,
+          name: "Lukasz Karolewski",
+          phone: "408 680 9149",
+        },
+        contactInfoId: 2,
+        createdAt: new Date(),
+        education: [],
+        experience: [],
+        id: 2,
+        jobId: null,
+        name: "Base Template (Copy)",
+        summary: "Summary",
+        updatedAt: new Date(),
+        userId: "user-123",
+      };
+
+      mockDb.resume.create.mockResolvedValue(duplicatedResume);
+
+      const caller = createCaller();
+      const result = await caller.duplicate({ id: -1, name: "Base Template (Copy)" });
+
+      expect(result.id).toBe(2);
+      expect(result.name).toBe("Base Template (Copy)");
+      expect(mockDb.resume.findFirst).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ id: -1 }),
+        }),
+      );
+      expect(mockDb.resume.create).toHaveBeenCalled();
+    });
+
     test("should throw NOT_FOUND when duplicating non-existent resume", async () => {
       mockDb.resume.findFirst.mockResolvedValue(null);
 

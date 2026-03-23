@@ -18,6 +18,18 @@ interface UseChatStreamOptions {
   threadId?: string;
   resumeId?: number;
   onThreadCreated?: (threadId: string) => void;
+  onViewResume?: (resumeId: number) => void;
+}
+
+export function parseViewResumeCommand(content: string): number | null {
+  const match = /^view resume (-?\d+)$/i.exec(content.trim());
+
+  if (!match) {
+    return null;
+  }
+
+  const resumeId = Number(match[1]);
+  return Number.isNaN(resumeId) ? null : resumeId;
 }
 
 export function useChatStream(options: UseChatStreamOptions = {}) {
@@ -29,7 +41,7 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
   const eventSourceRef = useRef<EventSource | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const { threadId, resumeId, onThreadCreated } = options;
+  const { threadId, resumeId, onThreadCreated, onViewResume } = options;
 
   // Cleanup on unmount
   useEffect(() => {
@@ -161,8 +173,11 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
           }
         }
 
-        // Add complete assistant message
-        if (assistantContent) {
+        const viewResumeId = parseViewResumeCommand(assistantContent);
+
+        if (viewResumeId !== null) {
+          onViewResume?.(viewResumeId);
+        } else if (assistantContent) {
           setMessages((prev) => [
             ...prev,
             {
@@ -188,7 +203,7 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
         setIsLoading(false);
       }
     },
-    [isLoading, threadId, resumeId, onThreadCreated],
+    [isLoading, threadId, resumeId, onThreadCreated, onViewResume],
   );
 
   const cancelRequest = useCallback(() => {

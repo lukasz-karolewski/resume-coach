@@ -135,16 +135,16 @@ export default function ResumePage() {
                       View & Edit
                     </Button>
                   </Link>
-                  {!isTemplate && (
-                    <div className="flex gap-2">
-                      <Button
-                        className="flex-1"
-                        variant="outline"
-                        onClick={() => handleDuplicate(resume.id, resume.name)}
-                        disabled={duplicateMutation.isPending}
-                      >
-                        Duplicate
-                      </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      className="flex-1"
+                      variant="outline"
+                      onClick={() => handleDuplicate(resume.id, resume.name)}
+                      disabled={duplicateMutation.isPending}
+                    >
+                      Duplicate
+                    </Button>
+                    {!isTemplate && (
                       <Button
                         className="flex-1"
                         variant="destructive"
@@ -153,8 +153,8 @@ export default function ResumePage() {
                       >
                         Delete
                       </Button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
             );

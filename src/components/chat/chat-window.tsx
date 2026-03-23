@@ -6,9 +6,11 @@ import type { ChatMessage, ToolExecution } from "./use-chat-stream";
 interface ChatWindowProps {
   messages: ChatMessage[];
   onSendMessage: (message: string) => void;
+  onStopMessage: () => void;
   isLoading: boolean;
   currentChunk?: string;
   toolExecutions?: ToolExecution[];
+  sessionId?: string;
   onClose: () => void;
   error?: string | null;
   onNewThread: () => void;
@@ -17,22 +19,26 @@ interface ChatWindowProps {
 export function ChatWindow({
   messages,
   onSendMessage,
+  onStopMessage,
   isLoading,
   currentChunk,
   toolExecutions,
+  sessionId,
   onClose,
   error,
   onNewThread,
 }: ChatWindowProps) {
   return (
-    <div className="fixed bottom-4 right-4 w-96 h-[600px] bg-white dark:bg-gray-900 rounded-lg shadow-2xl flex flex-col border border-gray-200 dark:border-gray-700">
+    <div className="fixed bottom-4 right-4 flex h-[min(48rem,calc(100vh-2rem))] w-[min(48rem,calc(100vw-2rem))] flex-col rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
-        <div>
+      <div className="flex items-start justify-between gap-4 border-b p-4 dark:border-gray-700">
+        <div className="min-w-0">
           <h3 className="font-semibold text-gray-900 dark:text-gray-100">
             Resume Coach
           </h3>
-          <p className="text-xs text-gray-500">AI-powered career assistant</p>
+          <p className="truncate font-mono text-xs text-gray-500 dark:text-gray-400">
+            {sessionId ?? "Waiting for first response"}
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -68,7 +74,11 @@ export function ChatWindow({
       />
 
       {/* Input */}
-      <ChatInput onSend={onSendMessage} disabled={isLoading} />
+      <ChatInput
+        onSend={onSendMessage}
+        onStop={onStopMessage}
+        disabled={isLoading}
+      />
     </div>
   );
 }

@@ -25,6 +25,13 @@ Leverage available tools to accomplish these tasks.
 
 UI supports markdown, so feel free to use bullet points, numbered lists, and headings as appropriate.
 
+Important UI contract:
+- If you create a new resume copy or choose a resume the user should open next, do not print the resume content in chat.
+- Instead, your entire final response must be exactly: view resume <id>
+- Replace <id> with the numeric resume ID returned by the tool.
+- Do not add any extra words, markdown, punctuation, or explanation when using that format.
+- Only use that format when the UI should navigate to a resume page.
+
 Currently user is working on resume with ID: ${runtime.context.currentResumeId}
 `,
 );

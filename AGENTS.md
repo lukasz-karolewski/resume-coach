@@ -26,7 +26,8 @@ Before any Next.js work, find and read the relevant doc in `node_modules/next/di
 - when i report an issue make sure to first write a check, make sure it fails, then fix the issue and make sure the check passes.
 
 # Linting and Testing Guidelines
-- do not fix linting issues yourself use pnpm lint:fix to fix them automatically.
+- do not fix linting issues yourself use `pnpm lint:fix` to fix them automatically and run it after all code generation
+
 when you see lint/suspicious/noArrayIndexKey, sometimes it is justified to use array index as a key, but think twice before doing it. add a comment disabling check for this line and explaining why it is safe in this case.
 
 always write unit tests for any new code you add or for any code you modify. Use vitest as the testing framework. run the tests using pnpm test.

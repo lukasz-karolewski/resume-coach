@@ -78,11 +78,7 @@ vi.mock("~/server/lib/resume", () => ({
   }),
 }));
 
-import {
-  createResumeCopyTool,
-  getResumeTool,
-  listResumesTool,
-} from "./tools";
+import { createResumeCopyTool, getResumeTool, listResumesTool } from "./tools";
 
 describe("createResumeCopyTool", () => {
   beforeEach(() => {

@@ -119,6 +119,41 @@ describe("executeChatStream", () => {
     });
   });
 
+  it("should flatten text content blocks before sending chunk events", async () => {
+    const { createAgent } = await import("langchain");
+    vi.mocked(createAgent).mockReturnValueOnce({
+      streamEvents: vi.fn(async function* () {
+        yield {
+          data: {
+            chunk: {
+              content: [
+                { text: "hi", type: "text" },
+                { text: " there", type: "output_text" },
+                { args: { resumeId: 1 }, type: "tool_call" },
+              ],
+            },
+          },
+          event: "on_chat_model_stream",
+        };
+      }),
+    } as never);
+
+    const mockThread = { id: "thread-blocks" };
+    vi.mocked(db.chatThread.create).mockResolvedValue(mockThread as never);
+
+    await executeChatStream({
+      message,
+      resumeId: undefined,
+      sendEvent: mockSendEvent,
+      threadId: undefined,
+      userId,
+    });
+
+    expect(mockSendEvent).toHaveBeenCalledWith("chunk", {
+      content: "hi there",
+    });
+  });
+
   it("should send done event with threadId", async () => {
     const mockThread = { id: "thread-ghi" };
     vi.mocked(db.chatThread.create).mockResolvedValue(mockThread as never);
@@ -166,6 +201,26 @@ describe("executeChatStream", () => {
     expect(db.chatThread.create).toHaveBeenCalledWith({
       data: {
         resumeId: 42,
+        userId,
+      },
+    });
+  });
+
+  it("does not persist template resume ids on the chat thread", async () => {
+    const mockThread = { id: "thread-template" };
+    vi.mocked(db.chatThread.create).mockResolvedValue(mockThread as never);
+
+    await executeChatStream({
+      message,
+      resumeId: -1,
+      sendEvent: mockSendEvent,
+      threadId: undefined,
+      userId,
+    });
+
+    expect(db.chatThread.create).toHaveBeenCalledWith({
+      data: {
+        resumeId: null,
         userId,
       },
     });

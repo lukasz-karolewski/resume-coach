@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 const redisFromUrl = vi.fn(() => Promise.resolve({}));
 const streamEvents = vi.fn(async function* () {});
 const createAgent = vi.fn(() => ({ streamEvents }));
+const chatOpenAIConstructor = vi.fn();
 
 vi.mock("../db", () => ({
   db: {
@@ -24,7 +25,9 @@ vi.mock("@langchain/langgraph-checkpoint-redis", () => ({
 
 vi.mock("@langchain/openai", () => ({
   ChatOpenAI: class ChatOpenAI {
-    constructor(_config: unknown) {}
+    constructor(config: unknown) {
+      chatOpenAIConstructor(config);
+    }
   },
 }));
 
@@ -53,6 +56,15 @@ describe("graph Redis initialization", () => {
     await import("./graph");
 
     expect(redisFromUrl).not.toHaveBeenCalled();
+  });
+
+  test("configures GPT-5.4 to use the responses API", async () => {
+    await import("./graph");
+
+    expect(chatOpenAIConstructor).toHaveBeenCalledWith({
+      model: "gpt-5.4",
+      useResponsesApi: true,
+    });
   });
 
   test("connects to Redis when chat execution starts", async () => {

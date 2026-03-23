@@ -16,6 +16,7 @@ let checkpointerPromise: Promise<
 
 const model = new ChatOpenAI({
   model: "gpt-5.4",
+  useResponsesApi: true,
 });
 
 export const contextSchema = z.object({
@@ -26,6 +27,38 @@ export const contextSchema = z.object({
 export const stateSchema = z.object({
   preferences: z.record(z.string(), z.any()),
 });
+
+function extractTextFromChunkContent(content: unknown): string {
+  if (typeof content === "string") {
+    return content;
+  }
+
+  if (Array.isArray(content)) {
+    return content.map(extractTextFromChunkContent).join("");
+  }
+
+  if (content && typeof content === "object") {
+    if (
+      "type" in content &&
+      content.type === "text" &&
+      "text" in content &&
+      typeof content.text === "string"
+    ) {
+      return content.text;
+    }
+
+    if (
+      "type" in content &&
+      content.type === "output_text" &&
+      "text" in content &&
+      typeof content.text === "string"
+    ) {
+      return content.text;
+    }
+  }
+
+  return "";
+}
 
 async function getCheckpointer() {
   checkpointerPromise ??= RedisSaver.fromUrl(redisUrl).catch((error) => {
@@ -83,6 +116,9 @@ export async function executeChatStream({
   message,
   sendEvent,
 }: ChatStreamParams): Promise<{ threadId: string }> {
+  const persistedResumeId =
+    resumeId !== undefined && resumeId > 0 ? resumeId : null;
+
   // Find or create chat thread
   let thread = threadId
     ? await db.chatThread.findFirst({
@@ -96,7 +132,7 @@ export async function executeChatStream({
   if (!thread) {
     thread = await db.chatThread.create({
       data: {
-        resumeId: resumeId ?? null,
+        resumeId: persistedResumeId,
         userId,
       },
     });
@@ -143,10 +179,11 @@ export async function executeChatStream({
     if (event.event === "on_chat_model_stream") {
       // LLM is streaming a response
       const chunk = event.data?.chunk;
-      if (chunk?.content) {
+      const content = extractTextFromChunkContent(chunk?.content);
+      if (content) {
         // assistantMessage += chunk.content;
         await sendEvent("chunk", {
-          content: chunk.content,
+          content,
         });
       }
     } else if (event.event === "on_tool_start") {

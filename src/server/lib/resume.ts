@@ -262,22 +262,28 @@ export async function duplicateResume(
     }
   }
 
-  // Get original resume
-  const original = await db.resume.findFirst({
-    include: {
-      contactInfo: true,
-      education: true,
-      experience: {
-        include: {
-          positions: true,
-        },
-      },
-    },
-    where: {
-      id: input.id,
-      userId: userId,
-    },
-  });
+  const original =
+    input.id < 0
+      ? (() => {
+          const mockTemplates = Object.values(mockDB);
+          const templateIndex = Math.abs(input.id) - 1;
+          return mockTemplates[templateIndex] ?? null;
+        })()
+      : await db.resume.findFirst({
+          include: {
+            contactInfo: true,
+            education: true,
+            experience: {
+              include: {
+                positions: true,
+              },
+            },
+          },
+          where: {
+            id: input.id,
+            userId: userId,
+          },
+        });
 
   if (!original) {
     throw new TRPCError({

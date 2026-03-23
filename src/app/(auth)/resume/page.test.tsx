@@ -284,8 +284,8 @@ describe("ResumePage", () => {
     const duplicateButtons = screen.getAllByText("Duplicate");
     const deleteButtons = screen.getAllByText("Delete");
 
-    // Only user resumes (not templates) should have duplicate/delete buttons
-    expect(duplicateButtons).toHaveLength(2);
+    // Templates can be duplicated into real resumes, but only user resumes can be deleted
+    expect(duplicateButtons).toHaveLength(4);
     expect(deleteButtons).toHaveLength(2);
   });
 });

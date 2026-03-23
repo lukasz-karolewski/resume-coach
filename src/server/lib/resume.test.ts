@@ -20,13 +20,9 @@ describe("createResumeCopy", () => {
       name: "Resume - Copy 123",
     });
 
-    const result = await createResumeCopy(
-      mockDb as PrismaClient,
-      "user-123",
-      {
-        sourceResumeId: -1,
-      },
-    );
+    const result = await createResumeCopy(mockDb as PrismaClient, "user-123", {
+      sourceResumeId: -1,
+    });
 
     expect(mockDb.resume!.findFirst).not.toHaveBeenCalled();
     expect(mockDb.resume!.create).toHaveBeenCalledWith({
