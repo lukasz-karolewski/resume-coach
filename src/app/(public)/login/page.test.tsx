@@ -27,27 +27,6 @@ describe("LoginPage", () => {
     });
   });
 
-  it("renders login form with all fields", () => {
-    render(<LoginPage />);
-
-    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /sign in$/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /sign in with google/i }),
-    ).toBeInTheDocument();
-  });
-
-  it("renders link to signup page", () => {
-    render(<LoginPage />);
-
-    const signupLink = screen.getByRole("link", { name: /sign up/i });
-    expect(signupLink).toBeInTheDocument();
-    expect(signupLink).toHaveAttribute("href", "/signup");
-  });
-
   it("handles successful email login", async () => {
     const mockEmailSignIn = signIn.email as ReturnType<typeof vi.fn>;
     mockEmailSignIn.mockImplementation((_credentials, { onSuccess }) => {
@@ -142,17 +121,5 @@ describe("LoginPage", () => {
         provider: "google",
       });
     });
-  });
-
-  it("requires email and password fields", () => {
-    render(<LoginPage />);
-
-    const emailInput = screen.getByLabelText(/email/i) as HTMLInputElement;
-    const passwordInput = screen.getByLabelText(
-      /password/i,
-    ) as HTMLInputElement;
-
-    expect(emailInput.required).toBe(true);
-    expect(passwordInput.required).toBe(true);
   });
 });

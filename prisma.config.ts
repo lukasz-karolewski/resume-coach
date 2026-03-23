@@ -1,12 +1,12 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+
+dotenv.config({ path: ".env.local" });
 
 import { defineConfig, env } from "prisma/config";
 
-import { normalizePrismaSqliteUrl } from "./src/server/prisma-url";
-
 export default defineConfig({
   datasource: {
-    url: normalizePrismaSqliteUrl(env("DATABASE_URL")),
+    url: env("DATABASE_URL"),
   },
   migrations: {
     path: "prisma/migrations",

@@ -1,15 +1,10 @@
-// docs: https://pris.ly/d/prisma-schema
-// https://authjs.dev/guides/edge-compatibility
-// https://www.prisma.io/docs/orm/prisma-client/deployment/edge/overview
-// https://authjs.dev/getting-started/adapters/prisma
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 // region auth

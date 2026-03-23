@@ -1,60 +1,80 @@
-FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04
+FROM ubuntu:24.04
 
 ENV DEV_CONTAINER=1
-ENV NVM_DIR=/usr/local/share/nvm
+ENV NVM_DIR=/home/ubuntu/.nvm
+ENV BASH_ENV=/home/ubuntu/.bash_env
 
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
+# Update package lists and install essential dependencies
 RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    gnupg2 \
+    software-properties-common \
     apt-transport-https \
     ca-certificates \
-    curl \
-    git \
-    gnupg2 \
-    graphviz \
-    jq \
     lsb-release \
-    ripgrep \
-    software-properties-common \
     sudo \
-    unzip \
+    git \
+    zsh \
     vim \
-    wget \
-    zsh && \
-    rm -rf /var/lib/apt/lists/*
+    unzip \
+    ripgrep \
+    lsof \
+    build-essential \
+    make \
+    g++ \
+    iputils-ping \
+    dnsutils \
+    net-tools \
+    netcat-openbsd \
+    traceroute \
+    tcpdump \
+    iproute2 \
+    jq
 
-RUN apt-get update && \
-    apt-get install -y docker.io && \
-    rm -rf /var/lib/apt/lists/*
+# Install Node.js via nvm (official install method)
+ARG NODE_VERSION=node
+RUN NVM_VERSION="$(curl -fsSL https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -r '.tag_name')" && \
+    mkdir -p /home/ubuntu && chown -R ubuntu:ubuntu /home/ubuntu && \
+    touch "$BASH_ENV" && chown ubuntu:ubuntu "$BASH_ENV" && \
+    echo 'export NVM_DIR="/home/ubuntu/.nvm"' >> "$BASH_ENV" && \
+    echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> "$BASH_ENV" && \
+    echo 'nvm use --silent default >/dev/null 2>&1 || true' >> "$BASH_ENV" && \
+    echo '. "$BASH_ENV"' >> /home/ubuntu/.bashrc && \
+    echo 'export NVM_DIR="/home/ubuntu/.nvm"' >> /home/ubuntu/.zshrc && \
+    echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> /home/ubuntu/.zshrc && \
+    echo 'nvm use --silent default >/dev/null 2>&1 || true' >> /home/ubuntu/.zshrc && \
+    chown ubuntu:ubuntu /home/ubuntu/.bashrc /home/ubuntu/.zshrc && \
+    su - ubuntu -c "PROFILE='$BASH_ENV' bash -lc 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh | bash'" && \
+    su - ubuntu -c "bash -lc 'source $NVM_DIR/nvm.sh && nvm install $NODE_VERSION && nvm alias default $NODE_VERSION && nvm use default && npm install -g npm@latest'"
 
-RUN mkdir -p "$NVM_DIR" && \
-    curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | PROFILE=/dev/null NVM_DIR="$NVM_DIR" bash && \
-    source "$NVM_DIR/nvm.sh" && \
-    nvm install node && \
-    nvm alias default node && \
-    nvm use default && \
-    npm install -g @anthropic-ai/claude-code @google/gemini-cli @openai/codex pnpm vercel && \
-    NODE_BIN="$(dirname "$(nvm which current)")" && \
-    ln -sf "$NODE_BIN/node" /usr/local/bin/node && \
-    ln -sf "$NODE_BIN/npm" /usr/local/bin/npm && \
-    ln -sf "$NODE_BIN/npx" /usr/local/bin/npx && \
-    ln -sf "$NODE_BIN/pnpm" /usr/local/bin/pnpm
-
-RUN echo 'export NVM_DIR="/usr/local/share/nvm"' >/etc/profile.d/nvm.sh && \
-    echo '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"' >>/etc/profile.d/nvm.sh && \
-    echo 'nvm use default >/dev/null 2>&1 || true' >>/etc/profile.d/nvm.sh && \
-    chmod 644 /etc/profile.d/nvm.sh
-
-RUN curl -fsSL https://ngrok-agent.s3.amazonaws.com/ngrok.asc | tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null && \
-    echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | tee /etc/apt/sources.list.d/ngrok.list >/dev/null && \
+# Install latest Docker
+RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
     apt-get update && \
-    apt-get install -y ngrok && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
+
+# dive to inspect docker images
+RUN DIVE_VERSION=$(curl -sL "https://api.github.com/repos/wagoodman/dive/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/') && \
+    curl -OL https://github.com/wagoodman/dive/releases/download/v${DIVE_VERSION}/dive_${DIVE_VERSION}_linux_$(dpkg --print-architecture).deb && \
+    sudo apt-get install -y ./dive_${DIVE_VERSION}_linux_$(dpkg --print-architecture).deb && \
+    rm -f ./dive_${DIVE_VERSION}_linux_$(dpkg --print-architecture).deb
+
+# GitHub CLI
 RUN mkdir -p -m 755 /etc/apt/keyrings && \
-    wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | tee /etc/apt/keyrings/githubcli-archive-keyring.gpg >/dev/null && \
+    out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg && \
+    cat $out | tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null && \
     chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg && \
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" > /etc/apt/sources.list.d/github-cli.list && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null && \
     apt-get update && \
-    apt-get install -y gh && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y gh
+
+# set up sudo
+RUN echo "ubuntu ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/ubuntu
+
+# Copy entrypoint script for docker group setup
+COPY .devcontainer/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

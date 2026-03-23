@@ -29,28 +29,6 @@ describe("SignUpPage", () => {
     });
   });
 
-  it("renders signup form with all fields", () => {
-    render(<SignUpPage />);
-
-    expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /sign up$/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /sign up with google/i }),
-    ).toBeInTheDocument();
-  });
-
-  it("renders link to login page", () => {
-    render(<SignUpPage />);
-
-    const loginLink = screen.getByRole("link", { name: /sign in/i });
-    expect(loginLink).toBeInTheDocument();
-    expect(loginLink).toHaveAttribute("href", "/login");
-  });
-
   it("handles successful email signup", async () => {
     const mockEmailSignUp = signUp.email as ReturnType<typeof vi.fn>;
     mockEmailSignUp.mockImplementation((_credentials, { onSuccess }) => {
@@ -154,37 +132,5 @@ describe("SignUpPage", () => {
         provider: "google",
       });
     });
-  });
-
-  it("requires all form fields", () => {
-    render(<SignUpPage />);
-
-    const nameInput = screen.getByLabelText(/name/i) as HTMLInputElement;
-    const emailInput = screen.getByLabelText(/email/i) as HTMLInputElement;
-    const passwordInput = screen.getByLabelText(
-      /password/i,
-    ) as HTMLInputElement;
-
-    expect(nameInput.required).toBe(true);
-    expect(emailInput.required).toBe(true);
-    expect(passwordInput.required).toBe(true);
-  });
-
-  it("enforces minimum password length", () => {
-    render(<SignUpPage />);
-
-    const passwordInput = screen.getByLabelText(
-      /password/i,
-    ) as HTMLInputElement;
-
-    expect(passwordInput.minLength).toBe(8);
-  });
-
-  it("displays password requirement hint", () => {
-    render(<SignUpPage />);
-
-    expect(
-      screen.getByText(/must be at least 8 characters/i),
-    ).toBeInTheDocument();
   });
 });

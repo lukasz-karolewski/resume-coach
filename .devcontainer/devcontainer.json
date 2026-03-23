@@ -7,17 +7,16 @@
   "customizations": {
     "vscode": {
       "extensions": [
+        "bierner.markdown-mermaid",
         "biomejs.biome",
-        "ms-azuretools.vscode-docker",
-        "mhutchie.git-graph",
-        "GitHub.copilot",
-        "GitHub.copilot-chat",
-        "tomoki1207.pdf",
-        "esbenp.prettier-vscode",
-        "Prisma.prisma",
         "bradlc.vscode-tailwindcss",
-        "ms-python.black-formatter",
-        "ms-python.isort"
+        "esbenp.prettier-vscode",
+        "GitHub.copilot-chat",
+        "GitHub.copilot",
+        "mhutchie.git-graph",
+        "ms-azuretools.vscode-docker",
+        "Prisma.prisma",
+        "tomoki1207.pdf"
       ]
     }
   },
@@ -28,10 +27,12 @@
     "../docker-compose.override.yml",
     "docker-compose-dev.yml"
   ],
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker": "latest"
+  },
   "name": "Ubuntu",
-  "postCreateCommand": "pnpm install",
-  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-  // "remoteUser": "root",
+  "postCreateCommand": "npm install -g pnpm vercel @anthropic-ai/claude-code @google/gemini-cli @github/copilot @openai/codex && pnpm install",
+  "remoteUser": "ubuntu",
   "service": "devcontainer",
   "shutdownAction": "stopCompose",
   "workspaceFolder": "/workspace/${localWorkspaceFolderBasename}"

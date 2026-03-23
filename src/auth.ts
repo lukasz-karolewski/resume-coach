@@ -1,44 +1,37 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
+import { nextCookies } from "better-auth/next-js";
 
 import { env } from "~/env";
 import { db } from "./server/db";
 
-function getAuthUrl(rawAuthUrl: string) {
-  const normalizedAuthUrl =
-    rawAuthUrl.startsWith("http://") || rawAuthUrl.startsWith("https://")
-      ? rawAuthUrl
-      : `https://${rawAuthUrl}`;
+const googleClientId = env.GOOGLE_CLIENT_ID ?? env.AUTH_GOOGLE_ID;
+const googleClientSecret = env.GOOGLE_CLIENT_SECRET ?? env.AUTH_GOOGLE_SECRET;
 
-  return new URL(normalizedAuthUrl);
-}
-
-const authUrl = getAuthUrl(env.BETTER_AUTH_URL);
-const authBasePath =
-  authUrl.pathname === "/"
-    ? "/api/auth"
-    : authUrl.pathname.replace(/\/$/, "") || "/api/auth";
+const socialProviders =
+  googleClientId && googleClientSecret
+    ? {
+        google: {
+          clientId: googleClientId,
+          clientSecret: googleClientSecret,
+        },
+      }
+    : undefined;
 
 export const auth = betterAuth({
+  ...(socialProviders ? { socialProviders } : {}),
   account: {
     accountLinking: {
       enabled: true,
     },
   },
-  basePath: authBasePath,
-  baseURL: authUrl.origin,
+  baseURL: env.AUTH_URL,
   database: prismaAdapter(db, {
-    provider: "sqlite",
+    provider: "postgresql",
   }),
   emailAndPassword: {
     enabled: true,
   },
-  secret: env.BETTER_AUTH_SECRET,
-  socialProviders: {
-    google: {
-      clientId: env.AUTH_GOOGLE_ID,
-      clientSecret: env.AUTH_GOOGLE_SECRET,
-    },
-  },
-  trustedOrigins: [authUrl.origin],
+  plugins: [nextCookies()],
+  secret: env.AUTH_SECRET,
 });

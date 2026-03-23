@@ -15,10 +15,7 @@ let checkpointerPromise: Promise<
 > | null = null;
 
 const model = new ChatOpenAI({
-  frequencyPenalty: 0,
-  model: "gpt-4o-mini",
-  presencePenalty: 0,
-  temperature: 0.1,
+  model: "gpt-5.4",
 });
 
 export const contextSchema = z.object({
