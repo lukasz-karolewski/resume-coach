@@ -1,0 +1,4 @@
+interface:
+  display_name: "Resume Coach Architecture"
+  short_description: "Repo architecture guide for resume-coach"
+  default_prompt: "Use $resume-coach-architecture to explain how this repo is structured and where a change belongs."
