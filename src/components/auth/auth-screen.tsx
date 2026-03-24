@@ -44,11 +44,12 @@ export function AuthScreen({
                 Resume Coach
               </Link>
               <h1 className="max-w-lg text-5xl font-semibold leading-tight tracking-tight text-balance">
-                Clean resume workflows, grounded in a calmer interface.
+                Track the role, tailor the story, and walk into the interview
+                prepared.
               </h1>
               <p className="max-w-md text-base leading-7 text-muted-foreground">
-                Build, tailor, and manage your resume set from one place with a
-                consistent editor and a lighter visual shell.
+                Keep every job link, resume draft, cover letter, and prep note
+                connected so each application gets sharper with less friction.
               </p>
             </div>
           </div>

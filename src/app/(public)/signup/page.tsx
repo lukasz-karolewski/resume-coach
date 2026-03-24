@@ -69,8 +69,8 @@ export default function SignUpPage() {
   return (
     <AuthScreen
       badge="Create account"
-      title="Create your account"
-      description="Start with a cleaner workspace for resume creation and tailoring."
+      title="Start your application tracker"
+      description="Save job links, generate tailored resumes and cover letters, and prep for interviews in one place."
       secondaryAction={
         <>
           <div className="relative">
@@ -86,7 +86,7 @@ export default function SignUpPage() {
             onClick={handleGoogleSignIn}
           >
             <GoogleIcon className="size-4" />
-            Sign up with Google
+            Continue with Google
           </Button>
         </>
       }

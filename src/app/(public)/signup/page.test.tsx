@@ -122,7 +122,7 @@ describe("SignUpPage", () => {
     render(<SignUpPage />);
 
     const googleButton = screen.getByRole("button", {
-      name: /sign up with google/i,
+      name: /continue with google/i,
     });
     fireEvent.click(googleButton);
 

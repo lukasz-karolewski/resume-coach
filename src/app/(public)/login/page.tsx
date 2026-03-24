@@ -65,8 +65,8 @@ export default function LoginPage() {
   return (
     <AuthScreen
       badge="Sign in"
-      title="Welcome back"
-      description="Access your resumes, profile data, and tailored drafts."
+      title="Pick up your search where you left off"
+      description="Open your tracker, refine role-specific resumes, and keep interview prep moving."
       secondaryAction={
         <>
           <div className="relative">
@@ -82,7 +82,7 @@ export default function LoginPage() {
             onClick={handleGoogleSignIn}
           >
             <GoogleIcon className="size-4" />
-            Sign in with Google
+            Continue with Google
           </Button>
         </>
       }

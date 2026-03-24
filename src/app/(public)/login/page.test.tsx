@@ -111,7 +111,7 @@ describe("LoginPage", () => {
     render(<LoginPage />);
 
     const googleButton = screen.getByRole("button", {
-      name: /sign in with google/i,
+      name: /continue with google/i,
     });
     fireEvent.click(googleButton);
 
