@@ -1,21 +1,23 @@
 import type { MetadataRoute } from "next";
+import { siteConfig } from "~/app/site-config";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    background_color: "#fff",
-    description: "Gen AI powered resume builder",
+    background_color: "#f8fafc",
+    description: siteConfig.description,
     display: "standalone",
     icons: [
       {
+        purpose: "any",
         sizes: "any",
-        src: "/favicon.ico",
-        type: "image/x-icon",
+        src: "/icon.svg",
+        type: "image/svg+xml",
       },
     ],
     lang: "en",
-    name: "Resume Wiz",
-    short_name: "Next.js App",
+    name: siteConfig.name,
+    short_name: siteConfig.name,
     start_url: "/",
-    theme_color: "#fff",
+    theme_color: "#f8fafc",
   };
 }

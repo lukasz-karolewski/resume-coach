@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { headers } from "next/headers";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "~/auth";
+import { siteConfig } from "~/app/site-config";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -48,6 +50,27 @@ const surfaces = [
     title: "Application kit",
   },
 ] as const;
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: "/",
+  },
+  description:
+    "Paste job posting links, organize every application, generate role-optimized resumes and cover letters, and prepare for interviews in one place.",
+  openGraph: {
+    description:
+      "Paste job posting links, organize every application, generate role-optimized resumes and cover letters, and prepare for interviews in one place.",
+    title: "Application Tracker for Job Search, Resumes, and Interview Prep",
+    type: "website",
+    url: siteConfig.url,
+  },
+  title: "Application Tracker for Job Search, Resumes, and Interview Prep",
+  twitter: {
+    description:
+      "Paste job posting links, organize every application, generate role-optimized resumes and cover letters, and prepare for interviews in one place.",
+    title: "Application Tracker for Job Search, Resumes, and Interview Prep",
+  },
+};
 
 export default async function HomePage() {
   const session = await auth.api.getSession({

@@ -2,12 +2,13 @@ import clsx from "clsx";
 import type { Metadata } from "next";
 import { Noto_Serif, Playfair_Display } from "next/font/google";
 import { cookies } from "next/headers";
+import { Analytics } from "@vercel/analytics/next";
+import { siteConfig } from "~/app/site-config";
 import NiceModalProviderWrapper from "~/components/providers";
 import { Toaster } from "~/components/ui/sonner";
+import { cn } from "~/lib/utils";
 import { TRPCReactProvider } from "~/trpc/react";
 import "./styles.css";
-import { Analytics } from "@vercel/analytics/next";
-import { cn } from "~/lib/utils";
 
 const playfairDisplay = Playfair_Display({
   subsets: ["latin"],
@@ -17,8 +18,48 @@ const playfairDisplay = Playfair_Display({
 const font = Noto_Serif({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  description: "AI Resume Builder",
-  title: "Resume Coach",
+  alternates: {
+    canonical: "/",
+  },
+  applicationName: siteConfig.name,
+  category: "career",
+  description: siteConfig.description,
+  keywords: [
+    "application tracker",
+    "job application tracker",
+    "resume builder",
+    "cover letter generator",
+    "interview preparation",
+    "job search organizer",
+  ],
+  metadataBase: new URL(siteConfig.url),
+  openGraph: {
+    description: siteConfig.description,
+    siteName: siteConfig.name,
+    title: siteConfig.name,
+    type: "website",
+    url: siteConfig.url,
+  },
+  robots: {
+    follow: true,
+    googleBot: {
+      follow: true,
+      index: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+    index: true,
+  },
+  title: {
+    default: siteConfig.name,
+    template: siteConfig.titleTemplate,
+  },
+  twitter: {
+    card: "summary_large_image",
+    description: siteConfig.description,
+    title: siteConfig.name,
+  },
 };
 
 interface RootLayoutProps {
