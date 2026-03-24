@@ -13,6 +13,7 @@ import {
   renderResumeMarkdown,
   updateAccomplishments,
   updateResume,
+  updateResumeTitle,
   updateSkills,
   updateSummary,
 } from "./resume";
@@ -576,6 +577,55 @@ describe("resume lib", () => {
           },
         },
         where: { id: 10 },
+      });
+    });
+  });
+
+  describe("updateResumeTitle", () => {
+    it("updates only the owned resume title", async () => {
+      mockDb.resume.findFirst.mockResolvedValue({
+        id: 10,
+        userId,
+      });
+      mockDb.resume.update.mockResolvedValue({
+        id: 10,
+        name: "Updated Resume",
+      });
+
+      await expect(
+        updateResumeTitle(mockDb as unknown as PrismaClient, userId, {
+          id: 10,
+          name: "Updated Resume",
+        }),
+      ).resolves.toEqual({
+        id: 10,
+        name: "Updated Resume",
+      });
+
+      expect(mockDb.resume.update).toHaveBeenCalledWith({
+        data: {
+          name: "Updated Resume",
+        },
+        where: {
+          id: 10,
+        },
+      });
+      expect(mockDb.contactInfo.update).not.toHaveBeenCalled();
+      expect(mockDb.experience.deleteMany).not.toHaveBeenCalled();
+      expect(mockDb.education.deleteMany).not.toHaveBeenCalled();
+    });
+
+    it("throws when the resume does not exist", async () => {
+      mockDb.resume.findFirst.mockResolvedValue(null);
+
+      await expect(
+        updateResumeTitle(mockDb as unknown as PrismaClient, userId, {
+          id: 10,
+          name: "Updated Resume",
+        }),
+      ).rejects.toMatchObject({
+        code: "NOT_FOUND",
+        message: "Resume not found",
       });
     });
   });

@@ -61,6 +61,11 @@ export const updateResumeSchema = z.object({
   professionalSummary: z.string().optional(), // Markdown string
 });
 
+export const updateResumeTitleSchema = z.object({
+  id: z.number(),
+  name: z.string().trim().min(1),
+});
+
 export const duplicateResumeSchema = z.object({
   id: z.number(),
   jobId: z.string().optional(),
@@ -718,6 +723,35 @@ export async function updateResume(
   });
 
   return updated;
+}
+
+export async function updateResumeTitle(
+  db: PrismaClient,
+  userId: string,
+  input: z.infer<typeof updateResumeTitleSchema>,
+) {
+  const existing = await db.resume.findFirst({
+    where: {
+      id: input.id,
+      userId,
+    },
+  });
+
+  if (!existing) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Resume not found",
+    });
+  }
+
+  return db.resume.update({
+    data: {
+      name: input.name,
+    },
+    where: {
+      id: input.id,
+    },
+  });
 }
 
 // ============================================================================

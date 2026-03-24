@@ -14,6 +14,8 @@ import {
   listResumesSchema,
   updateResume,
   updateResumeSchema,
+  updateResumeTitle,
+  updateResumeTitleSchema,
 } from "~/server/lib/resume";
 import { withErrorHandling } from "~/server/utils";
 
@@ -81,6 +83,16 @@ export const resumeRouter = createTRPCRouter({
       return withErrorHandling(
         () => updateResume(ctx.db, userId, input),
         "Failed to update resume",
+      );
+    }),
+
+  updateTitle: protectedProcedure
+    .input(updateResumeTitleSchema)
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.session.user.id!;
+      return withErrorHandling(
+        () => updateResumeTitle(ctx.db, userId, input),
+        "Failed to update resume title",
       );
     }),
 });

@@ -542,6 +542,51 @@ describe("Resume Router", () => {
     });
   });
 
+  describe("updateTitle", () => {
+    test("should update only the resume title", async () => {
+      const existingResume = {
+        createdAt: new Date(),
+        id: 1,
+        name: "Old Name",
+        updatedAt: new Date(),
+        userId: "user-123",
+      };
+
+      mockDb.resume.findFirst.mockResolvedValue(existingResume);
+      mockDb.resume.update.mockResolvedValue({
+        ...existingResume,
+        name: "New Name",
+      });
+
+      const caller = createCaller();
+      const result = await caller.updateTitle({
+        id: 1,
+        name: "New Name",
+      });
+
+      expect(result.name).toBe("New Name");
+      expect(mockDb.resume.update).toHaveBeenCalledWith({
+        data: {
+          name: "New Name",
+        },
+        where: {
+          id: 1,
+        },
+      });
+      expect(mockDb.contactInfo.update).not.toHaveBeenCalled();
+    });
+
+    test("should throw NOT_FOUND when updating the title of a missing resume", async () => {
+      mockDb.resume.findFirst.mockResolvedValue(null);
+
+      const caller = createCaller();
+
+      await expect(
+        caller.updateTitle({ id: 999, name: "Test" }),
+      ).rejects.toThrow("Resume not found");
+    });
+  });
+
   describe("delete", () => {
     test("should delete resume", async () => {
       const existingResume = {

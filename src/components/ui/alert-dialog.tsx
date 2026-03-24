@@ -1,7 +1,7 @@
 "use client";
 
-import * as React from "react";
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
+import * as React from "react";
 
 import { cn } from "~/lib/utils";
 
@@ -46,7 +46,12 @@ function AlertDialogHeader({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("flex flex-col gap-2 text-left", className)} {...props} />;
+  return (
+    <div
+      className={cn("flex flex-col gap-2 text-left", className)}
+      {...props}
+    />
+  );
 }
 
 function AlertDialogFooter({
