@@ -5,6 +5,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
+import { toast } from "sonner";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import ResumeDetailPage from "./page";
@@ -15,6 +16,16 @@ const mockUpdateTitleMutation = vi.fn();
 const mockDuplicateMutation = vi.fn();
 const mockDeleteMutation = vi.fn();
 const mockUseUtils = vi.fn();
+const mockFetch = vi.fn();
+const mockClipboardWriteText = vi.fn();
+const mockPrint = vi.fn();
+
+vi.mock("sonner", () => ({
+  toast: {
+    error: vi.fn(),
+    success: vi.fn(),
+  },
+}));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
@@ -76,6 +87,15 @@ vi.mock("~/trpc/react", () => ({
 describe("ResumeDetailPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal("fetch", mockFetch);
+    Object.assign(window, {
+      print: mockPrint,
+    });
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: mockClipboardWriteText,
+      },
+    });
     mockUseUtils.mockReturnValue({
       resume: {
         getById: { invalidate: vi.fn(), setData: vi.fn() },
@@ -134,8 +154,32 @@ describe("ResumeDetailPage", () => {
       screen.getByRole("button", { name: /duplicate resume/i }),
     ).toBeInTheDocument();
     expect(
+      screen.getByRole("button", { name: /copy as markdown/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /print resume/i }),
+    ).toBeInTheDocument();
+    expect(
       screen.getByRole("button", { name: /delete resume/i }),
     ).toBeInTheDocument();
+  });
+
+  test("copies the resume markdown from the toolbar", async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      text: vi.fn().mockResolvedValue("# Resume markdown"),
+    });
+    mockClipboardWriteText.mockResolvedValue(undefined);
+
+    render(<ResumeDetailPage params={{ resume_id: "7" }} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /copy as markdown/i }));
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith("/resume/7/markdown");
+      expect(mockClipboardWriteText).toHaveBeenCalledWith("# Resume markdown");
+      expect(toast.success).toHaveBeenCalledWith("Copied markdown");
+    });
   });
 
   test("autosaves the title after the input changes", async () => {
@@ -162,6 +206,14 @@ describe("ResumeDetailPage", () => {
     });
 
     vi.useRealTimers();
+  });
+
+  test("opens the browser print dialog from the toolbar", () => {
+    render(<ResumeDetailPage params={{ resume_id: "7" }} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /print resume/i }));
+
+    expect(mockPrint).toHaveBeenCalled();
   });
 
   test("shows a transient saved indicator after title autosave succeeds", async () => {

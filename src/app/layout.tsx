@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Noto_Serif, Playfair_Display } from "next/font/google";
 import { cookies } from "next/headers";
 import NiceModalProviderWrapper from "~/components/providers";
+import { Toaster } from "~/components/ui/sonner";
 import { TRPCReactProvider } from "~/trpc/react";
 import "./styles.css";
 import { cn } from "~/lib/utils";
@@ -28,7 +29,10 @@ export default async function RootLayout({ children }: RootLayoutProps) {
     <html lang="en" className={cn("font-serif", playfairDisplay.variable)}>
       <body className={clsx(font.className, "min-w-96 grid min-h-screen")}>
         <TRPCReactProvider cookies={(await cookies()).toString()}>
-          <NiceModalProviderWrapper>{children}</NiceModalProviderWrapper>
+          <NiceModalProviderWrapper>
+            {children}
+            <Toaster />
+          </NiceModalProviderWrapper>
         </TRPCReactProvider>
       </body>
     </html>

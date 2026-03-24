@@ -2,11 +2,14 @@
 
 import {
   CheckIcon,
+  ClipboardDocumentIcon,
+  PrinterIcon,
   Squares2X2Icon,
   TrashIcon,
 } from "@heroicons/react/20/solid";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 import ContactInfo from "~/components/resume/contact-info";
 import EducationExperience from "~/components/resume/education-experience";
@@ -44,6 +47,7 @@ export default function ResumePage(props: {
   const params = "then" in props.params ? use(props.params) : props.params;
   const router = useRouter();
   const [draftName, setDraftName] = useState("");
+  const [isCopyingMarkdown, setIsCopyingMarkdown] = useState(false);
   const [showSavedIndicator, setShowSavedIndicator] = useState(false);
   const lastSyncedNameRef = useRef("");
   const pendingSaveNameRef = useRef<string | null>(null);
@@ -173,6 +177,28 @@ export default function ResumePage(props: {
   const certificates = resume.education.filter(
     (e) => e.type === EducationType.CERTIFICATION,
   );
+
+  const copyMarkdownToClipboard = async () => {
+    setIsCopyingMarkdown(true);
+
+    try {
+      const response = await fetch(`/resume/${resume.id}/markdown`);
+
+      if (!response.ok) {
+        toast.error("Failed to copy markdown");
+        return;
+      }
+
+      const markdown = await response.text();
+      await navigator.clipboard.writeText(markdown);
+      toast.success("Copied markdown");
+    } catch {
+      toast.error("Failed to copy markdown");
+    } finally {
+      setIsCopyingMarkdown(false);
+    }
+  };
+
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
       <TooltipProvider delayDuration={150}>
@@ -204,6 +230,39 @@ export default function ResumePage(props: {
                 </div>
               </div>
               <div className="flex items-center gap-1 self-end md:self-auto">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon-sm"
+                      variant="ghost"
+                      className="cursor-pointer"
+                      aria-label="Copy as markdown"
+                      disabled={isCopyingMarkdown}
+                      onClick={() => {
+                        void copyMarkdownToClipboard();
+                      }}
+                    >
+                      <ClipboardDocumentIcon className="size-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Copy as markdown</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon-sm"
+                      variant="ghost"
+                      className="cursor-pointer"
+                      aria-label="Print resume"
+                      onClick={() => {
+                        window.print();
+                      }}
+                    >
+                      <PrinterIcon className="size-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Print</TooltipContent>
+                </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
