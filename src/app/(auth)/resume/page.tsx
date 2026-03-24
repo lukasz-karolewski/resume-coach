@@ -1,6 +1,11 @@
 import Link from "next/link";
 import CreateResumeButton from "~/components/resume/create-resume-button";
 import ResumeDate from "~/components/resume/resume-date";
+import ResumeSortDropdown from "~/components/resume/resume-sort-dropdown";
+import {
+  getResumeSort,
+  sortResumes,
+} from "~/components/resume/resume-sort";
 import {
   Card,
   CardContent,
@@ -10,12 +15,27 @@ import {
 } from "~/components/ui/card";
 import { api } from "~/trpc/server";
 
-export default async function ResumePage() {
-  const resumes = await api.resume.list.query(undefined);
+type ResumePageProps = {
+  searchParams?:
+    | Promise<{
+        sort?: string | string[];
+      }>
+    | {
+        sort?: string | string[];
+      };
+};
+
+export default async function ResumePage({ searchParams }: ResumePageProps = {}) {
+  const [resumes, resolvedSearchParams] = await Promise.all([
+    api.resume.list.query(undefined),
+    searchParams,
+  ]);
+  const sort = getResumeSort(resolvedSearchParams?.sort);
+  const sortedResumes = sortResumes(resumes, sort);
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-8">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="space-y-2">
           <h1 className="text-3xl font-semibold tracking-tight">My Resumes</h1>
           <p className="text-sm text-muted-foreground">
@@ -23,10 +43,13 @@ export default async function ResumePage() {
             refine.
           </p>
         </div>
-        <CreateResumeButton />
+        <div className="flex items-center gap-3">
+          <ResumeSortDropdown value={sort} />
+          <CreateResumeButton />
+        </div>
       </div>
 
-      {resumes.length === 0 ? (
+      {sortedResumes.length === 0 ? (
         <Card className="border-dashed">
           <CardHeader className="text-center">
             <CardTitle>No resumes yet</CardTitle>
@@ -43,7 +66,7 @@ export default async function ResumePage() {
         </Card>
       ) : (
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {resumes.map((resume) => {
+          {sortedResumes.map((resume) => {
             const linkedJob = resume.Job?.title || resume.Job?.company;
 
             return (

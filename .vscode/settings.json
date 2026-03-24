@@ -34,6 +34,7 @@
     }
   },
   "search.exclude": {
+    ".agents/**": true,
     "**/.next": true,
     "**/node_modules/": true
   },

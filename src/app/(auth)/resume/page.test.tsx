@@ -22,6 +22,25 @@ vi.mock("~/components/resume/create-resume-button", () => ({
   }) => <button type="button">{buttonLabel}</button>,
 }));
 
+vi.mock("~/components/resume/resume-sort-dropdown", () => ({
+  default: ({ value }: { value: string }) => <div>{`Sort by ${value}`}</div>,
+}));
+
+vi.mock("~/components/resume/resume-sort", () => ({
+  getResumeSort: (value?: string | string[]) => {
+    const normalizedValue = Array.isArray(value) ? value[0] : value;
+    return normalizedValue === "name" ? "name" : "last-updated";
+  },
+  sortResumes: (resumes: Array<{ name: string; updatedAt: Date }>, sort: string) =>
+    [...resumes].sort((left, right) => {
+      if (sort === "name") {
+        return left.name.localeCompare(right.name);
+      }
+
+      return right.updatedAt.getTime() - left.updatedAt.getTime();
+    }),
+}));
+
 vi.mock("~/components/resume/resume-date", () => ({
   default: ({ label, value }: { label: string; value: Date | string }) => (
     <p>{`${label} ${String(value)}`}</p>
@@ -111,12 +130,42 @@ describe("ResumePage", () => {
     expect(screen.getByText(/Senior Data Scientist/)).toBeInTheDocument();
   });
 
+  test("sorts resumes by name when requested in search params", async () => {
+    render(await ResumePage({ searchParams: Promise.resolve({ sort: "name" }) }));
+
+    expect(screen.getByText("Sort by name")).toBeInTheDocument();
+    expect(screen.getAllByRole("link").map((link) => link.textContent)).toEqual([
+      "Data Scientist Resume",
+      "Software Engineer Resume",
+    ]);
+  });
+
+  test("sorts resumes by last updated by default", async () => {
+    render(await ResumePage());
+
+    expect(screen.getByText("Sort by last-updated")).toBeInTheDocument();
+    expect(screen.getAllByRole("link").map((link) => link.textContent)).toEqual([
+      "Data Scientist Resume",
+      "Software Engineer Resume",
+    ]);
+  });
+
   test("renders updated above created in a left-aligned footer stack", async () => {
     const { container } = render(await ResumePage());
 
     expect(
       container.querySelector(
         ".flex.flex-col.items-start.gap-1.text-xs.text-muted-foreground\\/80",
+      ),
+    ).toBeTruthy();
+  });
+
+  test("centers the header actions vertically on desktop", async () => {
+    const { container } = render(await ResumePage());
+
+    expect(
+      container.querySelector(
+        ".flex.flex-col.gap-4.md\\:flex-row.md\\:items-center.md\\:justify-between",
       ),
     ).toBeTruthy();
   });
