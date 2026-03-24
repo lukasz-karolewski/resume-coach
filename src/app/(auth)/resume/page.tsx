@@ -2,10 +2,7 @@ import Link from "next/link";
 import CreateResumeButton from "~/components/resume/create-resume-button";
 import ResumeDate from "~/components/resume/resume-date";
 import ResumeSortDropdown from "~/components/resume/resume-sort-dropdown";
-import {
-  getResumeSort,
-  sortResumes,
-} from "~/components/resume/resume-sort";
+import { normalizeResumeSort } from "~/components/resume/resume-sort";
 import {
   Card,
   CardContent,
@@ -26,12 +23,9 @@ type ResumePageProps = {
 };
 
 export default async function ResumePage({ searchParams }: ResumePageProps = {}) {
-  const [resumes, resolvedSearchParams] = await Promise.all([
-    api.resume.list.query(undefined),
-    searchParams,
-  ]);
-  const sort = getResumeSort(resolvedSearchParams?.sort);
-  const sortedResumes = sortResumes(resumes, sort);
+  const resolvedSearchParams = await searchParams;
+  const sort = normalizeResumeSort(resolvedSearchParams?.sort);
+  const resumes = await api.resume.list.query({ sort });
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-8">
@@ -49,7 +43,7 @@ export default async function ResumePage({ searchParams }: ResumePageProps = {})
         </div>
       </div>
 
-      {sortedResumes.length === 0 ? (
+      {resumes.length === 0 ? (
         <Card className="border-dashed">
           <CardHeader className="text-center">
             <CardTitle>No resumes yet</CardTitle>
@@ -66,7 +60,7 @@ export default async function ResumePage({ searchParams }: ResumePageProps = {})
         </Card>
       ) : (
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {sortedResumes.map((resume) => {
+          {resumes.map((resume) => {
             const linkedJob = resume.Job?.title || resume.Job?.company;
 
             return (

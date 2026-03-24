@@ -221,6 +221,54 @@ describe("resume lib", () => {
     });
   });
 
+  describe("listResumes", () => {
+    it("orders resumes by last updated descending by default", async () => {
+      mockDb.resume.findMany.mockResolvedValue([]);
+
+      await listResumes(mockDb as unknown as PrismaClient, userId);
+
+      expect(mockDb.resume.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: {
+            updatedAt: "desc",
+          },
+        }),
+      );
+    });
+
+    it("orders resumes by name ascending when requested", async () => {
+      mockDb.resume.findMany.mockResolvedValue([]);
+
+      await listResumes(mockDb as unknown as PrismaClient, userId, {
+        sort: "name",
+      });
+
+      expect(mockDb.resume.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: {
+            name: "asc",
+          },
+        }),
+      );
+    });
+
+    it("orders resumes by created date descending when requested", async () => {
+      mockDb.resume.findMany.mockResolvedValue([]);
+
+      await listResumes(mockDb as unknown as PrismaClient, userId, {
+        sort: "created",
+      });
+
+      expect(mockDb.resume.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: {
+            createdAt: "desc",
+          },
+        }),
+      );
+    });
+  });
+
   describe("getResume", () => {
     it("returns the owned resume with relations", async () => {
       const resume = { id: 10, name: "Resume", userId };

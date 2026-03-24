@@ -46,6 +46,9 @@ export default function ResumeSortDropdown({
         <DropdownMenuLabel>Sort resumes</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuRadioGroup value={value} onValueChange={handleValueChange}>
+          <DropdownMenuRadioItem value="created">
+            Created
+          </DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="last-updated">
             Last updated
           </DropdownMenuRadioItem>

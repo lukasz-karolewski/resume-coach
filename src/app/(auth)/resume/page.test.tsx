@@ -27,18 +27,13 @@ vi.mock("~/components/resume/resume-sort-dropdown", () => ({
 }));
 
 vi.mock("~/components/resume/resume-sort", () => ({
-  getResumeSort: (value?: string | string[]) => {
+  normalizeResumeSort: (value?: string | string[]) => {
     const normalizedValue = Array.isArray(value) ? value[0] : value;
+    if (normalizedValue === "created") {
+      return "created";
+    }
     return normalizedValue === "name" ? "name" : "last-updated";
   },
-  sortResumes: (resumes: Array<{ name: string; updatedAt: Date }>, sort: string) =>
-    [...resumes].sort((left, right) => {
-      if (sort === "name") {
-        return left.name.localeCompare(right.name);
-      }
-
-      return right.updatedAt.getTime() - left.updatedAt.getTime();
-    }),
 }));
 
 vi.mock("~/components/resume/resume-date", () => ({
@@ -94,7 +89,7 @@ describe("ResumePage", () => {
   test("renders the resume list from a server-side query", async () => {
     render(await ResumePage());
 
-    expect(mockResumeListQuery).toHaveBeenCalledWith(undefined);
+    expect(mockResumeListQuery).toHaveBeenCalledWith({ sort: "last-updated" });
     expect(screen.getByText("My Resumes")).toBeInTheDocument();
     expect(screen.getByText("Software Engineer Resume")).toBeInTheDocument();
     expect(screen.getByText("Data Scientist Resume")).toBeInTheDocument();
@@ -134,20 +129,23 @@ describe("ResumePage", () => {
     render(await ResumePage({ searchParams: Promise.resolve({ sort: "name" }) }));
 
     expect(screen.getByText("Sort by name")).toBeInTheDocument();
-    expect(screen.getAllByRole("link").map((link) => link.textContent)).toEqual([
-      "Data Scientist Resume",
-      "Software Engineer Resume",
-    ]);
+    expect(mockResumeListQuery).toHaveBeenCalledWith({ sort: "name" });
   });
 
   test("sorts resumes by last updated by default", async () => {
     render(await ResumePage());
 
     expect(screen.getByText("Sort by last-updated")).toBeInTheDocument();
-    expect(screen.getAllByRole("link").map((link) => link.textContent)).toEqual([
-      "Data Scientist Resume",
-      "Software Engineer Resume",
-    ]);
+    expect(mockResumeListQuery).toHaveBeenCalledWith({ sort: "last-updated" });
+  });
+
+  test("sorts resumes by created when requested in search params", async () => {
+    render(
+      await ResumePage({ searchParams: Promise.resolve({ sort: "created" }) }),
+    );
+
+    expect(screen.getByText("Sort by created")).toBeInTheDocument();
+    expect(mockResumeListQuery).toHaveBeenCalledWith({ sort: "created" });
   });
 
   test("renders updated above created in a left-aligned footer stack", async () => {

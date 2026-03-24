@@ -75,9 +75,12 @@ export const duplicateResumeSchema = z.object({
 export const getResumeSchema = z.object({ id: z.number() });
 export const getResumeMarkdownSchema = getResumeSchema;
 
+const resumeSortSchema = z.enum(["created", "last-updated", "name"]);
+
 export const listResumesSchema = z
   .object({
     jobId: z.string().optional(),
+    sort: resumeSortSchema.optional(),
   })
   .optional();
 
@@ -566,6 +569,13 @@ export async function listResumes(
   userId: string,
   input?: z.infer<typeof listResumesSchema>,
 ) {
+  const orderBy =
+    input?.sort === "name"
+      ? { name: "asc" as const }
+      : input?.sort === "created"
+        ? { createdAt: "desc" as const }
+        : { updatedAt: "desc" as const };
+
   const resumes = await db.resume.findMany({
     include: {
       _count: {
@@ -577,9 +587,7 @@ export async function listResumes(
       contactInfo: true,
       Job: true,
     },
-    orderBy: {
-      updatedAt: "desc",
-    },
+    orderBy,
     where: {
       userId: userId,
       ...(input?.jobId ? { jobId: input.jobId } : {}),
