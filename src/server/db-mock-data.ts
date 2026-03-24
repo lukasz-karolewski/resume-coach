@@ -359,42 +359,4 @@ export const mockDB: ResumeDB = {
     updatedAt: new Date("2024-01-01"),
     userId: "mock-user-id",
   },
-
-  salesforce: {
-    contactInfo: contactInfo,
-    contactInfoId: contactInfo.id,
-    createdAt: new Date("2024-01-01"),
-    education,
-    experience: [
-      {
-        companyName: "LinkedIn",
-        id: 1,
-        link: "https://linkedin.com",
-        positions: [
-          {
-            ...linkedInPositions[0]!,
-            accomplishments: `
-  - Led development of Generative AI features, contributing ~$100M incremental revenue. Projects included Account IQ, LeadIQ, Message Assist, and AI-Assisted Search, MSFT Co-Pilot for Sales integration, and most recently, overseeing Seller Agent product.
-  - Defined product and technical vision, collaborated with cross-functional teams, and delivered AI-driven features to market, aligning closely with the strategic goals of the organization.
-  - Filed two patents, key to the success of AI-based product innovations.
-  - Partnered with infrastructure teams to influence the Generative AI strategy and implementation.
-            `,
-          },
-          linkedInPositions[1]!,
-        ],
-        resumeId: null,
-      },
-    ],
-    id: 2,
-    jobId: null,
-    name: "Salesforce Resume",
-    summary: `
-Engineering leader with over a decade of experience leading cross-functional teams to build AI-driven products and solutions.
-Strong expertise in Generative AI, Retrieval-Augmented Generation (RAG), large language models (LLMs), and Agentic workflows.
-Proven ability to define technical strategy, drive product innovation, and deliver value-driven outcomes.
-Passionate about fostering high-performing teams, mentoring engineering talent, and maintaining technical excellence while delivering impactful results.
-`,
-    updatedAt: new Date("2024-01-01"),
-    userId: "mock-user-id",
-  },
 };

@@ -92,7 +92,6 @@ export default function ResumePage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {resumes?.map((resume) => {
-            const isTemplate = resume.id < 0; // Template resumes have negative IDs
             return (
               <div
                 key={resume.id}
@@ -144,16 +143,14 @@ export default function ResumePage() {
                     >
                       Duplicate
                     </Button>
-                    {!isTemplate && (
-                      <Button
-                        className="flex-1"
-                        variant="destructive"
-                        onClick={() => handleDelete(resume.id, resume.name)}
-                        disabled={deleteMutation.isPending}
-                      >
-                        Delete
-                      </Button>
-                    )}
+                    <Button
+                      className="flex-1"
+                      variant="destructive"
+                      onClick={() => handleDelete(resume.id, resume.name)}
+                      disabled={deleteMutation.isPending}
+                    >
+                      Delete
+                    </Button>
                   </div>
                 </div>
               </div>

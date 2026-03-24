@@ -425,18 +425,9 @@ describe("Resume Router", () => {
       const caller = createCaller();
       const result = await caller.list();
 
-      // Should return 2 DB resumes + 2 mock resumes
-      expect(result.length).toBeGreaterThanOrEqual(4);
-
-      // First two should be the DB resumes (ordered by updatedAt desc)
-      const dbResumes = result.filter((r) => r.id > 0);
-      expect(dbResumes).toHaveLength(2);
-      expect(dbResumes[0]?.summary).toBe(JSON.stringify(["Summary"]));
-      expect(dbResumes[1]?.summary).toBe("[]");
-
-      // Should also have mock resumes with negative IDs
-      const mockTemplateResumes = result.filter((r) => r.id < 0);
-      expect(mockTemplateResumes.length).toBeGreaterThan(0);
+      expect(result).toHaveLength(2);
+      expect(result[0]?.summary).toBe(JSON.stringify(["Summary"]));
+      expect(result[1]?.summary).toBe("[]");
 
       expect(mockDb.resume.findMany).toHaveBeenCalledWith({
         include: expect.any(Object),
@@ -689,41 +680,6 @@ describe("Resume Router", () => {
       const result = await caller.duplicate({ id: 1, name: "Custom Name" });
 
       expect(result.name).toBe("Custom Name");
-    });
-
-    test("should duplicate a mock template into a real resume", async () => {
-      const duplicatedResume = {
-        contactInfo: {
-          email: "lkarolewski@gmail.com",
-          id: 2,
-          name: "Lukasz Karolewski",
-          phone: "408 680 9149",
-        },
-        contactInfoId: 2,
-        createdAt: new Date(),
-        education: [],
-        experience: [],
-        id: 2,
-        jobId: null,
-        name: "Base Template (Copy)",
-        summary: "Summary",
-        updatedAt: new Date(),
-        userId: "user-123",
-      };
-
-      mockDb.resume.create.mockResolvedValue(duplicatedResume);
-
-      const caller = createCaller();
-      const result = await caller.duplicate({ id: -1, name: "Base Template (Copy)" });
-
-      expect(result.id).toBe(2);
-      expect(result.name).toBe("Base Template (Copy)");
-      expect(mockDb.resume.findFirst).not.toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({ id: -1 }),
-        }),
-      );
-      expect(mockDb.resume.create).toHaveBeenCalled();
     });
 
     test("should throw NOT_FOUND when duplicating non-existent resume", async () => {

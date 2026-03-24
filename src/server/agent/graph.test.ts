@@ -233,25 +233,4 @@ describe("executeChatStream", () => {
       },
     });
   });
-
-  it("does not persist template resume ids on the chat thread", async () => {
-    const mockThread = { id: "thread-template" };
-    vi.mocked(db.chatThread.create).mockResolvedValue(mockThread as never);
-
-    await executeChatStream({
-      message,
-      resumeId: -1,
-      sendEvent: mockSendEvent,
-      threadId: undefined,
-      userId,
-    });
-
-    expect(db.chatThread.create).toHaveBeenCalledWith({
-      data: {
-        resumeId: null,
-        userId,
-      },
-    });
-  });
-
 });

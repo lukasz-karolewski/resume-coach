@@ -3,7 +3,6 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { EducationType, type PrismaClient } from "~/generated/prisma/client";
-import { mockDB } from "~/server/db-mock-data";
 
 // ============================================================================
 // Zod Schemas for CRUD Operations
@@ -80,6 +79,7 @@ export const deleteResumeSchema = z.object({ id: z.number() });
 
 // Agent-specific schemas
 export const createResumeCopySchema = z.object({
+  name: z.string().trim().min(1).optional(),
   sourceResumeId: z.number(),
 });
 
@@ -149,14 +149,6 @@ export async function createResume(
     });
     contactInfoId = contactInfo.id;
   }
-
-  // Create resume with nested relations
-  console.log("DEBUG creating resume with data:", {
-    contactInfoId: contactInfoId ?? null,
-    jobId: input.jobId ?? null,
-    name: input.name,
-    userId: userId,
-  });
 
   const resume = await db.resume.create({
     data: {
@@ -262,28 +254,21 @@ export async function duplicateResume(
     }
   }
 
-  const original =
-    input.id < 0
-      ? (() => {
-          const mockTemplates = Object.values(mockDB);
-          const templateIndex = Math.abs(input.id) - 1;
-          return mockTemplates[templateIndex] ?? null;
-        })()
-      : await db.resume.findFirst({
-          include: {
-            contactInfo: true,
-            education: true,
-            experience: {
-              include: {
-                positions: true,
-              },
-            },
-          },
-          where: {
-            id: input.id,
-            userId: userId,
-          },
-        });
+  const original = await db.resume.findFirst({
+    include: {
+      contactInfo: true,
+      education: true,
+      experience: {
+        include: {
+          positions: true,
+        },
+      },
+    },
+    where: {
+      id: input.id,
+      userId: userId,
+    },
+  });
 
   if (!original) {
     throw new TRPCError({
@@ -364,22 +349,6 @@ export async function getResume(
   userId: string,
   input: z.infer<typeof getResumeSchema>,
 ) {
-  // Handle negative IDs as mock templates
-  if (input.id < 0) {
-    const mockTemplates = Object.values(mockDB);
-    const templateIndex = Math.abs(input.id) - 1;
-    const template = mockTemplates[templateIndex];
-
-    if (!template) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Template not found",
-      });
-    }
-
-    return template;
-  }
-
   const resume = await db.resume.findFirst({
     include: {
       contactInfo: true,
@@ -444,29 +413,7 @@ export async function listResumes(
     },
   });
 
-  const dbResumes = resumes;
-
-  // Add mock resumes with proper structure for the list view
-  // Note: Mock resumes are read-only templates, use negative IDs to distinguish them
-  const mockResumes = Object.values(mockDB).map((resume, index) => ({
-    _count: {
-      education: resume.education.length,
-      experience: resume.experience.length,
-    },
-    contactInfo: resume.contactInfo,
-    contactInfoId: resume.contactInfoId,
-    createdAt: resume.createdAt,
-    id: -(index + 1), // Negative IDs for mock resumes
-    Job: null,
-    jobId: resume.jobId,
-    name: resume.name,
-    summary: resume.summary,
-    updatedAt: resume.updatedAt,
-    userId: resume.userId,
-  }));
-
-  // Combine and return all resumes
-  return [...dbResumes, ...mockResumes];
+  return resumes;
 }
 
 /**
@@ -620,46 +567,30 @@ export async function createResumeCopy(
   userId: string,
   input: z.infer<typeof createResumeCopySchema>,
 ) {
-  const sourceResume =
-    input.sourceResumeId < 0
-      ? (() => {
-          const mockTemplates = Object.values(mockDB);
-          const templateIndex = Math.abs(input.sourceResumeId) - 1;
-          const template = mockTemplates[templateIndex];
-
-          if (!template) {
-            return null;
-          }
-
-          return {
-            ...template,
-            sections: [],
-          };
-        })()
-      : await db.resume.findFirst({
-          include: {
-            contactInfo: true,
-            education: true,
-            experience: {
-              include: {
-                positions: {
-                  include: {
-                    skillPosition: {
-                      include: {
-                        skill: true,
-                      },
-                    },
-                  },
+  const sourceResume = await db.resume.findFirst({
+    include: {
+      contactInfo: true,
+      education: true,
+      experience: {
+        include: {
+          positions: {
+            include: {
+              skillPosition: {
+                include: {
+                  skill: true,
                 },
               },
             },
-            sections: true,
           },
-          where: {
-            id: input.sourceResumeId,
-            userId,
-          },
-        });
+        },
+      },
+      sections: true,
+    },
+    where: {
+      id: input.sourceResumeId,
+      userId,
+    },
+  });
 
   if (!sourceResume) {
     throw new Error("Source resume not found");
@@ -667,7 +598,7 @@ export async function createResumeCopy(
 
   // Create a new resume copy with a unique name
   const timestamp = Date.now();
-  const copyName = `${sourceResume.name} - Copy ${timestamp}`;
+  const copyName = input.name?.trim() || `${sourceResume.name} - Copy ${timestamp}`;
 
   const newResume = await db.resume.create({
     data: {
@@ -707,7 +638,11 @@ export async function createResumeCopy(
           },
         })),
       },
-      jobId: sourceResume.jobId,
+      ...(sourceResume.jobId && {
+        Job: {
+          connect: { id: sourceResume.jobId },
+        },
+      }),
       name: copyName,
       sections: {
         create: sourceResume.sections.map((section) => ({
@@ -716,7 +651,9 @@ export async function createResumeCopy(
         })),
       },
       summary: sourceResume.summary,
-      userId,
+      user: {
+        connect: { id: userId },
+      },
     },
   });
 

@@ -117,8 +117,7 @@ export async function executeChatStream({
   message,
   sendEvent,
 }: ChatStreamParams): Promise<{ threadId: string }> {
-  const persistedResumeId =
-    resumeId !== undefined && resumeId > 0 ? resumeId : null;
+  const persistedResumeId = resumeId ?? null;
 
   // Find or create chat thread
   let thread = threadId

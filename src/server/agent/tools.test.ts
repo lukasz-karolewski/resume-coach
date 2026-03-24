@@ -49,6 +49,7 @@ vi.mock("~/server/lib/resume", () => ({
   }),
   createResumeCopy,
   createResumeCopySchema: z.object({
+    name: z.string().trim().min(1).optional(),
     sourceResumeId: z.number(),
   }),
   getResume,
@@ -78,9 +79,9 @@ vi.mock("~/server/lib/resume", () => ({
   }),
 }));
 
-import { createResumeCopyTool, getResumeTool, listResumesTool } from "./tools";
+import { cloneResumeTool, getResumeTool, listResumesTool } from "./tools";
 
-describe("createResumeCopyTool", () => {
+describe("cloneResumeTool", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -94,11 +95,11 @@ describe("createResumeCopyTool", () => {
     createResumeCopy.mockResolvedValue(result);
 
     await expect(
-      createResumeCopyTool.invoke(
-        { sourceResumeId: -1 },
+      cloneResumeTool.invoke(
+        { name: "Targeted Resume Copy", sourceResumeId: 7 },
         {
           context: {
-            currentResumeId: -1,
+            currentResumeId: 7,
             userId: "user-123",
           },
         },
@@ -106,7 +107,8 @@ describe("createResumeCopyTool", () => {
     ).resolves.toEqual(result);
 
     expect(createResumeCopy).toHaveBeenCalledWith({}, "user-123", {
-      sourceResumeId: -1,
+      name: "Targeted Resume Copy",
+      sourceResumeId: 7,
     });
   });
 });

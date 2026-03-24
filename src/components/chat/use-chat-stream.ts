@@ -29,7 +29,7 @@ interface UseChatStreamOptions {
 }
 
 export function parseViewResumeCommand(content: string): number | null {
-  const match = /^view resume (-?\d+)$/i.exec(content.trim());
+  const match = /^view resume (\d+)$/i.exec(content.trim());
 
   if (!match) {
     return null;

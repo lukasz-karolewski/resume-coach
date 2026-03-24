@@ -28,13 +28,14 @@ import type { contextSchema, stateSchema } from "./graph";
 /**
  * Tool: Create a working copy of a resume for editing
  */
-export const createResumeCopyTool = tool(
+export const cloneResumeTool = tool(
   async (
-    { sourceResumeId },
+    { name, sourceResumeId },
     runtime: ToolRuntime<typeof stateSchema, typeof contextSchema>,
   ) => {
     try {
       const result = await createResumeCopy(db, runtime.context.userId, {
+        name,
         sourceResumeId,
       });
       return result;
@@ -43,14 +44,14 @@ export const createResumeCopyTool = tool(
         error:
           error instanceof Error
             ? error.message
-            : "Failed to create resume copy",
+            : "Failed to clone resume",
       };
     }
   },
   {
     description:
-      "Create a working copy of a resume for editing. Returns the new resume ID.",
-    name: "createResumeCopy",
+      "Create a working copy of a resume for editing with the requested resume name. Returns the new resume ID.",
+    name: "cloneResume",
     schema: createResumeCopySchema,
   },
 );
@@ -261,7 +262,7 @@ export const listResumesTool = tool(
  * Export all tools as an array
  */
 export const allTools = [
-  createResumeCopyTool,
+  cloneResumeTool,
   updateAccomplishmentsTool,
   updateSummaryTool,
   getResumeTool,

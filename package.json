@@ -74,6 +74,7 @@
     "lint:fix": "biome check --write",
     "lint:summary": "biome check --reporter summary",
     "migrate": "prisma migrate dev",
+    "seed": "tsx prisma/seed.ts",
     "start": "next start",
     "test": "vitest run",
     "test:coverage": "vitest --coverage",

@@ -11,13 +11,10 @@ describe("parseViewResumeCommand", () => {
     expect(parseViewResumeCommand("view resume 42")).toBe(42);
   });
 
-  test("supports negative template resume ids", () => {
-    expect(parseViewResumeCommand("view resume -1")).toBe(-1);
-  });
-
   test("rejects assistant prose around the command", () => {
     expect(parseViewResumeCommand("Here you go: view resume 42")).toBeNull();
     expect(parseViewResumeCommand("view resume 42\nDone")).toBeNull();
+    expect(parseViewResumeCommand("view resume -1")).toBeNull();
   });
 
   test("loads stored messages when a thread id is provided", async () => {
