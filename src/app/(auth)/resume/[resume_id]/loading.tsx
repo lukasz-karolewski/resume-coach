@@ -1,4 +1,5 @@
+import PageLoading from "~/components/ui/page-loading";
+
 export default function Loading() {
-  // You can add any UI inside Loading, including a Skeleton.
-  return <div> Loading... </div>;
+  return <PageLoading variant="document" />;
 }

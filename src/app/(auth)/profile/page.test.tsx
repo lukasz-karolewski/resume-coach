@@ -5,11 +5,11 @@ import ProfilePage from "./page";
 
 const mockProfileQuery = vi.fn();
 
-vi.mock("~/trpc/react", () => ({
+vi.mock("~/trpc/server", () => ({
   api: {
     profile: {
       getUserInfo: {
-        useQuery: () => mockProfileQuery(),
+        query: () => mockProfileQuery(),
       },
     },
   },
@@ -20,28 +20,25 @@ describe("ProfilePage", () => {
     vi.clearAllMocks();
   });
 
-  test("renders a loading card while profile data is unavailable", () => {
-    mockProfileQuery.mockReturnValue({
-      data: undefined,
+  test("renders profile details when the server returns no name", async () => {
+    mockProfileQuery.mockResolvedValue({
+      email: "jane@example.com",
+      name: null,
     });
 
-    render(<ProfilePage />);
+    render(await ProfilePage());
 
     expect(screen.getByText("Profile")).toBeInTheDocument();
-    expect(
-      screen.getByText("Loading your account details."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Not provided")).toBeInTheDocument();
   });
 
-  test("renders profile details in the shadcn card layout", () => {
-    mockProfileQuery.mockReturnValue({
-      data: {
-        email: "jane@example.com",
-        name: "Jane Doe",
-      },
+  test("renders profile details in the shadcn card layout", async () => {
+    mockProfileQuery.mockResolvedValue({
+      email: "jane@example.com",
+      name: "Jane Doe",
     });
 
-    render(<ProfilePage />);
+    render(await ProfilePage());
 
     expect(screen.getByText("Account information")).toBeInTheDocument();
     expect(screen.getByText("Jane Doe")).toBeInTheDocument();

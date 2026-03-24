@@ -1,6 +1,5 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { Suspense } from "react";
 
 import { auth } from "~/auth";
 import Assistant from "~/components/assistant";
@@ -18,7 +17,7 @@ export default async function AuthLayout({
   if (!session?.user) redirect("/");
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <>
       <TopNav />
       <main className="relative min-h-screen bg-muted/30">
         <div className="mx-auto flex min-h-[calc(100vh-73px)] w-full max-w-6xl px-6 py-8">
@@ -27,6 +26,6 @@ export default async function AuthLayout({
       </main>
       <Footer />
       <Assistant />
-    </Suspense>
+    </>
   );
 }

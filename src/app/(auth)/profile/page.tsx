@@ -1,32 +1,14 @@
-"use client";
-
-import type React from "react";
-
 import { Button } from "~/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { api } from "~/trpc/react";
+import { api } from "~/trpc/server";
 
-const Profile: React.FC = () => {
-  const { data: userInformation } = api.profile.getUserInfo.useQuery();
-
-  if (!userInformation) {
-    return (
-      <div className="grid w-full gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile</CardTitle>
-            <CardDescription>Loading your account details.</CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    );
-  }
+export default async function ProfilePage() {
+  const userInformation = await api.profile.getUserInfo.query();
 
   return (
     <div className="grid w-full gap-6">
@@ -47,13 +29,13 @@ const Profile: React.FC = () => {
             <div className="space-y-1">
               <p className="text-sm font-medium">Name</p>
               <p className="text-sm text-muted-foreground">
-                {userInformation.name || "Not provided"}
+                {userInformation?.name || "Not provided"}
               </p>
             </div>
             <div className="space-y-1">
               <p className="text-sm font-medium">Email</p>
               <p className="text-sm text-muted-foreground">
-                {userInformation.email}
+                {userInformation?.email}
               </p>
             </div>
           </div>
@@ -61,6 +43,4 @@ const Profile: React.FC = () => {
       </Card>
     </div>
   );
-};
-
-export default Profile;
+}
