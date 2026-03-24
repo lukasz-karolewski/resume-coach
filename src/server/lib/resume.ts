@@ -524,6 +524,9 @@ export async function getResume(
                 },
               },
             },
+            orderBy: {
+              startDate: "desc",
+            },
           },
         },
       },

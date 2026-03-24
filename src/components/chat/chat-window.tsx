@@ -39,16 +39,21 @@ export function ChatWindow({
   onNewThread,
 }: ChatWindowProps) {
   return (
-    <div className="fixed bottom-4 right-4 flex h-[min(48rem,calc(100vh-2rem))] w-[min(48rem,calc(100vw-2rem))] flex-col rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4 border-b p-4 dark:border-gray-700">
-        <div className="min-w-0">
-          <h3 className="font-semibold text-gray-900 dark:text-gray-100">
-            Resume Coach
-          </h3>
+    <div
+      data-testid="assistant-panel"
+      className="fixed bottom-5 right-5 flex h-[min(66vh,48rem)] w-[min(32rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-3xl border border-border/70 bg-card/95 text-card-foreground shadow-2xl shadow-black/10 backdrop-blur supports-[backdrop-filter]:bg-card/90"
+    >
+      <div className="flex items-start justify-between gap-4 border-b border-border/60 bg-muted/40 px-5 py-4">
+        <div className="min-w-0 space-y-2">
+          <div>
+            <h3 className="font-semibold tracking-tight">Resume Coach</h3>
+            <p className="text-sm text-muted-foreground">
+              Review, rewrite, and target this resume faster.
+            </p>
+          </div>
           <select
             aria-label="Select conversation"
-            className="mt-1 w-full truncate rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
+            className="w-full truncate rounded-lg border border-border bg-background px-3 py-2 text-xs text-muted-foreground shadow-sm outline-hidden transition-colors focus:border-ring"
             value={sessionId ?? ""}
             onChange={(event) =>
               onSelectConversation(event.target.value || undefined)
@@ -65,7 +70,7 @@ export function ChatWindow({
         <div className="flex items-center gap-2">
           <button
             onClick={onNewThread}
-            className="p-1.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+            className="rounded-xl border border-transparent p-2 text-muted-foreground transition-colors hover:border-border hover:bg-background hover:text-foreground"
             aria-label="Start new conversation"
             title="Start new conversation"
           >
@@ -73,7 +78,7 @@ export function ChatWindow({
           </button>
           <button
             onClick={onClose}
-            className="p-1.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+            className="rounded-xl border border-transparent p-2 text-muted-foreground transition-colors hover:border-border hover:bg-background hover:text-foreground"
             aria-label="Close chat"
           >
             <XIcon className="w-5 h-5" />
@@ -81,21 +86,18 @@ export function ChatWindow({
         </div>
       </div>
 
-      {/* Error Message */}
       {error && (
-        <div className="mx-4 mt-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+        <div className="mx-4 mt-3 rounded-2xl border border-destructive/20 bg-destructive/10 px-4 py-3">
+          <p className="text-sm text-destructive">{error}</p>
         </div>
       )}
 
-      {/* Messages */}
       <MessageList
         messages={messages}
         currentChunk={currentChunk}
         toolExecutions={toolExecutions}
       />
 
-      {/* Input */}
       <ChatInput
         onSend={onSendMessage}
         onStop={onStopMessage}

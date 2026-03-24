@@ -244,6 +244,9 @@ describe("resume lib", () => {
                     },
                   },
                 },
+                orderBy: {
+                  startDate: "desc",
+                },
               },
             },
           },
@@ -389,6 +392,9 @@ describe("resume lib", () => {
                       skill: true,
                     },
                   },
+                },
+                orderBy: {
+                  startDate: "desc",
                 },
               },
             },

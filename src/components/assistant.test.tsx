@@ -124,9 +124,18 @@ describe("Assistant", () => {
   test("opens the chat window from the launcher button", () => {
     render(<Assistant />);
 
-    fireEvent.click(screen.getByLabelText("Open chat"));
+    const launcher = screen.getByLabelText("Open chat");
+
+    expect(launcher).toHaveClass("h-12", "w-12", "rounded-2xl");
+
+    fireEvent.click(launcher);
 
     expect(screen.getByLabelText("Close chat")).toBeInTheDocument();
+    expect(screen.getByTestId("assistant-panel")).toHaveClass(
+      "h-[min(66vh,48rem)]",
+      "w-[min(32rem,calc(100vw-2rem))]",
+      "rounded-3xl",
+    );
   });
 
   test("shows the conversation dropdown in the chat window", async () => {

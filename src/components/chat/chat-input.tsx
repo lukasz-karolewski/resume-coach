@@ -45,7 +45,10 @@ export function ChatInput({ onSend, onStop, disabled }: ChatInputProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="border-t p-4 dark:border-gray-700">
+    <form
+      onSubmit={handleSubmit}
+      className="border-t border-border/60 bg-muted/20 px-4 py-4"
+    >
       <div className="flex items-end gap-2">
         <textarea
           ref={textareaRef}
@@ -55,7 +58,7 @@ export function ChatInput({ onSend, onStop, disabled }: ChatInputProps) {
           placeholder="Ask about your resume or paste a job URL..."
           disabled={disabled}
           rows={1}
-          className={`max-h-48 min-h-11 flex-1 resize-none rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm leading-6 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 ${
+          className={`max-h-48 min-h-11 flex-1 resize-none rounded-2xl border border-border bg-background px-4 py-2.5 text-sm leading-6 text-foreground shadow-sm outline-hidden transition-colors focus:border-ring disabled:opacity-50 ${
             isOverflowing ? "overflow-y-auto" : "overflow-y-hidden"
           }`}
         />
@@ -63,7 +66,7 @@ export function ChatInput({ onSend, onStop, disabled }: ChatInputProps) {
           <button
             type="button"
             onClick={onStop}
-            className="h-11 shrink-0 rounded-xl bg-red-600 px-4 text-sm font-medium text-white transition-colors hover:bg-red-700"
+            className="h-11 shrink-0 rounded-2xl bg-destructive px-4 text-sm font-medium text-destructive-foreground transition-colors hover:opacity-90"
           >
             Stop
           </button>
@@ -71,13 +74,13 @@ export function ChatInput({ onSend, onStop, disabled }: ChatInputProps) {
           <button
             type="submit"
             disabled={!input.trim()}
-            className="h-11 shrink-0 rounded-xl bg-blue-600 px-4 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-11 shrink-0 rounded-2xl bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Send
           </button>
         )}
       </div>
-      <p className="mt-2 text-xs text-gray-500">
+      <p className="mt-2 text-xs text-muted-foreground">
         Press Enter to send, Shift+Enter for new line
       </p>
     </form>

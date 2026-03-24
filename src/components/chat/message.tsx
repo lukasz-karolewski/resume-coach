@@ -10,23 +10,23 @@ export function Message({ message, isStreaming }: MessageProps) {
   const isUser = message.role === "user";
 
   return (
-    <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}>
+    <div className={`mb-4 flex ${isUser ? "justify-end" : "justify-start"}`}>
       <div
-        className={`max-w-[80%] rounded-lg px-4 py-2 ${
+        className={`max-w-[85%] rounded-2xl border px-4 py-3 shadow-sm ${
           isUser
-            ? "bg-blue-600 text-white"
-            : "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            ? "border-primary bg-primary text-primary-foreground"
+            : "border-border/70 bg-card text-card-foreground"
         }`}
       >
         {isUser ? (
           <p className="whitespace-pre-wrap">{message.content}</p>
         ) : (
-          <div className="prose prose-sm dark:prose-invert max-w-none">
+          <div className="prose prose-sm max-w-none prose-p:leading-6">
             <Markdown>{message.content}</Markdown>
           </div>
         )}
         {isStreaming && (
-          <span className="inline-block w-2 h-4 bg-current animate-pulse ml-1" />
+          <span className="ml-1 inline-block h-4 w-2 animate-pulse bg-current" />
         )}
       </div>
     </div>

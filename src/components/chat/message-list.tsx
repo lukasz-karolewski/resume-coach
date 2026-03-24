@@ -39,12 +39,17 @@ export function MessageList({
   );
 
   return (
-    <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-2">
+    <div
+      ref={scrollRef}
+      className="flex-1 space-y-3 overflow-y-auto bg-background/60 px-4 py-4"
+    >
       {messages.length === 0 && (
-        <div className="flex items-center justify-center h-full text-gray-500">
-          <div className="text-center">
-            <p className="text-lg font-medium">Resume Coach</p>
-            <p className="text-sm mt-2">
+        <div className="flex h-full items-center justify-center text-muted-foreground">
+          <div className="max-w-sm text-center">
+            <p className="text-lg font-semibold tracking-tight text-foreground">
+              Resume Coach
+            </p>
+            <p className="mt-2 text-sm leading-6">
               Ask me to review your resume, analyze job descriptions, or make
               improvements!
             </p>
@@ -67,8 +72,8 @@ export function MessageList({
       )}
 
       {activeToolExecutions.map((tool) => (
-        <div key={tool.id} className="flex justify-start mb-4">
-          <div className="bg-gray-100 dark:bg-gray-800 rounded-lg px-4 py-2">
+        <div key={tool.id} className="mb-4 flex justify-start">
+          <div className="rounded-2xl border border-border bg-muted/60 px-4 py-2.5">
             <ThinkingIndicator tool={tool.tool} />
           </div>
         </div>
