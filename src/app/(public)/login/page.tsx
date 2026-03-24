@@ -3,8 +3,16 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+
 import { signIn } from "~/auth-client";
+import { AuthScreen } from "~/components/auth/auth-screen";
 import { GoogleIcon } from "~/components/icons";
+import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
+import { Button } from "~/components/ui/button";
+import { CardDescription } from "~/components/ui/card";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { Separator } from "~/components/ui/separator";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -26,7 +34,6 @@ export default function LoginPage() {
       {
         onError: (ctx) => {
           setIsLoading(false);
-          // Provide more specific error message for invalid credentials
           const message = ctx.error.message?.toLowerCase();
           if (
             message?.includes("credentials") ||
@@ -56,95 +63,81 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="m-auto flex max-w-md flex-col gap-6 bg-white p-8 shadow-lg dark:bg-gray-800">
-      <div className="flex flex-col gap-2 text-center">
-        <h1 className="text-2xl font-bold">Welcome Back</h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Sign in to your account
-        </p>
-      </div>
-
-      {error && (
-        <div className="rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-400">
-          {error}
-        </div>
-      )}
-
-      <form onSubmit={handleEmailSignIn} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <label
-            htmlFor="email"
-            className="text-sm font-medium text-gray-700 dark:text-gray-300"
+    <AuthScreen
+      badge="Sign in"
+      title="Welcome back"
+      description="Access your resumes, profile data, and tailored drafts."
+      secondaryAction={
+        <>
+          <div className="relative">
+            <Separator />
+            <CardDescription className="absolute inset-x-0 -top-3 mx-auto w-fit bg-card px-2">
+              Or continue with
+            </CardDescription>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full justify-center"
+            onClick={handleGoogleSignIn}
           >
-            Email
-          </label>
-          <input
+            <GoogleIcon className="size-4" />
+            Sign in with Google
+          </Button>
+        </>
+      }
+      footer={
+        <>
+          Don&apos;t have an account?{" "}
+          <Link
+            href="/signup"
+            className="font-medium text-foreground underline-offset-4 hover:underline"
+          >
+            Sign up
+          </Link>
+        </>
+      }
+    >
+      {error ? (
+        <Alert>
+          <AlertTitle>Sign in failed</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      ) : null}
+
+      <form onSubmit={handleEmailSignIn} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
             id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
             required
-            className="rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
           />
         </div>
 
-        <div className="flex flex-col gap-2">
-          <label
-            htmlFor="password"
-            className="text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
-            Password
-          </label>
-          <input
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <Input
             id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
             required
-            className="rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
           />
         </div>
 
-        <button
+        <Button
           type="submit"
           disabled={isLoading}
-          className="rounded-md bg-blue-500 py-2 text-white hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full justify-center"
         >
           {isLoading ? "Signing in..." : "Sign In"}
-        </button>
+        </Button>
       </form>
-
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-300 dark:border-gray-600" />
-        </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="bg-white px-2 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-            Or continue with
-          </span>
-        </div>
-      </div>
-
-      <button
-        type="button"
-        onClick={handleGoogleSignIn}
-        className="flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white py-2 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-      >
-        <GoogleIcon className="h-5 w-5" />
-        Sign in with Google
-      </button>
-
-      <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-        Don't have an account?{" "}
-        <Link
-          href="/signup"
-          className="font-medium text-blue-500 hover:underline"
-        >
-          Sign up
-        </Link>
-      </div>
-    </div>
+    </AuthScreen>
   );
 }

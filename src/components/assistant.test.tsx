@@ -136,6 +136,8 @@ describe("Assistant", () => {
 
     fireEvent.click(screen.getByLabelText("Open chat"));
 
-    expect(await screen.findByLabelText("Select conversation")).toBeInTheDocument();
+    expect(
+      await screen.findByLabelText("Select conversation"),
+    ).toBeInTheDocument();
   });
 });

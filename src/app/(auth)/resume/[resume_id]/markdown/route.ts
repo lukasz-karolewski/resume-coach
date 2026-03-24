@@ -50,7 +50,8 @@ export async function GET(
       status: 200,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Internal server error";
+    const message =
+      error instanceof Error ? error.message : "Internal server error";
     const status = message === "Resume not found" ? 404 : 500;
 
     return new Response(message, {

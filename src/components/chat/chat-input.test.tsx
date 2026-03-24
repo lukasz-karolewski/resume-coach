@@ -19,7 +19,9 @@ describe("ChatInput", () => {
     render(<ChatInput onSend={onSend} disabled={false} />);
 
     fireEvent.change(
-      screen.getByPlaceholderText("Ask about your resume or paste a job URL..."),
+      screen.getByPlaceholderText(
+        "Ask about your resume or paste a job URL...",
+      ),
       {
         target: { value: "hello" },
       },

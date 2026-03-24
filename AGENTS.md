@@ -6,6 +6,7 @@ react 19
 tailwind 4
 vitest 4
 better-auth
+shadcn/ui
 
 make sure to use latest api of the frameworks/libraries, if your not familiar with latest api, use context7
 
@@ -24,6 +25,10 @@ Before any Next.js work, find and read the relevant doc in `node_modules/next/di
 - when you see code that can be improved, refactored, or simplified, do it.
 - always write tests to check your work.
 - when i report an issue make sure to first write a check, make sure it fails, then fix the issue and make sure the check passes.
+- the app uses shadcn/ui as the primary frontend design system. prefer shadcn components, tokens, spacing, and composition patterns over bespoke primitives for all new UI work.
+- when touching existing UI, align it with the shadcn visual language and replace custom controls with shadcn-style components where practical.
+- exception: do not redesign the `/resume` path unless explicitly requested. keep resume editing screens on their current presentation for now and avoid changing them indirectly unless required for compatibility.
+- when adding frontend building blocks, prefer composable shadcn-style primitives in `src/components/ui` instead of route-local one-off markup.
 
 # Linting and Testing Guidelines
 - do not fix linting issues yourself use `pnpm lint:fix` to fix them automatically and run it after all code generation

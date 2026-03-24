@@ -2,10 +2,7 @@
 
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import {
-  EducationType,
-  type PrismaClient,
-} from "~/generated/prisma/client";
+import { EducationType, type PrismaClient } from "~/generated/prisma/client";
 
 // ============================================================================
 // Zod Schemas for CRUD Operations
@@ -188,7 +185,10 @@ export function renderResumeMarkdown(resume: ResumeWithMarkdownRelations) {
     lines.push("", "## Experience");
 
     for (const experience of resume.experience) {
-      lines.push("", `### ${formatMarkdownLink(experience.companyName, experience.link)}`);
+      lines.push(
+        "",
+        `### ${formatMarkdownLink(experience.companyName, experience.link)}`,
+      );
 
       for (const position of experience.positions) {
         lines.push(
@@ -197,7 +197,9 @@ export function renderResumeMarkdown(resume: ResumeWithMarkdownRelations) {
           `${position.location} | ${formatDateRange(position.startDate, position.endDate)}`,
         );
 
-        const accomplishments = normalizeMarkdownBlock(position.accomplishments);
+        const accomplishments = normalizeMarkdownBlock(
+          position.accomplishments,
+        );
         if (accomplishments) {
           lines.push("", accomplishments);
         }
@@ -761,7 +763,8 @@ export async function createResumeCopy(
 
   // Create a new resume copy with a unique name
   const timestamp = Date.now();
-  const copyName = input.name?.trim() || `${sourceResume.name} - Copy ${timestamp}`;
+  const copyName =
+    input.name?.trim() || `${sourceResume.name} - Copy ${timestamp}`;
 
   const newResume = await db.resume.create({
     data: {

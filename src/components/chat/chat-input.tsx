@@ -27,7 +27,7 @@ export function ChatInput({ onSend, onStop, disabled }: ChatInputProps) {
     const nextHeight = Math.min(textarea.scrollHeight, 192);
     textarea.style.height = `${nextHeight}px`;
     setIsOverflowing(textarea.scrollHeight > 192);
-  }, [input]);
+  });
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();

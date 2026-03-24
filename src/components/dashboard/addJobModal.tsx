@@ -19,11 +19,7 @@ type FormValues = RouterInputs["job"]["addJob"];
 export const AddJobModal = NiceModal.create<AddJobModalProps>(() => {
   const modal = useModal();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, dirtyFields },
-  } = useForm<FormValues>();
+  const { register, handleSubmit } = useForm<FormValues>();
 
   const { mutate: create } = api.job.addJob.useMutation({
     onError: (error) => {

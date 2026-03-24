@@ -1,21 +1,30 @@
-import Link from "~/components/ui/link";
+import Link from "next/link";
 
+import { cn } from "~/lib/utils";
+
+import { buttonVariants } from "./button-variants";
 import UserButton from "./user-button";
 
 const TopNav: React.FC = async () => {
   return (
-    <nav className=" print:hidden">
-      <div className="mx-auto flex max-w-4xl items-center gap-8  p-4">
-        <Link href="/">
-          <h1>Resume Coach</h1>
+    <nav className="sticky top-0 z-30 border-b bg-background/80 backdrop-blur print:hidden">
+      <div className="mx-auto flex max-w-6xl items-center gap-3 px-6 py-4">
+        <Link href="/" className="mr-2 text-lg font-semibold tracking-tight">
+          Resume Coach
         </Link>
 
-        <div className="flex grow gap-4">
-          <Link className="hover:underline" href="/resume">
-            resumes
+        <div className="flex grow items-center gap-2">
+          <Link
+            href="/resume"
+            className={cn(buttonVariants({ size: "sm", variant: "ghost" }))}
+          >
+            Resumes
           </Link>
-          <Link className="hover:underline" href="/profile">
-            profile
+          <Link
+            href="/profile"
+            className={cn(buttonVariants({ size: "sm", variant: "ghost" }))}
+          >
+            Profile
           </Link>
         </div>
 

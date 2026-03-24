@@ -1,9 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  EducationType,
-  type PrismaClient,
-} from "~/generated/prisma/client";
+import { EducationType, type PrismaClient } from "~/generated/prisma/client";
 import {
   addExperience,
   createResume,
@@ -274,10 +271,6 @@ describe("resume lib", () => {
   describe("resume markdown", () => {
     it("renders resume content as plain markdown", () => {
       const markdown = renderResumeMarkdown({
-        Job: {
-          company: "Tech Corp",
-          title: "Principal Engineer",
-        },
         contactInfo: {
           email: "jane@example.com",
           name: "Jane Doe",
@@ -311,7 +304,8 @@ describe("resume lib", () => {
             link: "https://techcorp.example.com",
             positions: [
               {
-                accomplishments: "- Led platform rewrite\n- Reduced latency by 40%",
+                accomplishments:
+                  "- Led platform rewrite\n- Reduced latency by 40%",
                 endDate: null,
                 location: "Remote",
                 skillPosition: [
@@ -324,6 +318,10 @@ describe("resume lib", () => {
             ],
           },
         ],
+        Job: {
+          company: "Tech Corp",
+          title: "Principal Engineer",
+        },
         name: "Jane Resume",
         sections: [
           {
@@ -340,7 +338,9 @@ describe("resume lib", () => {
       expect(markdown).toContain("## Summary");
       expect(markdown).toContain("Builder of pragmatic developer platforms.");
       expect(markdown).toContain("## Experience");
-      expect(markdown).toContain("### [Tech Corp](https://techcorp.example.com)");
+      expect(markdown).toContain(
+        "### [Tech Corp](https://techcorp.example.com)",
+      );
       expect(markdown).toContain("**Staff Engineer**");
       expect(markdown).toContain("Remote | Jan 2022 - Present");
       expect(markdown).toContain("- Led platform rewrite");
@@ -354,7 +354,6 @@ describe("resume lib", () => {
 
     it("fetches the owned resume and returns markdown", async () => {
       mockDb.resume.findFirst.mockResolvedValue({
-        Job: null,
         contactInfo: {
           email: "jane@example.com",
           name: "Jane Doe",
@@ -363,6 +362,7 @@ describe("resume lib", () => {
         education: [],
         experience: [],
         id: 22,
+        Job: null,
         sections: [],
         summary: "Summary",
         userId,
@@ -377,7 +377,6 @@ describe("resume lib", () => {
       expect(markdown).toContain("# Jane Doe");
       expect(mockDb.resume.findFirst).toHaveBeenCalledWith({
         include: {
-          Job: true,
           contactInfo: true,
           education: true,
           experience: {
@@ -393,6 +392,7 @@ describe("resume lib", () => {
               },
             },
           },
+          Job: true,
           sections: true,
         },
         where: {

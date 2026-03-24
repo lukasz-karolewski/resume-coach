@@ -179,9 +179,10 @@ describe("ResumePage", () => {
 
     render(<ResumePage />);
 
+    expect(screen.getByText("No resumes yet")).toBeInTheDocument();
     expect(
       screen.getByText(
-        "No resumes yet. Create your first resume to get started!",
+        "Create your first resume to start building tailored versions.",
       ),
     ).toBeInTheDocument();
   });
@@ -189,8 +190,7 @@ describe("ResumePage", () => {
   test("displays resume information correctly", () => {
     render(<ResumePage />);
 
-    expect(screen.getAllByText(/john@example.com/).length).toBeGreaterThan(0);
-    expect(screen.getByText(/3 companies/)).toBeInTheDocument();
+    expect(screen.getByText(/3 roles/)).toBeInTheDocument();
     expect(screen.getByText(/2 entries/)).toBeInTheDocument();
     expect(screen.getByText(/Senior Data Scientist/)).toBeInTheDocument();
   });
@@ -198,7 +198,7 @@ describe("ResumePage", () => {
   test("opens create modal when clicking create button", () => {
     render(<ResumePage />);
 
-    const createButton = screen.getByText("+ Create New Resume");
+    const createButton = screen.getByText("Create new resume");
     fireEvent.click(createButton);
 
     expect(screen.getByText("Create New Resume")).toBeInTheDocument();
@@ -217,7 +217,7 @@ describe("ResumePage", () => {
 
     render(<ResumePage />);
 
-    fireEvent.click(screen.getByText("+ Create New Resume"));
+    fireEvent.click(screen.getByText("Create new resume"));
     fireEvent.click(screen.getByText("Create Resume"));
 
     expect(mutate).toHaveBeenCalledWith({
@@ -229,20 +229,22 @@ describe("ResumePage", () => {
     });
   });
 
-  test("renders view and edit links for each resume", () => {
+  test("renders clickable resume titles without a view button", () => {
     render(<ResumePage />);
 
-    const viewButtons = screen.getAllByText("View & Edit");
-    expect(viewButtons).toHaveLength(2);
+    expect(
+      screen.getByRole("link", { name: "Software Engineer Resume" }),
+    ).toHaveAttribute("href", "/resume/1");
+    expect(
+      screen.getByRole("link", { name: "Data Scientist Resume" }),
+    ).toHaveAttribute("href", "/resume/2");
+    expect(screen.queryByText("View")).not.toBeInTheDocument();
   });
 
-  test("renders duplicate and delete buttons for each resume", () => {
+  test("does not render duplicate and delete buttons for each resume card", () => {
     render(<ResumePage />);
 
-    const duplicateButtons = screen.getAllByText("Duplicate");
-    const deleteButtons = screen.getAllByText("Delete");
-
-    expect(duplicateButtons).toHaveLength(2);
-    expect(deleteButtons).toHaveLength(2);
+    expect(screen.queryByText("Duplicate")).not.toBeInTheDocument();
+    expect(screen.queryByText("Delete")).not.toBeInTheDocument();
   });
 });

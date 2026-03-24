@@ -1,13 +1,13 @@
 ---
 name: frontend-design
-description: Use when the task asks for a visually strong landing page, website, app, prototype, demo, or game UI. This skill enforces restrained composition, image-led hierarchy, cohesive content structure, and tasteful motion while avoiding generic cards, weak branding, and UI clutter.
+description: Use when the task asks for a visually strong landing page, website, app, prototype, demo, or game UI. In this repository, default to the established shadcn/ui visual system, token palette, and app-shell composition instead of bespoke styling.
 ---
 
 # Frontend skill
 
-Use this skill when the quality of the work depends on art direction, hierarchy, restraint, imagery, and motion rather than component count.
+Use this skill when the quality of the work depends on art direction, hierarchy, restraint, and cohesive composition.
 
-Goal: ship interfaces that feel deliberate, premium, and current. Default toward award-level composition: one big idea, strong imagery, sparse copy, rigorous spacing, and a small number of memorable motions.
+Goal: ship interfaces that feel deliberate, current, and internally consistent with the repository's shadcn/ui direction. Default toward crisp surfaces, disciplined spacing, clear information hierarchy, and reusable primitives over bespoke page-specific styling.
 
 ## Working Model
 
@@ -19,16 +19,26 @@ Before building, write three things:
 
 Each section gets one job, one dominant visual idea, and one primary takeaway or action.
 
-## Beautiful Defaults
+## Repo Defaults
 
-- Start with composition, not components.
-- Prefer a full-bleed hero or full-canvas visual anchor.
-- Make the brand or product name the loudest text.
+- Start with the existing design system, not fresh visual invention.
+- Prefer shadcn/ui primitives and composition patterns for controls, forms, dialogs, menus, and surface structure.
+- Build from tokens in the global theme: `background`, `foreground`, `card`, `muted`, `border`, `primary`, `secondary`, `accent`, `ring`.
+- Use cards, separators, labels, alerts, dialogs, dropdown menus, and buttons the way shadcn apps typically do: restrained, legible, and composable.
 - Keep copy short enough to scan in seconds.
-- Use whitespace, alignment, scale, cropping, and contrast before adding chrome.
+- Use whitespace, layout, and type scale before adding decorative treatments.
 - Limit the system: two typefaces max, one accent color by default.
-- Default to cardless layouts. Use sections, columns, dividers, lists, and media blocks instead.
-- Treat the first viewport as a poster, not a document.
+- When a page is product UI, prefer app-shell clarity over marketing spectacle.
+
+## Shadcn Direction
+
+- Default to soft radius, thin borders, muted backgrounds, and strong typography contrast.
+- Prefer a clean app shell with header, content column, and clearly grouped sections.
+- Use cards when they meaningfully group actions or state. Avoid random card grids that do not improve scanning.
+- Prefer standard shadcn interaction states over custom hover/focus treatments.
+- Make CTAs obvious through hierarchy, not novelty.
+- When replacing older bespoke UI, simplify first and then align to the shared primitives.
+- Do not mix multiple visual systems in one screen.
 
 ## Landing Pages
 
@@ -77,13 +87,19 @@ For app UI, organize around:
 
 Avoid:
 
-- dashboard-card mosaics
+- dashboard-card mosaics without information hierarchy
 - thick borders on every region
 - decorative gradients behind routine product UI
 - multiple competing accent colors
 - ornamental icons that do not improve scanning
 
 If a panel can become plain layout without losing meaning, remove the card treatment.
+
+For this repo specifically:
+
+- Public auth screens may use stronger visual framing, but the actual forms should still be built from shadcn-style cards, labels, inputs, alerts, and buttons.
+- Authenticated product screens should feel like a calm application, not a marketing page.
+- Leave the `/resume` editing path on its existing presentation unless the user explicitly asks to redesign it.
 
 ## Imagery
 
@@ -152,26 +168,24 @@ Motion rules:
 
 ## Hard Rules
 
-- No cards by default.
-- No hero cards by default.
-- No boxed or center-column hero when the brief calls for full bleed.
+- Prefer the repo's shadcn/ui system over bespoke component APIs.
 - No more than one dominant idea per section.
 - No section should need many tiny UI devices to explain itself.
-- No headline should overpower the brand on branded pages.
 - No filler copy.
-- No split-screen hero unless text sits on a calm, unified side.
 - No more than two typefaces without a clear reason.
 - No more than one accent color unless the product already has a strong system.
+- Do not redesign `/resume` screens unless explicitly asked.
+- When cards are used, each card must have a clear structural job.
 
 ## Reject These Failures
 
+- Mixed bespoke and shadcn controls in one surface
 - Generic SaaS card grid as the first impression
-- Beautiful image with weak brand presence
 - Strong headline with no clear action
 - Busy imagery behind text
-- Sections that repeat the same mood statement
-- Carousel with no narrative purpose
+- Sections that repeat the same message
 - App UI made of stacked cards instead of layout
+- Decorative chrome that fights the token-based system
 
 ## Litmus Checks
 
@@ -179,6 +193,6 @@ Motion rules:
 - Is there one strong visual anchor?
 - Can the page be understood by scanning headlines only?
 - Does each section have one job?
-- Are cards actually necessary?
+- Are the chosen shadcn primitives doing real structural work?
 - Does motion improve hierarchy or atmosphere?
 - Would the design still feel premium if all decorative shadows were removed?

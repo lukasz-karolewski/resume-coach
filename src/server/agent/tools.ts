@@ -42,9 +42,7 @@ export const cloneResumeTool = tool(
     } catch (error) {
       return {
         error:
-          error instanceof Error
-            ? error.message
-            : "Failed to clone resume",
+          error instanceof Error ? error.message : "Failed to clone resume",
       };
     }
   },

@@ -7,7 +7,10 @@ import { TRPCReactProvider } from "~/trpc/react";
 import "./styles.css";
 import { cn } from "~/lib/utils";
 
-const playfairDisplay = Playfair_Display({subsets:['latin'],variable:'--font-serif'});
+const playfairDisplay = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-serif",
+});
 
 const font = Noto_Serif({ subsets: ["latin"] });
 

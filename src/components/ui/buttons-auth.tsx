@@ -1,6 +1,9 @@
 "use client";
-import { redirect } from "next/navigation";
+
+import { useRouter } from "next/navigation";
+
 import { signIn, signOut } from "~/auth-client";
+
 import { Button } from "./button";
 
 export function SignIn({
@@ -11,28 +14,10 @@ export function SignIn({
     <Button
       onClick={async () => {
         await signIn.social({
-          /**
-           * A URL to redirect after the user authenticates with the provider
-           * @default "/"
-           */
           callbackURL: "/resume",
-          /**
-           * disable the automatic redirect to the provider.
-           * @default false
-           */
           disableRedirect: false,
-          /**
-           * A URL to redirect if an error occurs during the sign in process
-           */
           errorCallbackURL: "/error",
-          /**
-           * A URL to redirect if the user is newly registered
-           */
           newUserCallbackURL: "/resume",
-          /**
-           * The social provider ID
-           * @example "github", "google", "apple"
-           */
           provider,
         });
       }}
@@ -44,19 +29,20 @@ export function SignIn({
 }
 
 export function SignOut(props: React.ComponentPropsWithRef<typeof Button>) {
+  const router = useRouter();
+
   return (
     <Button
       onClick={async () => {
         await signOut({
           fetchOptions: {
             onSuccess: () => {
-              redirect("/login"); // redirect to login page
+              router.push("/login");
             },
           },
         });
       }}
       variant="ghost"
-      className="w-full p-0"
       {...props}
     >
       Sign Out

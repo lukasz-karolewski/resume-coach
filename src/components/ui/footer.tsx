@@ -2,8 +2,11 @@ function Footer() {
   const version = process.env.VERSION;
 
   return (
-    <footer className="mx-auto py-8 text-center text-sm print:hidden">
-      &copy; {new Date().getFullYear()} lk | {version || "development"}
+    <footer className="border-t bg-background/95 print:hidden">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-6 text-sm text-muted-foreground">
+        <p>&copy; {new Date().getFullYear()} Resume Coach</p>
+        <p>{version || "development"}</p>
+      </div>
     </footer>
   );
 }

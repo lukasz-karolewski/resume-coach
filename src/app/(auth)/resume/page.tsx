@@ -3,7 +3,15 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 import Modal from "~/components/ui/modal";
 import { api } from "~/trpc/react";
 
@@ -25,18 +33,6 @@ export default function ResumePage() {
     },
   });
 
-  const deleteMutation = api.resume.delete.useMutation({
-    onSuccess: () => {
-      void utils.resume.list.invalidate();
-    },
-  });
-
-  const duplicateMutation = api.resume.duplicate.useMutation({
-    onSuccess: () => {
-      void utils.resume.list.invalidate();
-    },
-  });
-
   const handleCreateResume = () => {
     createMutation.mutate({
       education: [],
@@ -47,113 +43,99 @@ export default function ResumePage() {
     });
   };
 
-  const handleDuplicate = (id: number, name: string) => {
-    const newName = prompt(
-      `Enter name for duplicated resume:`,
-      `${name} (Copy)`,
-    );
-    if (newName) {
-      duplicateMutation.mutate({ id, name: newName });
-    }
-  };
-
-  const handleDelete = (id: number, name: string) => {
-    if (confirm(`Are you sure you want to delete "${name}"?`)) {
-      deleteMutation.mutate({ id });
-    }
-  };
-
   if (isLoading) {
     return (
-      <div className="m-auto flex max-w-4xl flex-col gap-4 bg-white p-12 shadow-lg dark:bg-gray-800">
+      <div className="mx-auto flex max-w-5xl flex-col gap-4 rounded-2xl border bg-card p-10 shadow-sm">
         <p>Loading resumes...</p>
       </div>
     );
   }
 
   return (
-    <div className="m-auto flex max-w-6xl flex-col gap-6 bg-white p-12 shadow-lg dark:bg-gray-800">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">My Resumes</h1>
+    <div className="mx-auto flex max-w-6xl flex-col gap-8">
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-semibold tracking-tight">My Resumes</h1>
+          <p className="text-sm text-muted-foreground">
+            Keep a focused set of resume variants and open the one you want to
+            refine.
+          </p>
+        </div>
         <Button onClick={() => setIsCreateModalOpen(true)}>
-          + Create New Resume
+          Create new resume
         </Button>
       </div>
 
       {resumes && resumes.length === 0 ? (
-        <div className="rounded-lg border border-gray-200 p-8 text-center">
-          <p className="mb-4 text-gray-600">
-            No resumes yet. Create your first resume to get started!
-          </p>
-          <Button onClick={() => setIsCreateModalOpen(true)}>
-            Create Your First Resume
-          </Button>
-        </div>
+        <Card className="border-dashed">
+          <CardHeader className="text-center">
+            <CardTitle>No resumes yet</CardTitle>
+            <CardDescription>
+              Create your first resume to start building tailored versions.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <Button onClick={() => setIsCreateModalOpen(true)}>
+              Create your first resume
+            </Button>
+          </CardContent>
+        </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {resumes?.map((resume) => {
-            return (
-              <div
-                key={resume.id}
-                className="flex flex-col rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md"
-              >
-                <div className="mb-3 flex-1">
-                  <h3 className="mb-2 text-lg font-semibold">{resume.name}</h3>
-                  <div className="space-y-1 text-sm text-gray-600">
-                    {resume.Job && (
-                      <p className="truncate">
-                        <span className="font-medium">Job:</span>{" "}
-                        {resume.Job.title ||
-                          resume.Job.company ||
-                          "Untitled Job"}
-                      </p>
-                    )}
-                    {resume.contactInfo && (
-                      <p className="truncate">
-                        <span className="font-medium">Contact:</span>{" "}
-                        {resume.contactInfo.email}
-                      </p>
-                    )}
-                    <p>
-                      <span className="font-medium">Experience:</span>{" "}
-                      {resume._count.experience} companies
-                    </p>
-                    <p>
-                      <span className="font-medium">Education:</span>{" "}
-                      {resume._count.education} entries
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      Updated: {new Date(resume.updatedAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
+            const linkedJob = resume.Job?.title || resume.Job?.company;
 
-                <div className="flex flex-col gap-2">
-                  <Link href={`/resume/${resume.id}`}>
-                    <Button className="w-full" variant="default">
-                      View & Edit
-                    </Button>
-                  </Link>
-                  <div className="flex gap-2">
-                    <Button
-                      className="flex-1"
-                      variant="outline"
-                      onClick={() => handleDuplicate(resume.id, resume.name)}
-                      disabled={duplicateMutation.isPending}
-                    >
-                      Duplicate
-                    </Button>
-                    <Button
-                      className="flex-1"
-                      variant="destructive"
-                      onClick={() => handleDelete(resume.id, resume.name)}
-                      disabled={deleteMutation.isPending}
-                    >
-                      Delete
-                    </Button>
+            return (
+              <Card
+                key={resume.id}
+                className="group border-border/70 bg-card/95 transition-all hover:-translate-y-0.5 hover:shadow-md"
+              >
+                <CardHeader className="space-y-4">
+                  <div className="space-y-2">
+                    <CardTitle className="line-clamp-2 text-xl">
+                      <Link
+                        href={`/resume/${resume.id}`}
+                        className="transition-colors hover:text-primary"
+                      >
+                        {resume.name}
+                      </Link>
+                    </CardTitle>
+                    {linkedJob ? (
+                      <CardDescription className="line-clamp-1">
+                        {linkedJob}
+                      </CardDescription>
+                    ) : null}
                   </div>
-                </div>
-              </div>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="rounded-lg bg-muted/60 px-3 py-2">
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                        Experience
+                      </p>
+                      <p className="mt-1 font-medium">
+                        {resume._count.experience} roles
+                      </p>
+                    </div>
+                    <div className="rounded-lg bg-muted/60 px-3 py-2">
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                        Education
+                      </p>
+                      <p className="mt-1 font-medium">
+                        {resume._count.education} entries
+                      </p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1 text-xs text-muted-foreground/80">
+                    <p>
+                      Created {new Date(resume.createdAt).toLocaleDateString()}
+                    </p>
+                    <p>
+                      Updated {new Date(resume.updatedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
             );
           })}
         </div>
@@ -166,25 +148,23 @@ export default function ResumePage() {
         className="max-w-lg"
       >
         <div className="space-y-4 p-6">
-          <div>
-            <label className="mb-2 block text-sm font-medium">
-              Resume Name
-            </label>
+          <div className="space-y-2">
+            <Label htmlFor="resume-name">Resume Name</Label>
             <Input
+              id="resume-name"
               value={newResumeName}
               onChange={(e) => setNewResumeName(e.target.value)}
               placeholder="e.g., Software Engineer Resume"
             />
           </div>
 
-          <div>
-            <label className="mb-2 block text-sm font-medium">
-              Link to Job (Optional)
-            </label>
+          <div className="space-y-2">
+            <Label htmlFor="resume-job">Link to Job (Optional)</Label>
             <select
+              id="resume-job"
               value={selectedJobId || ""}
               onChange={(e) => setSelectedJobId(e.target.value || undefined)}
-              className="w-full rounded-sm border border-gray-300 px-4 py-2 text-gray-900 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500/50"
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
             >
               <option value="">None - Base Resume</option>
               {jobs?.map((job) => (
