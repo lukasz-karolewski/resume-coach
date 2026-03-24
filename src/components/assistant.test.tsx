@@ -22,6 +22,30 @@ describe("Assistant", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     sessionStorage.clear();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        if (input === "/api/chat/threads") {
+          return {
+            json: async () => ({
+              threads: [
+                {
+                  createdAt: "2026-03-23T00:00:00.000Z",
+                  id: "thread-123",
+                  summary: "First conversation",
+                },
+              ],
+            }),
+            ok: true,
+          } as Response;
+        }
+
+        return {
+          json: async () => ({ messages: [] }),
+          ok: true,
+        } as Response;
+      }),
+    );
 
     useChatStream.mockReturnValue({
       cancelRequest: vi.fn(),
@@ -105,13 +129,13 @@ describe("Assistant", () => {
     expect(screen.getByLabelText("Close chat")).toBeInTheDocument();
   });
 
-  test("shows the current session id in the chat window", () => {
+  test("shows the conversation dropdown in the chat window", async () => {
     sessionStorage.setItem("chatThreadId", "thread-123");
 
     render(<Assistant />);
 
     fireEvent.click(screen.getByLabelText("Open chat"));
 
-    expect(screen.getByText("thread-123")).toBeInTheDocument();
+    expect(await screen.findByLabelText("Select conversation")).toBeInTheDocument();
   });
 });

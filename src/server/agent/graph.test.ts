@@ -186,6 +186,34 @@ describe("executeChatStream", () => {
     expect(result).toEqual({ threadId: "thread-mno" });
   });
 
+  it("persists user and assistant chat messages", async () => {
+    const mockThread = { id: "thread-msg" };
+    vi.mocked(db.chatThread.create).mockResolvedValue(mockThread as never);
+
+    await executeChatStream({
+      message,
+      resumeId: undefined,
+      sendEvent: mockSendEvent,
+      threadId: undefined,
+      userId,
+    });
+
+    expect(db.chatMessage.create).toHaveBeenNthCalledWith(1, {
+      data: {
+        content: message,
+        role: "user",
+        threadId: "thread-msg",
+      },
+    });
+    expect(db.chatMessage.create).toHaveBeenNthCalledWith(2, {
+      data: {
+        content: "Hello world",
+        role: "assistant",
+        threadId: "thread-msg",
+      },
+    });
+  });
+
   it("should associate thread with resumeId when provided", async () => {
     const mockThread = { id: "thread-pqr" };
     vi.mocked(db.chatThread.create).mockResolvedValue(mockThread as never);
@@ -226,18 +254,4 @@ describe("executeChatStream", () => {
     });
   });
 
-  it("does not persist chat messages directly in the graph", async () => {
-    const mockThread = { id: "thread-stu" };
-    vi.mocked(db.chatThread.create).mockResolvedValue(mockThread as never);
-
-    await executeChatStream({
-      message,
-      resumeId: undefined,
-      sendEvent: mockSendEvent,
-      threadId: undefined,
-      userId,
-    });
-
-    expect(db.chatMessage.create).not.toHaveBeenCalled();
-  });
 });

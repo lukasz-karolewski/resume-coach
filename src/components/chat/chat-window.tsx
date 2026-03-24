@@ -3,10 +3,18 @@ import { ChatInput } from "./chat-input";
 import { MessageList } from "./message-list";
 import type { ChatMessage, ToolExecution } from "./use-chat-stream";
 
+interface ConversationOption {
+  createdAt: string;
+  id: string;
+  summary: string;
+}
+
 interface ChatWindowProps {
+  conversations: ConversationOption[];
   messages: ChatMessage[];
   onSendMessage: (message: string) => void;
   onStopMessage: () => void;
+  onSelectConversation: (threadId: string | undefined) => void;
   isLoading: boolean;
   currentChunk?: string;
   toolExecutions?: ToolExecution[];
@@ -17,9 +25,11 @@ interface ChatWindowProps {
 }
 
 export function ChatWindow({
+  conversations,
   messages,
   onSendMessage,
   onStopMessage,
+  onSelectConversation,
   isLoading,
   currentChunk,
   toolExecutions,
@@ -36,9 +46,21 @@ export function ChatWindow({
           <h3 className="font-semibold text-gray-900 dark:text-gray-100">
             Resume Coach
           </h3>
-          <p className="truncate font-mono text-xs text-gray-500 dark:text-gray-400">
-            {sessionId ?? "Waiting for first response"}
-          </p>
+          <select
+            aria-label="Select conversation"
+            className="mt-1 w-full truncate rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
+            value={sessionId ?? ""}
+            onChange={(event) =>
+              onSelectConversation(event.target.value || undefined)
+            }
+          >
+            <option value="">New conversation</option>
+            {conversations.map((conversation) => (
+              <option key={conversation.id} value={conversation.id}>
+                {`${new Date(conversation.createdAt).toLocaleDateString()} - ${conversation.summary}`}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="flex items-center gap-2">
           <button

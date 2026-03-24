@@ -1,16 +1,40 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ChatIcon } from "~/components/icons";
 import { ChatWindow } from "./chat/chat-window";
 import { useChatStream } from "./chat/use-chat-stream";
 
+interface ConversationSummary {
+  createdAt: string;
+  id: string;
+  summary: string;
+}
+
 const Assistant: React.FC = () => {
+  const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [threadId, setThreadId] = useState<string | undefined>();
   const pathname = usePathname();
   const router = useRouter();
+
+  const loadConversations = useCallback(async () => {
+    try {
+      const response = await fetch("/api/chat/threads");
+
+      if (!response.ok) {
+        throw new Error(`Failed to load conversations: ${response.status}`);
+      }
+
+      const data = (await response.json()) as {
+        threads: ConversationSummary[];
+      };
+      setConversations(data.threads);
+    } catch (error) {
+      console.error("Failed to load conversations", error);
+    }
+  }, []);
 
   // Load threadId from sessionStorage on mount
   useEffect(() => {
@@ -18,7 +42,8 @@ const Assistant: React.FC = () => {
     if (savedThreadId) {
       setThreadId(savedThreadId);
     }
-  }, []);
+    void loadConversations();
+  }, [loadConversations]);
 
   const resumePathMatch = pathname?.match(/^\/resume\/(-?\d+)$/);
   const resumeId = resumePathMatch ? Number(resumePathMatch[1]) : undefined;
@@ -36,6 +61,7 @@ const Assistant: React.FC = () => {
     onThreadCreated: (newThreadId) => {
       setThreadId(newThreadId);
       sessionStorage.setItem("chatThreadId", newThreadId);
+      void loadConversations();
     },
     onViewResume: (nextResumeId) => {
       setThreadId(undefined);
@@ -53,6 +79,16 @@ const Assistant: React.FC = () => {
     resetChat();
   };
 
+  const handleSelectConversation = (nextThreadId: string | undefined) => {
+    if (!nextThreadId) {
+      handleNewThread();
+      return;
+    }
+
+    setThreadId(nextThreadId);
+    sessionStorage.setItem("chatThreadId", nextThreadId);
+  };
+
   return (
     <>
       {!isOpen && (
@@ -67,9 +103,11 @@ const Assistant: React.FC = () => {
 
       {isOpen && (
         <ChatWindow
+          conversations={conversations}
           messages={messages}
           onSendMessage={sendMessage}
           onStopMessage={cancelRequest}
+          onSelectConversation={handleSelectConversation}
           isLoading={isLoading}
           currentChunk={currentChunk}
           toolExecutions={toolExecutions}

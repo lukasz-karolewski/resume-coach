@@ -5,6 +5,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { createAgent, HumanMessage } from "langchain";
 import * as z from "zod";
 import { db } from "../db";
+import { createChatMessage } from "../lib/chat";
 import { myDynamicSystemPromptMiddleware } from "./prompt";
 import { allTools } from "./tools";
 
@@ -139,22 +140,13 @@ export async function executeChatStream({
   }
 
   const agent = await createCoachAgent();
+  await createChatMessage(db, {
+    content: message,
+    role: "user",
+    threadId: thread.id,
+  });
 
-  // // Store the user message
-  // await db.chatMessage.create({
-  //   data: {
-  //     content: message,
-  //     role: "user",
-  //     threadId: thread.id,
-  //   },
-  // });
-
-  // await sendEvent("message", {
-  //   content: message,
-  //   role: "user",
-  // });
-
-  // let assistantMessage = "";
+  let assistantMessage = "";
 
   // Stream events from the agent
   // TODO migrate to use stream() and Standard content blocks
@@ -181,7 +173,7 @@ export async function executeChatStream({
       const chunk = event.data?.chunk;
       const content = extractTextFromChunkContent(chunk?.content);
       if (content) {
-        // assistantMessage += chunk.content;
+        assistantMessage += content;
         await sendEvent("chunk", {
           content,
         });
@@ -203,16 +195,13 @@ export async function executeChatStream({
     }
   }
 
-  // // Store the assistant's final message
-  // if (assistantMessage) {
-  //   await db.chatMessage.create({
-  //     data: {
-  //       content: assistantMessage,
-  //       role: "assistant",
-  //       threadId: thread.id,
-  //     },
-  //   });
-  // }
+  if (assistantMessage) {
+    await createChatMessage(db, {
+      content: assistantMessage,
+      role: "assistant",
+      threadId: thread.id,
+    });
+  }
 
   await sendEvent("done", {
     threadId: thread.id,

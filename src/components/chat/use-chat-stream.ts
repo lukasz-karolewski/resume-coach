@@ -14,6 +14,13 @@ export interface ToolExecution {
   status: "started" | "ended";
 }
 
+export interface ConversationMessage {
+  content: string;
+  createdAt: string;
+  id: string;
+  role: "assistant" | "system" | "user";
+}
+
 interface UseChatStreamOptions {
   threadId?: string;
   resumeId?: number;
@@ -43,13 +50,59 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
 
   const { threadId, resumeId, onThreadCreated, onViewResume } = options;
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       eventSourceRef.current?.close();
       abortControllerRef.current?.abort();
     };
   }, []);
+
+  useEffect(() => {
+    if (!threadId) {
+      setMessages([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadMessages = async () => {
+      try {
+        const response = await fetch(`/api/chat/threads/${threadId}`);
+
+        if (!response.ok) {
+          throw new Error(`Failed to load conversation: ${response.status}`);
+        }
+
+        const data = (await response.json()) as {
+          messages: ConversationMessage[];
+        };
+
+        if (!cancelled) {
+          setMessages(
+            data.messages.map((message) => ({
+              content: message.content,
+              id: message.id,
+              role: message.role,
+            })),
+          );
+        }
+      } catch (err) {
+        if (!cancelled) {
+          const errorMessage =
+            err instanceof Error
+              ? err.message
+              : "Failed to load conversation history";
+          setError(errorMessage);
+        }
+      }
+    };
+
+    void loadMessages();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [threadId]);
 
   const sendMessage = useCallback(
     async (content: string) => {
