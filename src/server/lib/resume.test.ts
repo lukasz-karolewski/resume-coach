@@ -1,6 +1,9 @@
 import { TRPCError } from "@trpc/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { EducationType, type PrismaClient } from "~/generated/prisma/client";
+import {
+  EducationType,
+  type PrismaClient,
+} from "~/generated/prisma/client";
 import {
   addExperience,
   createResume,
@@ -8,7 +11,9 @@ import {
   deleteResume,
   duplicateResume,
   getResume,
+  getResumeMarkdown,
   listResumes,
+  renderResumeMarkdown,
   updateAccomplishments,
   updateResume,
   updateSkills,
@@ -262,6 +267,138 @@ describe("resume lib", () => {
       ).rejects.toMatchObject({
         code: "NOT_FOUND",
         message: "Resume not found",
+      });
+    });
+  });
+
+  describe("resume markdown", () => {
+    it("renders resume content as plain markdown", () => {
+      const markdown = renderResumeMarkdown({
+        Job: {
+          company: "Tech Corp",
+          title: "Principal Engineer",
+        },
+        contactInfo: {
+          email: "jane@example.com",
+          name: "Jane Doe",
+          phone: "555-1111",
+        },
+        education: [
+          {
+            distinction: "BS Computer Science",
+            endDate: new Date("2014-06-01T00:00:00.000Z"),
+            institution: "Stanford University",
+            link: "https://stanford.edu",
+            location: "Stanford, CA",
+            notes: "Graduated with distinction",
+            startDate: new Date("2010-09-01T00:00:00.000Z"),
+            type: EducationType.EDUCATION,
+          },
+          {
+            distinction: "AWS Certified Solutions Architect",
+            endDate: new Date("2024-01-01T00:00:00.000Z"),
+            institution: "Amazon Web Services",
+            link: "https://aws.amazon.com/certification/",
+            location: "Remote",
+            notes: "Professional level",
+            startDate: new Date("2024-01-01T00:00:00.000Z"),
+            type: EducationType.CERTIFICATION,
+          },
+        ],
+        experience: [
+          {
+            companyName: "Tech Corp",
+            link: "https://techcorp.example.com",
+            positions: [
+              {
+                accomplishments: "- Led platform rewrite\n- Reduced latency by 40%",
+                endDate: null,
+                location: "Remote",
+                skillPosition: [
+                  { skill: { name: "Prisma ORM" } },
+                  { skill: { name: "TypeScript" } },
+                ],
+                startDate: new Date("2022-01-01T00:00:00.000Z"),
+                title: "Staff Engineer",
+              },
+            ],
+          },
+        ],
+        name: "Jane Resume",
+        sections: [
+          {
+            title: "Skills Summary",
+            type: "SKILLS_SUMMARY",
+          },
+        ],
+        summary: "Builder of pragmatic developer platforms.",
+      } as Awaited<ReturnType<typeof getResume>>);
+
+      expect(markdown).toContain("# Jane Doe");
+      expect(markdown).toContain("jane@example.com | 555-1111");
+      expect(markdown).toContain("Target role: Principal Engineer");
+      expect(markdown).toContain("## Summary");
+      expect(markdown).toContain("Builder of pragmatic developer platforms.");
+      expect(markdown).toContain("## Experience");
+      expect(markdown).toContain("### [Tech Corp](https://techcorp.example.com)");
+      expect(markdown).toContain("**Staff Engineer**");
+      expect(markdown).toContain("Remote | Jan 2022 - Present");
+      expect(markdown).toContain("- Led platform rewrite");
+      expect(markdown).toContain("## Education");
+      expect(markdown).toContain("## Certifications");
+      expect(markdown).toContain("## Skills");
+      expect(markdown).toContain("Prisma ORM, TypeScript");
+      expect(markdown.endsWith("\n")).toBe(true);
+      expect(markdown).not.toContain("<div");
+    });
+
+    it("fetches the owned resume and returns markdown", async () => {
+      mockDb.resume.findFirst.mockResolvedValue({
+        Job: null,
+        contactInfo: {
+          email: "jane@example.com",
+          name: "Jane Doe",
+          phone: "555-1111",
+        },
+        education: [],
+        experience: [],
+        id: 22,
+        sections: [],
+        summary: "Summary",
+        userId,
+      });
+
+      const markdown = await getResumeMarkdown(
+        mockDb as unknown as PrismaClient,
+        userId,
+        { id: 22 },
+      );
+
+      expect(markdown).toContain("# Jane Doe");
+      expect(mockDb.resume.findFirst).toHaveBeenCalledWith({
+        include: {
+          Job: true,
+          contactInfo: true,
+          education: true,
+          experience: {
+            include: {
+              positions: {
+                include: {
+                  skillPosition: {
+                    include: {
+                      skill: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          sections: true,
+        },
+        where: {
+          id: 22,
+          userId,
+        },
       });
     });
   });

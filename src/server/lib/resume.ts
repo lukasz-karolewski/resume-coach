@@ -2,7 +2,10 @@
 
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { EducationType, type PrismaClient } from "~/generated/prisma/client";
+import {
+  EducationType,
+  type PrismaClient,
+} from "~/generated/prisma/client";
 
 // ============================================================================
 // Zod Schemas for CRUD Operations
@@ -68,6 +71,7 @@ export const duplicateResumeSchema = z.object({
 });
 
 export const getResumeSchema = z.object({ id: z.number() });
+export const getResumeMarkdownSchema = getResumeSchema;
 
 export const listResumesSchema = z
   .object({
@@ -107,6 +111,156 @@ export const updateSkillsSchema = z.object({
   positionId: z.number(),
   skills: z.array(z.string()),
 });
+
+type ResumeWithMarkdownRelations = Awaited<ReturnType<typeof getResume>>;
+
+function formatDateRange(startDate: Date, endDate?: Date | null) {
+  const start = startDate.toLocaleDateString("en-US", {
+    month: "short",
+    year: "numeric",
+  });
+  const end = endDate
+    ? endDate.toLocaleDateString("en-US", {
+        month: "short",
+        year: "numeric",
+      })
+    : "Present";
+
+  return `${start} - ${end}`;
+}
+
+function formatMarkdownLink(label: string, href?: string | null) {
+  if (!href) {
+    return label;
+  }
+
+  return `[${label}](${href})`;
+}
+
+function normalizeMarkdownBlock(value?: string | null) {
+  return value?.trim() ?? "";
+}
+
+function collectResumeSkills(resume: ResumeWithMarkdownRelations) {
+  const skillNames = new Set<string>();
+
+  for (const experience of resume.experience) {
+    for (const position of experience.positions) {
+      for (const skillPosition of position.skillPosition ?? []) {
+        if (skillPosition.skill?.name) {
+          skillNames.add(skillPosition.skill.name);
+        }
+      }
+    }
+  }
+
+  return [...skillNames].sort((left, right) => left.localeCompare(right));
+}
+
+export function renderResumeMarkdown(resume: ResumeWithMarkdownRelations) {
+  const lines: string[] = [];
+
+  if (resume.contactInfo?.name) {
+    lines.push(`# ${resume.contactInfo.name}`);
+  } else {
+    lines.push(`# ${resume.name}`);
+  }
+
+  const contactDetails = [
+    resume.contactInfo?.email,
+    resume.contactInfo?.phone,
+  ].filter(Boolean);
+  if (contactDetails.length > 0) {
+    lines.push(contactDetails.join(" | "));
+  }
+
+  const linkedJob = resume.Job?.title ?? resume.Job?.company;
+  if (linkedJob) {
+    lines.push(`Target role: ${linkedJob}`);
+  }
+
+  const summary = normalizeMarkdownBlock(resume.summary);
+  if (summary) {
+    lines.push("", "## Summary", "", summary);
+  }
+
+  if (resume.experience.length > 0) {
+    lines.push("", "## Experience");
+
+    for (const experience of resume.experience) {
+      lines.push("", `### ${formatMarkdownLink(experience.companyName, experience.link)}`);
+
+      for (const position of experience.positions) {
+        lines.push(
+          "",
+          `**${position.title}**`,
+          `${position.location} | ${formatDateRange(position.startDate, position.endDate)}`,
+        );
+
+        const accomplishments = normalizeMarkdownBlock(position.accomplishments);
+        if (accomplishments) {
+          lines.push("", accomplishments);
+        }
+      }
+    }
+  }
+
+  const education = resume.education.filter(
+    (entry) => entry.type === EducationType.EDUCATION,
+  );
+  if (education.length > 0) {
+    lines.push("", "## Education");
+
+    for (const entry of education) {
+      lines.push(
+        "",
+        `### ${formatMarkdownLink(entry.institution, entry.link)}`,
+        `${entry.distinction}`,
+        `${entry.location} | ${formatDateRange(entry.startDate, entry.endDate)}`,
+      );
+
+      const notes = normalizeMarkdownBlock(entry.notes);
+      if (notes) {
+        lines.push("", notes);
+      }
+    }
+  }
+
+  const certifications = resume.education.filter(
+    (entry) => entry.type === EducationType.CERTIFICATION,
+  );
+  if (certifications.length > 0) {
+    lines.push("", "## Certifications");
+
+    for (const entry of certifications) {
+      lines.push(
+        "",
+        `### ${formatMarkdownLink(entry.institution, entry.link)}`,
+        `${entry.distinction}`,
+        `${entry.location} | ${formatDateRange(entry.startDate, entry.endDate)}`,
+      );
+
+      const notes = normalizeMarkdownBlock(entry.notes);
+      if (notes) {
+        lines.push("", notes);
+      }
+    }
+  }
+
+  const shouldRenderSkills =
+    resume.sections.some((section) => section.type === "SKILLS_SUMMARY") ||
+    resume.experience.some((experience) =>
+      experience.positions.some(
+        (position) => (position.skillPosition?.length ?? 0) > 0,
+      ),
+    );
+  const skills = collectResumeSkills(resume);
+  if (shouldRenderSkills && skills.length > 0) {
+    lines.push("", "## Skills", "", skills.join(", "));
+  }
+
+  return `${lines.join("\n").trim()}\n`;
+}
 
 // ============================================================================
 // Business Logic Functions
@@ -383,6 +537,15 @@ export async function getResume(
   }
 
   return resume;
+}
+
+export async function getResumeMarkdown(
+  db: PrismaClient,
+  userId: string,
+  input: z.infer<typeof getResumeMarkdownSchema>,
+) {
+  const resume = await getResume(db, userId, input);
+  return renderResumeMarkdown(resume);
 }
 
 /**
