@@ -1,8 +1,6 @@
-"use client";
-
 import Link from "next/link";
-import { useState } from "react";
-import { Button } from "~/components/ui/button";
+import CreateResumeButton from "~/components/resume/create-resume-button";
+import ResumeDate from "~/components/resume/resume-date";
 import {
   Card,
   CardContent,
@@ -10,46 +8,10 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
-import Modal from "~/components/ui/modal";
-import { api } from "~/trpc/react";
+import { api } from "~/trpc/server";
 
-export default function ResumePage() {
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [newResumeName, setNewResumeName] = useState("");
-  const [selectedJobId, setSelectedJobId] = useState<string | undefined>();
-
-  const utils = api.useUtils();
-  const { data: resumes, isLoading } = api.resume.list.useQuery();
-  const { data: jobs } = api.job.getJobs.useQuery();
-
-  const createMutation = api.resume.create.useMutation({
-    onSuccess: () => {
-      void utils.resume.list.invalidate();
-      setIsCreateModalOpen(false);
-      setNewResumeName("");
-      setSelectedJobId(undefined);
-    },
-  });
-
-  const handleCreateResume = () => {
-    createMutation.mutate({
-      education: [],
-      experience: [],
-      jobId: selectedJobId,
-      name: newResumeName || "New Resume",
-      professionalSummary: "",
-    });
-  };
-
-  if (isLoading) {
-    return (
-      <div className="mx-auto flex max-w-5xl flex-col gap-4 rounded-2xl border bg-card p-10 shadow-sm">
-        <p>Loading resumes...</p>
-      </div>
-    );
-  }
+export default async function ResumePage() {
+  const resumes = await api.resume.list.query(undefined);
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-8">
@@ -61,12 +23,10 @@ export default function ResumePage() {
             refine.
           </p>
         </div>
-        <Button onClick={() => setIsCreateModalOpen(true)}>
-          Create new resume
-        </Button>
+        <CreateResumeButton />
       </div>
 
-      {resumes && resumes.length === 0 ? (
+      {resumes.length === 0 ? (
         <Card className="border-dashed">
           <CardHeader className="text-center">
             <CardTitle>No resumes yet</CardTitle>
@@ -75,14 +35,15 @@ export default function ResumePage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center">
-            <Button onClick={() => setIsCreateModalOpen(true)}>
-              Create your first resume
-            </Button>
+            <CreateResumeButton
+              buttonLabel="Create your first resume"
+              buttonProps={{ variant: "default" }}
+            />
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {resumes?.map((resume) => {
+          {resumes.map((resume) => {
             const linkedJob = resume.Job?.title || resume.Job?.company;
 
             return (
@@ -125,14 +86,10 @@ export default function ResumePage() {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-1 text-xs text-muted-foreground/80">
-                    <p>
-                      Created {new Date(resume.createdAt).toLocaleDateString()}
-                    </p>
-                    <p>
-                      Updated {new Date(resume.updatedAt).toLocaleDateString()}
-                    </p>
+                <CardContent className="mt-auto">
+                  <div className="flex flex-col items-start gap-1 text-xs text-muted-foreground/80">
+                    <ResumeDate label="Updated" value={resume.updatedAt} />
+                    <ResumeDate label="Created" value={resume.createdAt} />
                   </div>
                 </CardContent>
               </Card>
@@ -140,57 +97,6 @@ export default function ResumePage() {
           })}
         </div>
       )}
-
-      <Modal
-        open={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        title="Create New Resume"
-        className="max-w-lg"
-      >
-        <div className="space-y-4 p-6">
-          <div className="space-y-2">
-            <Label htmlFor="resume-name">Resume Name</Label>
-            <Input
-              id="resume-name"
-              value={newResumeName}
-              onChange={(e) => setNewResumeName(e.target.value)}
-              placeholder="e.g., Software Engineer Resume"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="resume-job">Link to Job (Optional)</Label>
-            <select
-              id="resume-job"
-              value={selectedJobId || ""}
-              onChange={(e) => setSelectedJobId(e.target.value || undefined)}
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-            >
-              <option value="">None - Base Resume</option>
-              {jobs?.map((job) => (
-                <option key={job.id} value={job.id}>
-                  {job.title || job.company || job.url}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => setIsCreateModalOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleCreateResume}
-              disabled={createMutation.isPending}
-            >
-              {createMutation.isPending ? "Creating..." : "Create Resume"}
-            </Button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 }

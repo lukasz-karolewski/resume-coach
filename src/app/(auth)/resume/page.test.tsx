@@ -1,41 +1,31 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import ResumePage from "./page";
 
-// Mock the tRPC hooks
-const mockUseUtils = vi.fn();
-const mockListQuery = vi.fn();
-const mockGetJobsQuery = vi.fn();
-const mockCreateMutation = vi.fn();
-const mockDeleteMutation = vi.fn();
-const mockDuplicateMutation = vi.fn();
+const mockResumeListQuery = vi.fn();
 
-vi.mock("~/trpc/react", () => ({
+vi.mock("~/trpc/server", () => ({
   api: {
-    job: {
-      getJobs: {
-        useQuery: () => mockGetJobsQuery(),
-      },
-    },
     resume: {
-      create: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        useMutation: (opts: any) => mockCreateMutation(opts),
-      },
-      delete: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        useMutation: (opts: any) => mockDeleteMutation(opts),
-      },
-      duplicate: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        useMutation: (opts: any) => mockDuplicateMutation(opts),
-      },
       list: {
-        useQuery: () => mockListQuery(),
+        query: (...args: unknown[]) => mockResumeListQuery(...args),
       },
     },
-    useUtils: () => mockUseUtils(),
   },
+}));
+
+vi.mock("~/components/resume/create-resume-button", () => ({
+  default: ({
+    buttonLabel = "Create new resume",
+  }: {
+    buttonLabel?: string;
+  }) => <button type="button">{buttonLabel}</button>,
+}));
+
+vi.mock("~/components/resume/resume-date", () => ({
+  default: ({ label, value }: { label: string; value: Date | string }) => (
+    <p>{`${label} ${String(value)}`}</p>
+  ),
 }));
 
 vi.mock("next/link", () => ({
@@ -55,129 +45,46 @@ describe("ResumePage", () => {
         education: 2,
         experience: 3,
       },
-      contactInfo: {
-        email: "john@example.com",
-        id: 1,
-        name: "John Doe",
-        phone: "123-456-7890",
-      },
-      contactInfoId: 1,
-      createdAt: new Date("2024-01-01"),
+      createdAt: new Date("2024-01-01T10:00:00.000Z"),
       id: 1,
       Job: null,
-      jobId: null,
       name: "Software Engineer Resume",
-      summary: "[]",
-      updatedAt: new Date("2024-01-15"),
-      userId: "user-123",
+      updatedAt: new Date("2024-01-15T15:30:00.000Z"),
     },
     {
       _count: {
         education: 1,
         experience: 2,
       },
-      contactInfo: {
-        email: "john@example.com",
-        id: 1,
-        name: "John Doe",
-        phone: "123-456-7890",
-      },
-      contactInfoId: 1,
-      createdAt: new Date("2024-02-01"),
+      createdAt: new Date("2024-02-01T12:00:00.000Z"),
       id: 2,
       Job: {
         company: "Tech Corp",
-        createdAt: new Date(),
-        description: null,
-        id: "job-123",
-        notes: null,
         title: "Senior Data Scientist",
-        url: "https://example.com/job",
-        userId: "user-123",
       },
-      jobId: "job-123",
       name: "Data Scientist Resume",
-      summary: "[]",
-      updatedAt: new Date("2024-02-10"),
-      userId: "user-123",
-    },
-  ];
-
-  const mockJobs = [
-    {
-      company: "Tech Corp",
-      createdAt: new Date(),
-      description: null,
-      id: "job-123",
-      notes: null,
-      title: "Senior Data Scientist",
-      url: "https://example.com/job",
-      userId: "user-123",
+      updatedAt: new Date("2024-02-10T09:45:00.000Z"),
     },
   ];
 
   beforeEach(() => {
     vi.clearAllMocks();
-
-    mockUseUtils.mockReturnValue({
-      resume: {
-        list: {
-          invalidate: vi.fn(),
-        },
-      },
-    });
-
-    mockListQuery.mockReturnValue({
-      data: mockResumes,
-      isLoading: false,
-    });
-
-    mockGetJobsQuery.mockReturnValue({
-      data: mockJobs,
-    });
-
-    mockCreateMutation.mockReturnValue({
-      isPending: false,
-      mutate: vi.fn(),
-    });
-
-    mockDeleteMutation.mockReturnValue({
-      isPending: false,
-      mutate: vi.fn(),
-    });
-
-    mockDuplicateMutation.mockReturnValue({
-      isPending: false,
-      mutate: vi.fn(),
-    });
+    mockResumeListQuery.mockResolvedValue(mockResumes);
   });
 
-  test("renders resume list", () => {
-    render(<ResumePage />);
+  test("renders the resume list from a server-side query", async () => {
+    render(await ResumePage());
 
+    expect(mockResumeListQuery).toHaveBeenCalledWith(undefined);
     expect(screen.getByText("My Resumes")).toBeInTheDocument();
     expect(screen.getByText("Software Engineer Resume")).toBeInTheDocument();
     expect(screen.getByText("Data Scientist Resume")).toBeInTheDocument();
   });
 
-  test("shows loading state", () => {
-    mockListQuery.mockReturnValue({
-      data: undefined,
-      isLoading: true,
-    });
+  test("shows empty state when no resumes exist", async () => {
+    mockResumeListQuery.mockResolvedValue([]);
 
-    render(<ResumePage />);
-
-    expect(screen.getByText("Loading resumes...")).toBeInTheDocument();
-  });
-
-  test("shows empty state when no resumes", () => {
-    mockListQuery.mockReturnValue({
-      data: [],
-      isLoading: false,
-    });
-
-    render(<ResumePage />);
+    render(await ResumePage());
 
     expect(screen.getByText("No resumes yet")).toBeInTheDocument();
     expect(
@@ -185,52 +92,13 @@ describe("ResumePage", () => {
         "Create your first resume to start building tailored versions.",
       ),
     ).toBeInTheDocument();
-  });
-
-  test("displays resume information correctly", () => {
-    render(<ResumePage />);
-
-    expect(screen.getByText(/3 roles/)).toBeInTheDocument();
-    expect(screen.getByText(/2 entries/)).toBeInTheDocument();
-    expect(screen.getByText(/Senior Data Scientist/)).toBeInTheDocument();
-  });
-
-  test("opens create modal when clicking create button", () => {
-    render(<ResumePage />);
-
-    const createButton = screen.getByText("Create new resume");
-    fireEvent.click(createButton);
-
-    expect(screen.getByText("Create New Resume")).toBeInTheDocument();
     expect(
-      screen.getByPlaceholderText("e.g., Software Engineer Resume"),
+      screen.getByRole("button", { name: "Create your first resume" }),
     ).toBeInTheDocument();
   });
 
-  test("submits a string professional summary when creating a resume", () => {
-    const mutate = vi.fn();
-
-    mockCreateMutation.mockReturnValue({
-      isPending: false,
-      mutate,
-    });
-
-    render(<ResumePage />);
-
-    fireEvent.click(screen.getByText("Create new resume"));
-    fireEvent.click(screen.getByText("Create Resume"));
-
-    expect(mutate).toHaveBeenCalledWith({
-      education: [],
-      experience: [],
-      jobId: undefined,
-      name: "New Resume",
-      professionalSummary: "",
-    });
-  });
-
-  test("renders clickable resume titles without a view button", () => {
-    render(<ResumePage />);
+  test("renders linked titles and resume summary information", async () => {
+    render(await ResumePage());
 
     expect(
       screen.getByRole("link", { name: "Software Engineer Resume" }),
@@ -238,13 +106,18 @@ describe("ResumePage", () => {
     expect(
       screen.getByRole("link", { name: "Data Scientist Resume" }),
     ).toHaveAttribute("href", "/resume/2");
-    expect(screen.queryByText("View")).not.toBeInTheDocument();
+    expect(screen.getByText(/3 roles/)).toBeInTheDocument();
+    expect(screen.getByText(/2 entries/)).toBeInTheDocument();
+    expect(screen.getByText(/Senior Data Scientist/)).toBeInTheDocument();
   });
 
-  test("does not render duplicate and delete buttons for each resume card", () => {
-    render(<ResumePage />);
+  test("renders updated above created in a left-aligned footer stack", async () => {
+    const { container } = render(await ResumePage());
 
-    expect(screen.queryByText("Duplicate")).not.toBeInTheDocument();
-    expect(screen.queryByText("Delete")).not.toBeInTheDocument();
+    expect(
+      container.querySelector(
+        ".flex.flex-col.items-start.gap-1.text-xs.text-muted-foreground\\/80",
+      ),
+    ).toBeTruthy();
   });
 });
