@@ -6,6 +6,7 @@ import NiceModalProviderWrapper from "~/components/providers";
 import { Toaster } from "~/components/ui/sonner";
 import { TRPCReactProvider } from "~/trpc/react";
 import "./styles.css";
+import { Analytics } from "@vercel/analytics/next";
 import { cn } from "~/lib/utils";
 
 const playfairDisplay = Playfair_Display({
@@ -34,6 +35,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
             <Toaster />
           </NiceModalProviderWrapper>
         </TRPCReactProvider>
+        <Analytics />
       </body>
     </html>
   );
