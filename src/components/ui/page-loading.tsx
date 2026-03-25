@@ -1,5 +1,14 @@
 type PageLoadingVariant = "cards" | "document" | "panel";
 
+const CARD_SKELETON_KEYS = [
+  "resume-loading-card-1",
+  "resume-loading-card-2",
+  "resume-loading-card-3",
+  "resume-loading-card-4",
+  "resume-loading-card-5",
+  "resume-loading-card-6",
+] as const;
+
 function LoadingBlock({
   className,
   testId,
@@ -37,9 +46,9 @@ export default function PageLoading({
           </div>
         </div>
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, index) => (
+          {CARD_SKELETON_KEYS.map((cardKey) => (
             <div
-              key={`resume-loading-card-${index}`}
+              key={cardKey}
               className="rounded-2xl border bg-card p-6 shadow-sm"
             >
               <div className="space-y-4">
