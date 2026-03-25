@@ -1,9 +1,9 @@
-import Link from "next/link";
-import { headers } from "next/headers";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth } from "~/auth";
 import { siteConfig } from "~/app/site-config";
+import { auth } from "~/auth";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -38,15 +38,18 @@ const outcomes = [
 
 const surfaces = [
   {
-    detail: "Paste a link once. Keep company, title, status, notes, and prep in one timeline.",
+    detail:
+      "Paste a link once. Keep company, title, status, notes, and prep in one timeline.",
     title: "Application tracker",
   },
   {
-    detail: "See what the role is really asking for and where your story needs emphasis before you apply.",
+    detail:
+      "See what the role is really asking for and where your story needs emphasis before you apply.",
     title: "Role analysis",
   },
   {
-    detail: "Produce a stronger resume and cover letter pair built around the posting, not generic templates.",
+    detail:
+      "Produce a stronger resume and cover letter pair built around the posting, not generic templates.",
     title: "Application kit",
   },
 ] as const;
@@ -116,8 +119,8 @@ export default async function HomePage() {
                 </Badge>
                 <div className="space-y-4">
                   <h1 className="max-w-3xl text-5xl font-semibold leading-tight tracking-tight text-balance md:text-6xl">
-                    Turn job links into organized applications, stronger resumes,
-                    and better interview prep.
+                    Turn job links into organized applications, stronger
+                    resumes, and better interview prep.
                   </h1>
                   <p className="max-w-2xl text-lg leading-8 text-muted-foreground">
                     Save every posting in one tracker, extract what matters from
@@ -131,7 +134,12 @@ export default async function HomePage() {
                 <Button asChild size="lg" className="rounded-full px-7">
                   <Link href="/signup">Start tracking roles</Link>
                 </Button>
-                <Button asChild size="lg" variant="outline" className="rounded-full px-7">
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="rounded-full px-7"
+                >
                   <Link href="/login">I already have an account</Link>
                 </Button>
               </div>
@@ -157,7 +165,9 @@ export default async function HomePage() {
                         <p className="text-sm font-medium text-muted-foreground">
                           This week
                         </p>
-                        <p className="text-2xl font-semibold">12 active roles</p>
+                        <p className="text-2xl font-semibold">
+                          12 active roles
+                        </p>
                       </div>
                       <Badge variant="outline" className="rounded-full">
                         Focused search
@@ -196,17 +206,19 @@ export default async function HomePage() {
                       <div className="rounded-2xl bg-muted/70 p-4">
                         <p className="text-sm font-medium">Role themes</p>
                         <div className="mt-3 flex flex-wrap gap-2">
-                          {["Portfolio narrative", "Design systems", "Cross-functional leadership"].map(
-                            (theme) => (
-                              <Badge
-                                key={theme}
-                                variant="secondary"
-                                className="rounded-full"
-                              >
-                                {theme}
-                              </Badge>
-                            ),
-                          )}
+                          {[
+                            "Portfolio narrative",
+                            "Design systems",
+                            "Cross-functional leadership",
+                          ].map((theme) => (
+                            <Badge
+                              key={theme}
+                              variant="secondary"
+                              className="rounded-full"
+                            >
+                              {theme}
+                            </Badge>
+                          ))}
                         </div>
                       </div>
 
@@ -298,7 +310,12 @@ export default async function HomePage() {
                 <Button asChild size="lg" className="rounded-full px-7">
                   <Link href="/signup">Create an account</Link>
                 </Button>
-                <Button asChild size="lg" variant="outline" className="rounded-full px-7">
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="rounded-full px-7"
+                >
                   <Link href="/login">Sign in</Link>
                 </Button>
               </div>

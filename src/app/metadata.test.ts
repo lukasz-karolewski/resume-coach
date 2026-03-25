@@ -1,5 +1,4 @@
-import { describe, expect, test } from "vitest";
-import { vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 vi.mock("next/font/google", () => ({
   Noto_Serif: () => ({

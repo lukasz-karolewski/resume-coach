@@ -7,7 +7,12 @@ function LoadingBlock({
   className: string;
   testId?: string;
 }) {
-  return <div className={`animate-pulse rounded-xl bg-muted ${className}`} data-testid={testId} />;
+  return (
+    <div
+      className={`animate-pulse rounded-xl bg-muted ${className}`}
+      data-testid={testId}
+    />
+  );
 }
 
 export default function PageLoading({
@@ -17,7 +22,10 @@ export default function PageLoading({
 }) {
   if (variant === "cards") {
     return (
-      <div className="mx-auto flex max-w-6xl flex-col gap-8" data-testid="page-loading-cards">
+      <div
+        className="mx-auto flex max-w-6xl flex-col gap-8"
+        data-testid="page-loading-cards"
+      >
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="space-y-2">
             <LoadingBlock className="h-8 w-56 rounded-md" />
@@ -57,7 +65,10 @@ export default function PageLoading({
 
   if (variant === "document") {
     return (
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6" data-testid="page-loading-document">
+      <div
+        className="mx-auto flex w-full max-w-6xl flex-col gap-6"
+        data-testid="page-loading-document"
+      >
         <div className="sticky top-[89px] z-20 mx-auto w-full max-w-[calc(8.5in+6rem)] print:hidden">
           <div className="rounded-2xl border bg-card/95 px-12 py-3 shadow-sm backdrop-blur">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

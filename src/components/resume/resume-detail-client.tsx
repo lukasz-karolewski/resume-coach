@@ -10,8 +10,6 @@ import {
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import type { RouterOutputs } from "~/trpc/shared";
-
 import ContactInfo from "~/components/resume/contact-info";
 import EducationExperience from "~/components/resume/education-experience";
 import JobExperience from "~/components/resume/job-experience";
@@ -38,6 +36,7 @@ import {
 } from "~/components/ui/tooltip";
 import { EducationType } from "~/generated/prisma/enums";
 import { api } from "~/trpc/react";
+import type { RouterOutputs } from "~/trpc/shared";
 
 const TITLE_AUTOSAVE_DELAY_MS = 800;
 const SAVED_INDICATOR_DURATION_MS = 2000;
@@ -67,7 +66,10 @@ export default function ResumeDetailClient({
     onSuccess: async (updatedResume) => {
       lastSyncedNameRef.current = updatedResume.name;
       pendingSaveNameRef.current = null;
-      setResume((currentResume) => ({ ...currentResume, name: updatedResume.name }));
+      setResume((currentResume) => ({
+        ...currentResume,
+        name: updatedResume.name,
+      }));
       setDraftName((currentDraft) =>
         currentDraft.trim() === updatedResume.name
           ? updatedResume.name

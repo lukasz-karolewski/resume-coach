@@ -41,8 +41,12 @@ describe("ResumeSortDropdown", () => {
   test("pushes the created sort into search params", () => {
     render(<ResumeSortDropdown value="created" />);
 
-    fireEvent.pointerDown(screen.getByRole("button", { name: /sort by created/i }));
-    fireEvent.click(screen.getByRole("menuitemradio", { name: "Last updated" }));
+    fireEvent.pointerDown(
+      screen.getByRole("button", { name: /sort by created/i }),
+    );
+    fireEvent.click(
+      screen.getByRole("menuitemradio", { name: "Last updated" }),
+    );
 
     expect(mockPush).toHaveBeenCalledWith("/resume?sort=last-updated");
   });

@@ -45,7 +45,9 @@ describe("ResumeDetailPage", () => {
     render(await ResumeDetailPage({ params: { resume_id: "7" } }));
 
     expect(mockGetByIdQuery).toHaveBeenCalledWith({ id: 7 });
-    expect(screen.getByText("Resume detail Platform Resume")).toBeInTheDocument();
+    expect(
+      screen.getByText("Resume detail Platform Resume"),
+    ).toBeInTheDocument();
   });
 
   test("calls notFound for invalid resume ids", async () => {

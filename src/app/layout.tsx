@@ -1,8 +1,8 @@
+import { Analytics } from "@vercel/analytics/next";
 import clsx from "clsx";
 import type { Metadata } from "next";
 import { Noto_Serif, Playfair_Display } from "next/font/google";
 import { cookies } from "next/headers";
-import { Analytics } from "@vercel/analytics/next";
 import { siteConfig } from "~/app/site-config";
 import NiceModalProviderWrapper from "~/components/providers";
 import { Toaster } from "~/components/ui/sonner";

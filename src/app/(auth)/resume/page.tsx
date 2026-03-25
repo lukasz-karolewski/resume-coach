@@ -1,8 +1,8 @@
 import Link from "next/link";
 import CreateResumeButton from "~/components/resume/create-resume-button";
 import ResumeDate from "~/components/resume/resume-date";
-import ResumeSortDropdown from "~/components/resume/resume-sort-dropdown";
 import { normalizeResumeSort } from "~/components/resume/resume-sort";
+import ResumeSortDropdown from "~/components/resume/resume-sort-dropdown";
 import {
   Card,
   CardContent,
@@ -22,7 +22,9 @@ type ResumePageProps = {
       };
 };
 
-export default async function ResumePage({ searchParams }: ResumePageProps = {}) {
+export default async function ResumePage({
+  searchParams,
+}: ResumePageProps = {}) {
   const resolvedSearchParams = await searchParams;
   const sort = normalizeResumeSort(resolvedSearchParams?.sort);
   const resumes = await api.resume.list.query({ sort });

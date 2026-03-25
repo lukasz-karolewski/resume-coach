@@ -126,7 +126,9 @@ describe("ResumePage", () => {
   });
 
   test("sorts resumes by name when requested in search params", async () => {
-    render(await ResumePage({ searchParams: Promise.resolve({ sort: "name" }) }));
+    render(
+      await ResumePage({ searchParams: Promise.resolve({ sort: "name" }) }),
+    );
 
     expect(screen.getByText("Sort by name")).toBeInTheDocument();
     expect(mockResumeListQuery).toHaveBeenCalledWith({ sort: "name" });

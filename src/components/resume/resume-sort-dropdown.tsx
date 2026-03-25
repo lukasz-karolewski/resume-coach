@@ -21,9 +21,7 @@ type ResumeSortDropdownProps = {
   value: ResumeSort;
 };
 
-export default function ResumeSortDropdown({
-  value,
-}: ResumeSortDropdownProps) {
+export default function ResumeSortDropdown({ value }: ResumeSortDropdownProps) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -46,9 +44,7 @@ export default function ResumeSortDropdown({
         <DropdownMenuLabel>Sort resumes</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuRadioGroup value={value} onValueChange={handleValueChange}>
-          <DropdownMenuRadioItem value="created">
-            Created
-          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="created">Created</DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="last-updated">
             Last updated
           </DropdownMenuRadioItem>
