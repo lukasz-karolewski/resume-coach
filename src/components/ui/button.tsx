@@ -1,18 +1,25 @@
 "use client";
 
-import { Button as ButtonPrimitive } from "@base-ui/react/button";
+import { Slot } from "@radix-ui/react-slot";
+import type * as React from "react";
 
 import { cn } from "~/lib/utils";
 import { type ButtonVariants, buttonVariants } from "./button-variants";
 
 function Button({
+  asChild = false,
   className,
-  variant = "default",
   size = "default",
+  variant = "default",
   ...props
-}: ButtonPrimitive.Props & ButtonVariants) {
+}: React.ComponentProps<"button"> &
+  ButtonVariants & {
+    asChild?: boolean;
+  }) {
+  const Comp = asChild ? Slot : "button";
+
   return (
-    <ButtonPrimitive
+    <Comp
       data-slot="button"
       className={cn(buttonVariants({ className, size, variant }))}
       {...props}
