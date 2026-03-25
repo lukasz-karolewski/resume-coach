@@ -60,10 +60,17 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
   useEffect(() => {
     if (!threadId) {
       setMessages([]);
+      setCurrentChunk("");
+      setToolExecutions([]);
+      setError(null);
       return;
     }
 
     let cancelled = false;
+    setMessages([]);
+    setCurrentChunk("");
+    setToolExecutions([]);
+    setError(null);
 
     const loadMessages = async () => {
       try {
