@@ -36,7 +36,7 @@
     "docker-compose-dev.yml"
   ],
   "name": "Ubuntu",
-  "postCreateCommand": "npm install -g pnpm vercel @anthropic-ai/claude-code @google/gemini-cli @github/copilot @openai/codex && pnpm install",
+  "postCreateCommand": "npm install -g pnpm vercel @anthropic-ai/claude-code @google/gemini-cli @github/copilot @openai/codex && pnpm install && pnpm exec playwright install --with-deps",
   "remoteUser": "ubuntu",
   "service": "devcontainer",
   "shutdownAction": "stopCompose",
