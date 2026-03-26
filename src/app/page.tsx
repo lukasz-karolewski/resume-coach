@@ -4,24 +4,28 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { siteConfig } from "~/app/site-config";
 import { auth } from "~/auth";
-import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 
-const workflowSteps = [
+const steps = [
   {
+    accent: "text-blue-600 dark:text-blue-400",
+    bar: "bg-blue-600/20 dark:bg-blue-400/20",
     description:
       "Log what you ship, lead, and fix as it happens — raw notes are fine. Monthly reminders keep your profile current so you never reconstruct from memory.",
     number: "01",
     title: "Track accomplishments continuously",
   },
   {
+    accent: "text-violet-600 dark:text-violet-400",
+    bar: "bg-violet-600/20 dark:bg-violet-400/20",
     description:
-      "Paste a job link. We scrape the posting, research the company culture, and surface what the role actually values — all visible and editable.",
+      "Paste a job link. We scrape the posting, research the company culture, and surface what the role actually values — all visible and editable by you.",
     number: "02",
     title: "Add a role you want",
   },
   {
+    accent: "text-emerald-600 dark:text-emerald-400",
+    bar: "bg-emerald-600/20 dark:bg-emerald-400/20",
     description:
       "Get a resume and cover letter built from your real accomplishments, rephrased for the role. Every bullet traces back to something you actually did.",
     number: "03",
@@ -29,28 +33,86 @@ const workflowSteps = [
   },
 ] as const;
 
-const outcomes = [
-  "A living profile of your career accomplishments",
-  "Resumes tailored per role — grounded in your real work",
-  "Cover letters that match without making things up",
-  "Perf review drafts from the same accomplishment log",
-] as const;
-
-const surfaces = [
+const features = [
   {
-    detail:
+    description:
       "Your accomplishments organized by role, always up to date. Configurable reminders so you log wins while they're fresh — not months later.",
+    icon: (
+      <svg
+        className="size-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"
+        />
+      </svg>
+    ),
     title: "Accomplishment profile",
   },
   {
-    detail:
+    description:
       "AI selects and rephrases your accomplishments for each role. It picks, prioritizes, and phrases — but never invents.",
+    icon: (
+      <svg
+        className="size-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"
+        />
+      </svg>
+    ),
     title: "Grounded resume generation",
   },
   {
-    detail:
+    description:
       "Track every application from saved through offer. Notes, tailored resumes, and job context stay connected per role.",
+    icon: (
+      <svg
+        className="size-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25a2.25 2.25 0 0 1-2.25-2.25v-2.25Z"
+        />
+      </svg>
+    ),
     title: "Job tracker",
+  },
+  {
+    description:
+      "When review season comes, get a draft pulled straight from your accomplishment log. The same data powers your resume and your self-review.",
+    icon: (
+      <svg
+        className="size-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
+        />
+      </svg>
+    ),
+    title: "Performance review drafts",
   },
 ] as const;
 
@@ -85,225 +147,199 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,hsl(var(--background))_0%,hsl(var(--muted)/0.55)_100%)] text-foreground">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_8%,hsl(var(--primary)/0.38),transparent_22%),radial-gradient(circle_at_88%_10%,hsl(var(--accent)/0.34),transparent_20%),radial-gradient(circle_at_50%_42%,hsl(var(--primary)/0.16),transparent_30%),radial-gradient(circle_at_18%_78%,hsl(var(--accent)/0.18),transparent_24%),linear-gradient(180deg,hsl(var(--primary)/0.08),transparent_22%,transparent_68%,hsl(var(--accent)/0.12))]" />
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Nav */}
+      <nav className="border-b border-border/40">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+          <Link
+            href="/"
+            className="text-sm font-semibold tracking-[0.2em] uppercase text-foreground"
+          >
+            Resume Coach
+          </Link>
+          <div className="flex items-center gap-2">
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/login">Sign in</Link>
+            </Button>
+            <Button asChild size="sm">
+              <Link href="/signup">Get started</Link>
+            </Button>
+          </div>
+        </div>
+      </nav>
 
-      <main className="relative">
-        <section className="relative overflow-hidden border-b border-border/60">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.22),transparent_34%),radial-gradient(circle_at_85%_15%,hsl(var(--accent)/0.24),transparent_24%),linear-gradient(to_bottom,hsl(var(--background)/0.08),transparent_72%)]" />
-          <div className="relative mx-auto grid max-w-6xl gap-12 px-6 py-20 lg:grid-cols-[minmax(0,1.05fr)_minmax(24rem,0.95fr)] lg:items-center">
-            <div className="space-y-8">
-              <div className="space-y-5">
-                <div className="flex items-center gap-3">
-                  <p className="text-sm font-semibold tracking-[0.22em] uppercase text-muted-foreground">
-                    Resume Coach
-                  </p>
-                </div>
-                <div className="space-y-4">
-                  <h1 className="max-w-3xl text-5xl font-semibold leading-tight tracking-tight text-balance md:text-6xl">
-                    Your career story, logged as it happens. Deployed when it
-                    matters.
-                  </h1>
-                  <p className="max-w-2xl text-lg leading-8 text-muted-foreground">
-                    Track your accomplishments monthly — not when you&apos;re
-                    scrambling to job hunt. When you find the right role, get a
-                    resume built entirely from what you actually did.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Button asChild size="lg" className="rounded-full px-7">
+      <main>
+        {/* Hero */}
+        <section className="relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,oklch(0.65_0.15_250/0.15),transparent)]" />
+          <div className="mx-auto max-w-5xl px-6 pb-32 pt-24 md:pb-40 md:pt-32">
+            <div className="mx-auto max-w-3xl text-center">
+              <p className="text-sm font-medium tracking-wide text-blue-600 dark:text-blue-400">
+                For tech professionals who take their careers seriously
+              </p>
+              <h1 className="mt-4 text-5xl font-semibold leading-[1.1] tracking-tight md:text-7xl">
+                Your career story,{" "}
+                <span className="bg-gradient-to-r from-blue-600 via-violet-600 to-emerald-600 bg-clip-text text-transparent dark:from-blue-400 dark:via-violet-400 dark:to-emerald-400">
+                  logged as it happens.
+                </span>
+              </h1>
+              <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground md:text-xl">
+                Track your accomplishments monthly — not when you&apos;re
+                scrambling. When the right role appears, get a resume built
+                entirely from what you actually did.
+              </p>
+              <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <Button asChild size="lg" className="px-8">
                   <Link href="/signup">Start logging accomplishments</Link>
                 </Button>
-                <Button
-                  asChild
-                  size="lg"
-                  variant="outline"
-                  className="rounded-full px-7"
-                >
+                <Button asChild size="lg" variant="ghost">
                   <Link href="/login">I already have an account</Link>
                 </Button>
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                {outcomes.map((item) => (
-                  <div
-                    key={item}
-                    className="rounded-2xl border border-border/60 bg-background/85 px-4 py-3 text-sm text-muted-foreground shadow-sm backdrop-blur transition-colors hover:border-foreground/20 hover:text-foreground"
-                  >
-                    {item}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="lg:justify-self-end">
-              <div className="rounded-[2rem] border border-border/70 bg-card/95 p-5 shadow-2xl shadow-primary/5">
-                <div className="rounded-[1.6rem] border border-border/60 bg-background p-5">
-                  <div className="space-y-5">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">
-                          Your profile
-                        </p>
-                        <p className="text-2xl font-semibold">
-                          47 accomplishments
-                        </p>
-                      </div>
-                      <Badge variant="outline" className="rounded-full">
-                        Always current
-                      </Badge>
-                    </div>
-
-                    <div className="grid gap-3">
-                      <Card className="border-border/60 shadow-none">
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-base">
-                            Senior Software Engineer
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3 text-sm text-muted-foreground">
-                          <div className="flex items-center justify-between">
-                            <span>Accomplishments logged</span>
-                            <span className="font-medium text-foreground">
-                              18
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span>Tailored resumes</span>
-                            <span className="font-medium text-foreground">
-                              3
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span>Last updated</span>
-                            <span className="font-medium text-foreground">
-                              2 days ago
-                            </span>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <div className="rounded-2xl bg-muted/70 p-4">
-                        <p className="text-sm font-medium">
-                          Recent accomplishments
-                        </p>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {[
-                            "Led k8s migration",
-                            "Reduced deploy time 82%",
-                            "Mentored 3 engineers",
-                          ].map((item) => (
-                            <Badge
-                              key={item}
-                              variant="secondary"
-                              className="rounded-full"
-                            >
-                              {item}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="rounded-2xl border border-dashed border-border/70 p-4 text-sm text-muted-foreground">
-                        Monthly reminder: What did you ship, fix, or lead this
-                        month? Log it now — your future resume will thank you.
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="relative mx-auto max-w-6xl px-6 py-18">
-          <div className="pointer-events-none absolute inset-x-6 inset-y-6 rounded-[2rem] bg-[radial-gradient(circle_at_20%_0%,hsl(var(--primary)/0.12),transparent_26%),radial-gradient(circle_at_85%_100%,hsl(var(--accent)/0.14),transparent_24%)]" />
-          <div className="grid gap-6 lg:grid-cols-3">
-            {workflowSteps.map((step) => (
-              <Card
-                key={step.number}
-                className="border-border/70 bg-card/80 shadow-sm transition-transform hover:-translate-y-1"
-              >
-                <CardHeader className="space-y-4">
-                  <Badge variant="outline" className="w-fit rounded-full">
-                    {step.number}
-                  </Badge>
-                  <CardTitle className="text-2xl">{step.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm leading-7 text-muted-foreground">
+        {/* Social proof / key insight */}
+        <section className="border-y border-border/40 bg-muted/30">
+          <div className="mx-auto max-w-5xl px-6 py-20 md:py-28">
+            <blockquote className="mx-auto max-w-3xl text-center">
+              <p className="text-2xl font-medium leading-relaxed tracking-tight text-foreground md:text-3xl">
+                &ldquo;The best time to write your resume is{" "}
+                <span className="text-blue-600 dark:text-blue-400">
+                  every month
+                </span>
+                , not when you&apos;re job hunting.&rdquo;
+              </p>
+              <p className="mt-6 text-sm text-muted-foreground">
+                Most people reconstruct years of work from foggy memory when
+                they suddenly need a resume. Resume Coach flips that — you log
+                wins continuously, and when the right role appears, your resume
+                writes itself from real data.
+              </p>
+            </blockquote>
+          </div>
+        </section>
+
+        {/* How it works */}
+        <section className="mx-auto max-w-5xl px-6 py-24 md:py-32">
+          <div className="text-center">
+            <p className="text-sm font-medium tracking-wide text-violet-600 dark:text-violet-400">
+              How it works
+            </p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">
+              Three steps. Zero fabrication.
+            </h2>
+          </div>
+
+          <div className="mt-16 space-y-16 md:mt-20 md:space-y-0 md:grid md:grid-cols-3 md:gap-12">
+            {steps.map((step) => (
+              <div key={step.number} className="relative">
+                <div
+                  className={`inline-flex items-center gap-2 text-sm font-semibold ${step.accent}`}
+                >
+                  <span
+                    className={`inline-block h-px w-8 ${step.bar}`}
+                    aria-hidden
+                  />
+                  {step.number}
+                </div>
+                <h3 className="mt-4 text-xl font-semibold">{step.title}</h3>
+                <p className="mt-3 leading-relaxed text-muted-foreground">
                   {step.description}
-                </CardContent>
-              </Card>
+                </p>
+              </div>
             ))}
           </div>
         </section>
 
-        <section className="relative border-y border-border/60 bg-[linear-gradient(180deg,hsl(var(--muted)/0.62),hsl(var(--background)/0.9))]">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_50%,hsl(var(--primary)/0.16),transparent_20%),radial-gradient(circle_at_88%_40%,hsl(var(--accent)/0.2),transparent_18%)]" />
-          <div className="mx-auto grid max-w-6xl gap-10 px-6 py-18 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-            <div className="space-y-4">
-              <Badge variant="secondary" className="rounded-full">
+        {/* Features */}
+        <section className="border-y border-border/40 bg-muted/30">
+          <div className="mx-auto max-w-5xl px-6 py-24 md:py-32">
+            <div className="max-w-2xl">
+              <p className="text-sm font-medium tracking-wide text-emerald-600 dark:text-emerald-400">
                 Built for your whole career, not just job hunts
-              </Badge>
-              <h2 className="text-3xl font-semibold tracking-tight text-balance md:text-4xl">
-                The best time to write your resume is every month.
+              </p>
+              <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">
+                One profile. Every use case.
               </h2>
-              <p className="max-w-xl text-base leading-8 text-muted-foreground">
-                Most people reconstruct years of work from memory when they
-                suddenly need a resume. Resume Coach flips that — you log wins
-                continuously, and when the right role appears, your resume
-                writes itself from real data.
+              <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+                The same accomplishment log powers tailored resumes, cover
+                letters, job tracking, and performance reviews.
               </p>
             </div>
 
-            <div className="grid gap-4">
-              {surfaces.map((surface) => (
-                <div
-                  key={surface.title}
-                  className="rounded-2xl border border-border/70 bg-background px-5 py-5 shadow-sm"
-                >
-                  <p className="text-lg font-semibold">{surface.title}</p>
-                  <p className="mt-2 text-sm leading-7 text-muted-foreground">
-                    {surface.detail}
-                  </p>
+            <div className="mt-14 grid gap-6 sm:grid-cols-2">
+              {features.map((feature) => (
+                <div key={feature.title} className="flex gap-4">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-foreground/5 text-foreground/70">
+                    {feature.icon}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">{feature.title}</h3>
+                    <p className="mt-1.5 leading-relaxed text-muted-foreground">
+                      {feature.description}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="relative mx-auto max-w-6xl px-6 py-18">
-          <div className="pointer-events-none absolute inset-x-6 inset-y-8 rounded-[2rem] bg-[radial-gradient(circle_at_0%_50%,hsl(var(--primary)/0.14),transparent_24%),radial-gradient(circle_at_100%_50%,hsl(var(--accent)/0.16),transparent_22%)]" />
-          <div className="relative rounded-[2rem] border border-border/70 bg-card/92 px-8 py-10 shadow-sm backdrop-blur md:px-12 md:py-12">
-            <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-              <div className="max-w-2xl space-y-3">
-                <Badge variant="outline" className="rounded-full">
-                  Start with what you&apos;ve already done
-                </Badge>
-                <h2 className="text-3xl font-semibold tracking-tight text-balance md:text-4xl">
-                  Your accomplishments are the asset. We just help you deploy
-                  them.
+        {/* The promise */}
+        <section className="mx-auto max-w-5xl px-6 py-24 md:py-32">
+          <div className="mx-auto max-w-3xl text-center">
+            <div className="inline-flex items-center gap-2 rounded-full bg-emerald-600/10 px-4 py-1.5 text-sm font-medium text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-400">
+              <svg
+                className="size-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m4.5 12.75 6 6 9-13.5"
+                />
+              </svg>
+              No hallucinations. Ever.
+            </div>
+            <h2 className="mt-6 text-3xl font-semibold tracking-tight md:text-4xl">
+              Every bullet on your resume traces back to something you actually
+              did.
+            </h2>
+            <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+              Other AI tools invent accomplishments, inflate metrics, and
+              produce resumes that fall apart in interviews. Resume Coach only
+              works with what you&apos;ve logged — it selects, rephrases, and
+              prioritizes, but it never fabricates.
+            </p>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="border-t border-border/40">
+          <div className="relative overflow-hidden">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_120%,oklch(0.65_0.15_250/0.12),transparent)]" />
+            <div className="relative mx-auto max-w-5xl px-6 py-24 md:py-32">
+              <div className="mx-auto max-w-2xl text-center">
+                <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
+                  Your accomplishments are the asset.
+                  <br />
+                  <span className="text-muted-foreground">
+                    We just help you deploy them.
+                  </span>
                 </h2>
-                <p className="text-base leading-8 text-muted-foreground">
-                  Log your work, keep it current, and when you&apos;re ready to
-                  move — get a resume that&apos;s authentic, tailored, and
-                  grounded in what you actually did.
-                </p>
-              </div>
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Button asChild size="lg" className="rounded-full px-7">
-                  <Link href="/signup">Create your profile</Link>
-                </Button>
-                <Button
-                  asChild
-                  size="lg"
-                  variant="outline"
-                  className="rounded-full px-7"
-                >
-                  <Link href="/login">Sign in</Link>
-                </Button>
+                <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                  <Button asChild size="lg" className="px-8">
+                    <Link href="/signup">Create your profile</Link>
+                  </Button>
+                  <Button asChild size="lg" variant="ghost">
+                    <Link href="/login">Sign in</Link>
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
