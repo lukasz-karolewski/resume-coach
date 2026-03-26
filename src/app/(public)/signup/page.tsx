@@ -68,9 +68,9 @@ export default function SignUpPage() {
 
   return (
     <AuthScreen
-      badge="Create account"
-      title="Start your application tracker"
-      description="Save job links, generate tailored resumes and cover letters, and prep for interviews in one place."
+      badge="Get started"
+      title="Start logging your accomplishments"
+      description="Build your career profile over time. When the right role comes along, get a resume that's grounded in what you actually did."
       secondaryAction={
         <>
           <div className="relative">

@@ -44,25 +44,25 @@ export function AuthScreen({
                 Resume Coach
               </Link>
               <h1 className="max-w-lg text-5xl font-semibold leading-tight tracking-tight text-balance">
-                Track the role, tailor the story, and walk into the interview
-                prepared.
+                Your accomplishments are the resume. We just help you deploy
+                them.
               </h1>
               <p className="max-w-md text-base leading-7 text-muted-foreground">
-                Keep every job link, resume draft, cover letter, and prep note
-                connected so each application gets sharper with less friction.
+                Log your wins as they happen. When the right role appears, get a
+                tailored resume grounded entirely in what you actually did.
               </p>
             </div>
           </div>
 
           <div className="space-y-3">
             <p className="text-sm font-medium">
-              What changes in this UI direction
+              Built for tech professionals
             </p>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>Clearer hierarchy built from shared shadcn primitives.</li>
-              <li>Lower visual noise in forms, nav, and account surfaces.</li>
+              <li>Continuous accomplishment tracking with reminders.</li>
+              <li>AI-tailored resumes — no hallucinations, ever.</li>
               <li>
-                Reusable app-shell patterns instead of route-specific styling.
+                Perf review drafts from the same accomplishment log.
               </li>
             </ul>
           </div>

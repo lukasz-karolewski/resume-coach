@@ -64,9 +64,9 @@ export default function LoginPage() {
 
   return (
     <AuthScreen
-      badge="Sign in"
-      title="Pick up your search where you left off"
-      description="Open your tracker, refine role-specific resumes, and keep interview prep moving."
+      badge="Welcome back"
+      title="Pick up where you left off"
+      description="Check your accomplishment log, refine tailored resumes, and keep your career story current."
       secondaryAction={
         <>
           <div className="relative">

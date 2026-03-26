@@ -1,6 +1,6 @@
 const siteConfig = {
   description:
-    "Track job applications, paste posting links, generate role-optimized resumes and cover letters, and prepare for interviews in one organized workspace.",
+    "Log your accomplishments as they happen. When you find the right role, get a tailored resume built from what you actually did — no hallucinations.",
   name: "Resume Coach",
   titleTemplate: "%s | Resume Coach",
   url: "https://resume-coach-iota.vercel.app",
