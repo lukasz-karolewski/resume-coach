@@ -1,14 +1,14 @@
 import { expect, test } from "@playwright/test";
 
 test("landing page is correct", async ({ page }) => {
-  await page.goto("http://localhost:3000/signup");
+  await page.goto("/signup");
   await expect(
     page.getByRole("heading", { name: "Create an Account" }),
   ).toBeVisible();
 });
 
 test("test signup", async ({ page }) => {
-  await page.goto("http://localhost:3000/signup");
+  await page.goto("/signup");
   await page.getByRole("textbox", { name: "Name" }).click();
   await page.getByRole("textbox", { name: "Name" }).fill("lukasz");
   await page.getByRole("textbox", { name: "Name" }).press("Tab");

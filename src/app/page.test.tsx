@@ -33,13 +33,17 @@ describe("HomePage", () => {
     render(await HomePage());
 
     expect(
-      screen.getByText(
-        /turn job links into organized applications, stronger resumes/i,
-      ),
+      screen.getByRole("heading", {
+        level: 1,
+        name: /your career story,\s*logged as it happens\./i,
+      }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: /start tracking roles/i }),
+      screen.getByRole("link", { name: /start logging accomplishments/i }),
     ).toHaveAttribute("href", "/signup");
+    expect(
+      screen.getByRole("link", { name: /i already have an account/i }),
+    ).toHaveAttribute("href", "/login");
   });
 
   test("redirects authenticated users to resume", async () => {
