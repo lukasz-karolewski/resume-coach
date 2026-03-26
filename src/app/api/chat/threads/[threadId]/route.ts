@@ -21,10 +21,15 @@ export async function GET(
     const thread = await getChatThreadMessages(db, session.user.id, threadId);
     return NextResponse.json(thread);
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
-    const status = message === "Conversation not found" ? 404 : 500;
+    if (error instanceof Error && error.message === "Conversation not found") {
+      return NextResponse.json({ error: error.message }, { status: 404 });
+    }
 
-    return NextResponse.json({ error: message }, { status });
+    return NextResponse.json(
+      {
+        error: "Internal server error",
+      },
+      { status: 500 },
+    );
   }
 }

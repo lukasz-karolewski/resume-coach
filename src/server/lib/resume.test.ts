@@ -39,6 +39,7 @@ const createMockDb = () => ({
   position: {
     create: vi.fn(),
     createMany: vi.fn(),
+    findFirst: vi.fn(),
     update: vi.fn(),
   },
   positionSkill: {
@@ -50,7 +51,6 @@ const createMockDb = () => ({
     delete: vi.fn(),
     findFirst: vi.fn(),
     findMany: vi.fn(),
-    findUnique: vi.fn(),
     update: vi.fn(),
   },
   skill: {
@@ -394,7 +394,7 @@ describe("resume lib", () => {
         "### [Tech Corp](https://techcorp.example.com)",
       );
       expect(markdown).toContain("**Staff Engineer**");
-      expect(markdown).toContain("Remote | Jan 2022 - Present");
+      expect(markdown).toContain("Remote | Dec 2021 - Present");
       expect(markdown).toContain("- Led platform rewrite");
       expect(markdown).toContain("## Education");
       expect(markdown).toContain("## Certifications");
@@ -1073,14 +1073,34 @@ describe("resume lib", () => {
   });
 
   describe("agent helpers", () => {
+    it("rejects accomplishments updates for unowned positions", async () => {
+      mockDb.position.findFirst.mockResolvedValue(null);
+
+      await expect(
+        updateAccomplishments(mockDb as unknown as PrismaClient, userId, {
+          accomplishments: "- Improved conversion",
+          positionId: 4,
+        }),
+      ).rejects.toMatchObject({
+        code: "NOT_FOUND",
+        message: "Position not found",
+      });
+
+      expect(mockDb.position.update).not.toHaveBeenCalled();
+    });
+
     it("updates accomplishments", async () => {
+      mockDb.position.findFirst.mockResolvedValue({
+        id: 4,
+        title: "Staff Engineer",
+      });
       mockDb.position.update.mockResolvedValue({
         id: 4,
         title: "Staff Engineer",
       });
 
       await expect(
-        updateAccomplishments(mockDb as unknown as PrismaClient, {
+        updateAccomplishments(mockDb as unknown as PrismaClient, userId, {
           accomplishments: "- Improved conversion",
           positionId: 4,
         }),
@@ -1091,11 +1111,28 @@ describe("resume lib", () => {
       });
     });
 
+    it("rejects summary updates for unowned resumes", async () => {
+      mockDb.resume.findFirst.mockResolvedValue(null);
+
+      await expect(
+        updateSummary(mockDb as unknown as PrismaClient, userId, {
+          resumeId: 10,
+          summary: "New summary",
+        }),
+      ).rejects.toMatchObject({
+        code: "NOT_FOUND",
+        message: "Resume not found",
+      });
+
+      expect(mockDb.resume.update).not.toHaveBeenCalled();
+    });
+
     it("updates summary", async () => {
+      mockDb.resume.findFirst.mockResolvedValue({ id: 10 });
       mockDb.resume.update.mockResolvedValue({ id: 10 });
 
       await expect(
-        updateSummary(mockDb as unknown as PrismaClient, {
+        updateSummary(mockDb as unknown as PrismaClient, userId, {
           resumeId: 10,
           summary: "New summary",
         }),
@@ -1105,14 +1142,36 @@ describe("resume lib", () => {
       });
     });
 
+    it("rejects experience creation for unowned resumes", async () => {
+      mockDb.resume.findFirst.mockResolvedValue(null);
+
+      await expect(
+        addExperience(mockDb as unknown as PrismaClient, userId, {
+          accomplishments: "- Launched AI search",
+          companyName: "Tech Corp",
+          endDate: "2024-01-01",
+          location: "Remote",
+          resumeId: 10,
+          startDate: "2023-01-01",
+          title: "Principal Engineer",
+        }),
+      ).rejects.toMatchObject({
+        code: "NOT_FOUND",
+        message: "Resume not found",
+      });
+
+      expect(mockDb.position.create).not.toHaveBeenCalled();
+      expect(mockDb.experience.create).not.toHaveBeenCalled();
+    });
+
     it("adds a position to an existing company experience", async () => {
-      mockDb.resume.findUnique.mockResolvedValue({
+      mockDb.resume.findFirst.mockResolvedValue({
         experience: [{ companyName: "Tech Corp", id: 8 }],
         id: 10,
       });
 
       await expect(
-        addExperience(mockDb as unknown as PrismaClient, {
+        addExperience(mockDb as unknown as PrismaClient, userId, {
           accomplishments: "- Launched AI search",
           companyName: "Tech Corp",
           endDate: "2024-01-01",
@@ -1139,12 +1198,12 @@ describe("resume lib", () => {
     });
 
     it("creates a new experience when the company is not present", async () => {
-      mockDb.resume.findUnique.mockResolvedValue({
+      mockDb.resume.findFirst.mockResolvedValue({
         experience: [],
         id: 10,
       });
 
-      await addExperience(mockDb as unknown as PrismaClient, {
+      await addExperience(mockDb as unknown as PrismaClient, userId, {
         accomplishments: "- Built platform",
         companyName: "New Corp",
         location: "Remote",
@@ -1171,14 +1230,34 @@ describe("resume lib", () => {
       });
     });
 
+    it("rejects skill replacement for unowned positions", async () => {
+      mockDb.position.findFirst.mockResolvedValue(null);
+
+      await expect(
+        updateSkills(mockDb as unknown as PrismaClient, userId, {
+          positionId: 9,
+          skills: ["TypeScript", "Prisma ORM"],
+        }),
+      ).rejects.toMatchObject({
+        code: "NOT_FOUND",
+        message: "Position not found",
+      });
+
+      expect(mockDb.positionSkill.deleteMany).not.toHaveBeenCalled();
+    });
+
     it("replaces position skills and creates missing skills", async () => {
+      mockDb.position.findFirst.mockResolvedValue({
+        id: 9,
+        title: "Principal Engineer",
+      });
       mockDb.skill.findUnique
         .mockResolvedValueOnce({ id: 1, name: "TypeScript" })
         .mockResolvedValueOnce(null);
       mockDb.skill.create.mockResolvedValue({ id: 2, name: "Prisma ORM" });
 
       await expect(
-        updateSkills(mockDb as unknown as PrismaClient, {
+        updateSkills(mockDb as unknown as PrismaClient, userId, {
           positionId: 9,
           skills: ["TypeScript", "Prisma ORM"],
         }),

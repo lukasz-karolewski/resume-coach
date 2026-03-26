@@ -119,6 +119,61 @@ export const updateSkillsSchema = z.object({
 
 type ResumeWithMarkdownRelations = Awaited<ReturnType<typeof getResume>>;
 
+async function requireOwnedResume(
+  db: PrismaClient,
+  userId: string,
+  resumeId: number,
+) {
+  const resume = await db.resume.findFirst({
+    select: {
+      id: true,
+    },
+    where: {
+      id: resumeId,
+      userId,
+    },
+  });
+
+  if (!resume) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Resume not found",
+    });
+  }
+
+  return resume;
+}
+
+async function requireOwnedPosition(
+  db: PrismaClient,
+  userId: string,
+  positionId: number,
+) {
+  const position = await db.position.findFirst({
+    select: {
+      id: true,
+      title: true,
+    },
+    where: {
+      experience: {
+        resume: {
+          userId,
+        },
+      },
+      id: positionId,
+    },
+  });
+
+  if (!position) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Position not found",
+    });
+  }
+
+  return position;
+}
+
 function formatDateRange(startDate: Date, endDate?: Date | null) {
   const start = startDate.toLocaleDateString("en-US", {
     month: "short",
@@ -880,8 +935,11 @@ export async function createResumeCopy(
  */
 export async function updateAccomplishments(
   db: PrismaClient,
+  userId: string,
   input: z.infer<typeof updateAccomplishmentsSchema>,
 ) {
+  await requireOwnedPosition(db, userId, input.positionId);
+
   const position = await db.position.update({
     data: {
       accomplishments: input.accomplishments,
@@ -901,8 +959,11 @@ export async function updateAccomplishments(
  */
 export async function updateSummary(
   db: PrismaClient,
+  userId: string,
   input: z.infer<typeof updateSummarySchema>,
 ) {
+  await requireOwnedResume(db, userId, input.resumeId);
+
   const resume = await db.resume.update({
     data: { summary: input.summary },
     where: { id: input.resumeId },
@@ -919,15 +980,22 @@ export async function updateSummary(
  */
 export async function addExperience(
   db: PrismaClient,
+  userId: string,
   input: z.infer<typeof addExperienceSchema>,
 ) {
-  const resume = await db.resume.findUnique({
+  const resume = await db.resume.findFirst({
     include: { experience: true },
-    where: { id: input.resumeId },
+    where: {
+      id: input.resumeId,
+      userId,
+    },
   });
 
   if (!resume) {
-    throw new Error("Resume not found");
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Resume not found",
+    });
   }
 
   // Check if experience for this company already exists
@@ -978,8 +1046,11 @@ export async function addExperience(
  */
 export async function updateSkills(
   db: PrismaClient,
+  userId: string,
   input: z.infer<typeof updateSkillsSchema>,
 ) {
+  await requireOwnedPosition(db, userId, input.positionId);
+
   // Remove existing skills
   await db.positionSkill.deleteMany({
     where: { positionId: input.positionId },

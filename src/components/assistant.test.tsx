@@ -1,14 +1,17 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import Assistant from "./assistant";
 
-const { push, useChatStream } = vi.hoisted(() => ({
+const { navigationState, push, useChatStream } = vi.hoisted(() => ({
+  navigationState: {
+    pathname: "/resume/1",
+  },
   push: vi.fn(),
   useChatStream: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
-  usePathname: vi.fn(() => "/resume/1"),
+  usePathname: vi.fn(() => navigationState.pathname),
   useRouter: vi.fn(() => ({
     push,
   })),
@@ -22,17 +25,35 @@ describe("Assistant", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     sessionStorage.clear();
+    navigationState.pathname = "/resume/1";
     vi.stubGlobal(
       "fetch",
       vi.fn(async (input: RequestInfo | URL) => {
-        if (input === "/api/chat/threads") {
+        if (input === "/api/chat/threads?resumeId=1") {
           return {
             json: async () => ({
               threads: [
                 {
                   createdAt: "2026-03-23T00:00:00.000Z",
                   id: "thread-123",
+                  resumeId: 1,
                   summary: "First conversation",
+                },
+              ],
+            }),
+            ok: true,
+          } as Response;
+        }
+
+        if (input === "/api/chat/threads?resumeId=2") {
+          return {
+            json: async () => ({
+              threads: [
+                {
+                  createdAt: "2026-03-24T00:00:00.000Z",
+                  id: "thread-456",
+                  resumeId: 2,
+                  summary: "Second conversation",
                 },
               ],
             }),
@@ -78,14 +99,14 @@ describe("Assistant", () => {
       };
     });
 
-    sessionStorage.setItem("chatThreadId", "thread-123");
+    sessionStorage.setItem("chatThreadId:resume:1", "thread-123");
 
     render(<Assistant />);
 
     capturedOptions?.onViewResume?.(42);
 
     expect(resetChat).toHaveBeenCalled();
-    expect(sessionStorage.getItem("chatThreadId")).toBeNull();
+    expect(sessionStorage.getItem("chatThreadId:resume:1")).toBe("thread-123");
     expect(push).toHaveBeenCalledWith("/resume/42");
   });
 
@@ -139,7 +160,7 @@ describe("Assistant", () => {
   });
 
   test("shows the conversation dropdown in the chat window", async () => {
-    sessionStorage.setItem("chatThreadId", "thread-123");
+    sessionStorage.setItem("chatThreadId:resume:1", "thread-123");
 
     render(<Assistant />);
 
@@ -148,5 +169,50 @@ describe("Assistant", () => {
     expect(
       await screen.findByLabelText("Select conversation"),
     ).toBeInTheDocument();
+  });
+
+  test("loads resume-scoped conversations and restores the scoped thread id", async () => {
+    sessionStorage.setItem("chatThreadId:resume:1", "thread-123");
+
+    render(<Assistant />);
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith("/api/chat/threads?resumeId=1");
+      expect(useChatStream).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          resumeId: 1,
+          threadId: "thread-123",
+        }),
+      );
+    });
+  });
+
+  test("switches to the correct stored thread when the resume route changes", async () => {
+    sessionStorage.setItem("chatThreadId:resume:1", "thread-123");
+    sessionStorage.setItem("chatThreadId:resume:2", "thread-456");
+
+    const { rerender } = render(<Assistant />);
+
+    await waitFor(() => {
+      expect(useChatStream).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          resumeId: 1,
+          threadId: "thread-123",
+        }),
+      );
+    });
+
+    navigationState.pathname = "/resume/2";
+    rerender(<Assistant />);
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith("/api/chat/threads?resumeId=2");
+      expect(useChatStream).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          resumeId: 2,
+          threadId: "thread-456",
+        }),
+      );
+    });
   });
 });

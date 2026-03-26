@@ -19,7 +19,11 @@ function summarizeConversation(content: string | null | undefined) {
   return normalized.slice(0, 100);
 }
 
-export async function listChatThreads(db: PrismaClient, userId: string) {
+export async function listChatThreads(
+  db: PrismaClient,
+  userId: string,
+  resumeId?: number,
+) {
   const threads = await db.chatThread.findMany({
     include: {
       messages: {
@@ -36,6 +40,7 @@ export async function listChatThreads(db: PrismaClient, userId: string) {
       updatedAt: "desc",
     },
     where: {
+      ...(resumeId !== undefined ? { resumeId } : {}),
       userId,
     },
   });

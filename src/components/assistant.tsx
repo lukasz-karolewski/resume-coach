@@ -12,16 +12,36 @@ interface ConversationSummary {
   summary: string;
 }
 
+function getChatThreadStorageKey(resumeId?: number) {
+  return resumeId === undefined
+    ? "chatThreadId"
+    : `chatThreadId:resume:${resumeId}`;
+}
+
+function getChatThreadsUrl(resumeId?: number) {
+  if (resumeId === undefined) {
+    return "/api/chat/threads";
+  }
+
+  const searchParams = new URLSearchParams({
+    resumeId: String(resumeId),
+  });
+  return `/api/chat/threads?${searchParams.toString()}`;
+}
+
 const Assistant: React.FC = () => {
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [threadId, setThreadId] = useState<string | undefined>();
   const pathname = usePathname();
   const router = useRouter();
+  const resumePathMatch = pathname?.match(/^\/resume\/(-?\d+)$/);
+  const resumeId = resumePathMatch ? Number(resumePathMatch[1]) : undefined;
+  const chatThreadStorageKey = getChatThreadStorageKey(resumeId);
 
   const loadConversations = useCallback(async () => {
     try {
-      const response = await fetch("/api/chat/threads");
+      const response = await fetch(getChatThreadsUrl(resumeId));
 
       if (!response.ok) {
         throw new Error(`Failed to load conversations: ${response.status}`);
@@ -31,22 +51,29 @@ const Assistant: React.FC = () => {
         threads: ConversationSummary[];
       };
       setConversations(data.threads);
+      setThreadId((currentThreadId) => {
+        if (
+          currentThreadId &&
+          !data.threads.some(
+            (conversation) => conversation.id === currentThreadId,
+          )
+        ) {
+          sessionStorage.removeItem(chatThreadStorageKey);
+          return undefined;
+        }
+
+        return currentThreadId;
+      });
     } catch (error) {
       console.error("Failed to load conversations", error);
     }
-  }, []);
+  }, [chatThreadStorageKey, resumeId]);
 
-  // Load threadId from sessionStorage on mount
   useEffect(() => {
-    const savedThreadId = sessionStorage.getItem("chatThreadId");
-    if (savedThreadId) {
-      setThreadId(savedThreadId);
-    }
+    const savedThreadId = sessionStorage.getItem(chatThreadStorageKey);
+    setThreadId(savedThreadId ?? undefined);
     void loadConversations();
-  }, [loadConversations]);
-
-  const resumePathMatch = pathname?.match(/^\/resume\/(-?\d+)$/);
-  const resumeId = resumePathMatch ? Number(resumePathMatch[1]) : undefined;
+  }, [chatThreadStorageKey, loadConversations]);
 
   const {
     cancelRequest,
@@ -60,12 +87,11 @@ const Assistant: React.FC = () => {
   } = useChatStream({
     onThreadCreated: (newThreadId) => {
       setThreadId(newThreadId);
-      sessionStorage.setItem("chatThreadId", newThreadId);
+      sessionStorage.setItem(chatThreadStorageKey, newThreadId);
       void loadConversations();
     },
     onViewResume: (nextResumeId) => {
       setThreadId(undefined);
-      sessionStorage.removeItem("chatThreadId");
       resetChat();
       router.push(`/resume/${nextResumeId}`);
     },
@@ -75,7 +101,7 @@ const Assistant: React.FC = () => {
 
   const handleNewThread = () => {
     setThreadId(undefined);
-    sessionStorage.removeItem("chatThreadId");
+    sessionStorage.removeItem(chatThreadStorageKey);
     resetChat();
   };
 
@@ -86,7 +112,7 @@ const Assistant: React.FC = () => {
     }
 
     setThreadId(nextThreadId);
-    sessionStorage.setItem("chatThreadId", nextThreadId);
+    sessionStorage.setItem(chatThreadStorageKey, nextThreadId);
   };
 
   return (
