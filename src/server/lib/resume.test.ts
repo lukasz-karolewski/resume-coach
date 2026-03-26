@@ -394,7 +394,7 @@ describe("resume lib", () => {
         "### [Tech Corp](https://techcorp.example.com)",
       );
       expect(markdown).toContain("**Staff Engineer**");
-      expect(markdown).toContain("Remote | Dec 2021 - Present");
+      expect(markdown).toContain("Remote | Jan 2022 - Present");
       expect(markdown).toContain("- Led platform rewrite");
       expect(markdown).toContain("## Education");
       expect(markdown).toContain("## Certifications");
