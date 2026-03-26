@@ -58,9 +58,12 @@ export const cloneResumeTool = tool(
  * Tool: Update accomplishments for a specific position
  */
 export const updateAccomplishmentsTool = tool(
-  async ({ positionId, accomplishments }) => {
+  async (
+    { positionId, accomplishments },
+    runtime: ToolRuntime<typeof stateSchema, typeof contextSchema>,
+  ) => {
     try {
-      const result = await updateAccomplishments(db, {
+      const result = await updateAccomplishments(db, runtime.context.userId, {
         accomplishments,
         positionId,
       });
@@ -97,7 +100,7 @@ export const updateSummaryTool = tool(
     }
 
     try {
-      const result = await updateSummary(db, {
+      const result = await updateSummary(db, runtime.context.userId, {
         resumeId: runtime.context.currentResumeId,
         summary,
       });
@@ -148,17 +151,20 @@ export const getResumeTool = tool(
  * Tool: Add new work experience to resume
  */
 export const addExperienceTool = tool(
-  async ({
-    resumeId,
-    companyName,
-    title,
-    startDate,
-    endDate,
-    location,
-    accomplishments,
-  }) => {
+  async (
+    {
+      resumeId,
+      companyName,
+      title,
+      startDate,
+      endDate,
+      location,
+      accomplishments,
+    },
+    runtime: ToolRuntime<typeof stateSchema, typeof contextSchema>,
+  ) => {
     try {
-      const result = await addExperience(db, {
+      const result = await addExperience(db, runtime.context.userId, {
         accomplishments,
         companyName,
         endDate,
@@ -186,9 +192,15 @@ export const addExperienceTool = tool(
  * Tool: Update skills for a position
  */
 export const updateSkillsTool = tool(
-  async ({ positionId, skills }) => {
+  async (
+    { positionId, skills },
+    runtime: ToolRuntime<typeof stateSchema, typeof contextSchema>,
+  ) => {
     try {
-      const result = await updateSkills(db, { positionId, skills });
+      const result = await updateSkills(db, runtime.context.userId, {
+        positionId,
+        skills,
+      });
       return result;
     } catch (error) {
       return {

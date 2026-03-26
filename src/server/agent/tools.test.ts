@@ -1,10 +1,22 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { z } from "zod";
 
-const { createResumeCopy, getResume, listResumes } = vi.hoisted(() => ({
+const {
+  addExperience,
+  createResumeCopy,
+  getResume,
+  listResumes,
+  updateAccomplishments,
+  updateSkills,
+  updateSummary,
+} = vi.hoisted(() => ({
+  addExperience: vi.fn(),
   createResumeCopy: vi.fn(),
   getResume: vi.fn(),
   listResumes: vi.fn(),
+  updateAccomplishments: vi.fn(),
+  updateSkills: vi.fn(),
+  updateSummary: vi.fn(),
 }));
 
 vi.mock("@langchain/core/tools", () => ({
@@ -37,7 +49,7 @@ vi.mock("~/server/lib/job", () => ({
 }));
 
 vi.mock("~/server/lib/resume", () => ({
-  addExperience: vi.fn(),
+  addExperience,
   addExperienceSchema: z.object({
     accomplishments: z.string(),
     companyName: z.string(),
@@ -62,24 +74,32 @@ vi.mock("~/server/lib/resume", () => ({
       jobId: z.string().optional(),
     })
     .optional(),
-  updateAccomplishments: vi.fn(),
+  updateAccomplishments,
   updateAccomplishmentsSchema: z.object({
     accomplishments: z.string(),
     positionId: z.number(),
   }),
-  updateSkills: vi.fn(),
+  updateSkills,
   updateSkillsSchema: z.object({
     positionId: z.number(),
     skills: z.array(z.string()),
   }),
-  updateSummary: vi.fn(),
+  updateSummary,
   updateSummarySchema: z.object({
     resumeId: z.number(),
     summary: z.string(),
   }),
 }));
 
-import { cloneResumeTool, getResumeTool, listResumesTool } from "./tools";
+import {
+  addExperienceTool,
+  cloneResumeTool,
+  getResumeTool,
+  listResumesTool,
+  updateAccomplishmentsTool,
+  updateSkillsTool,
+  updateSummaryTool,
+} from "./tools";
 
 describe("cloneResumeTool", () => {
   beforeEach(() => {
@@ -168,5 +188,154 @@ describe("listResumesTool", () => {
     ).resolves.toEqual(result);
 
     expect(listResumes).toHaveBeenCalledWith({}, "user-123");
+  });
+});
+
+describe("updateSummaryTool", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test("passes the runtime user context to the shared summary updater", async () => {
+    updateSummary.mockResolvedValue({ resumeId: 42, success: true });
+
+    await expect(
+      updateSummaryTool.invoke(
+        { summary: "Sharper summary" },
+        {
+          context: {
+            currentResumeId: 42,
+            userId: "user-123",
+          },
+        },
+      ),
+    ).resolves.toEqual({ resumeId: 42, success: true });
+
+    expect(updateSummary).toHaveBeenCalledWith({}, "user-123", {
+      resumeId: 42,
+      summary: "Sharper summary",
+    });
+  });
+});
+
+describe("updateAccomplishmentsTool", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test("passes the runtime user context to the shared accomplishments updater", async () => {
+    updateAccomplishments.mockResolvedValue({
+      positionId: 9,
+      success: true,
+      title: "Principal Engineer",
+    });
+
+    await expect(
+      updateAccomplishmentsTool.invoke(
+        {
+          accomplishments: "- Improved conversion",
+          positionId: 9,
+        },
+        {
+          context: {
+            currentResumeId: 42,
+            userId: "user-123",
+          },
+        },
+      ),
+    ).resolves.toEqual({
+      positionId: 9,
+      success: true,
+      title: "Principal Engineer",
+    });
+
+    expect(updateAccomplishments).toHaveBeenCalledWith({}, "user-123", {
+      accomplishments: "- Improved conversion",
+      positionId: 9,
+    });
+  });
+});
+
+describe("addExperienceTool", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test("passes the runtime user context to the shared experience creator", async () => {
+    addExperience.mockResolvedValue({
+      message: "Added Principal Engineer at Tech Corp",
+      success: true,
+    });
+
+    await expect(
+      addExperienceTool.invoke(
+        {
+          accomplishments: "- Launched AI search",
+          companyName: "Tech Corp",
+          endDate: "2024-01-01",
+          location: "Remote",
+          resumeId: 42,
+          startDate: "2023-01-01",
+          title: "Principal Engineer",
+        },
+        {
+          context: {
+            currentResumeId: 42,
+            userId: "user-123",
+          },
+        },
+      ),
+    ).resolves.toEqual({
+      message: "Added Principal Engineer at Tech Corp",
+      success: true,
+    });
+
+    expect(addExperience).toHaveBeenCalledWith({}, "user-123", {
+      accomplishments: "- Launched AI search",
+      companyName: "Tech Corp",
+      endDate: "2024-01-01",
+      location: "Remote",
+      resumeId: 42,
+      startDate: "2023-01-01",
+      title: "Principal Engineer",
+    });
+  });
+});
+
+describe("updateSkillsTool", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test("passes the runtime user context to the shared skills updater", async () => {
+    updateSkills.mockResolvedValue({
+      positionId: 9,
+      skills: ["TypeScript", "Prisma ORM"],
+      success: true,
+    });
+
+    await expect(
+      updateSkillsTool.invoke(
+        {
+          positionId: 9,
+          skills: ["TypeScript", "Prisma ORM"],
+        },
+        {
+          context: {
+            currentResumeId: 42,
+            userId: "user-123",
+          },
+        },
+      ),
+    ).resolves.toEqual({
+      positionId: 9,
+      skills: ["TypeScript", "Prisma ORM"],
+      success: true,
+    });
+
+    expect(updateSkills).toHaveBeenCalledWith({}, "user-123", {
+      positionId: 9,
+      skills: ["TypeScript", "Prisma ORM"],
+    });
   });
 });
