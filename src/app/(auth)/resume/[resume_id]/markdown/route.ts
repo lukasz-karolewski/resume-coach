@@ -50,15 +50,22 @@ export async function GET(
       status: 200,
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
-    const status = message === "Resume not found" ? 404 : 500;
+    const message = error instanceof Error ? error.message : null;
 
-    return new Response(message, {
+    if (message === "Resume not found") {
+      return new Response(message, {
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+        },
+        status: 404,
+      });
+    }
+
+    return new Response("Internal server error", {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
       },
-      status,
+      status: 500,
     });
   }
 }

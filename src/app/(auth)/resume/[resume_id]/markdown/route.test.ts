@@ -110,4 +110,23 @@ describe("resume markdown route", () => {
     expect(response.status).toBe(404);
     await expect(response.text()).resolves.toBe("Resume not found");
   });
+
+  test("does not leak unexpected export errors", async () => {
+    getSession.mockResolvedValue({
+      user: {
+        id: "user-123",
+      },
+    });
+    getResumeMarkdown.mockRejectedValue(new Error("database exploded"));
+
+    const response = await GET(
+      new Request("http://localhost/resume/1/markdown"),
+      {
+        params: Promise.resolve({ resume_id: "1" }),
+      } as RouteContext<"/resume/[resume_id]/markdown">,
+    );
+
+    expect(response.status).toBe(500);
+    await expect(response.text()).resolves.toBe("Internal server error");
+  });
 });
