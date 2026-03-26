@@ -345,6 +345,65 @@ export default async function HomePage() {
           </div>
         </section>
       </main>
+
+      {/* Footer */}
+      <footer className="border-t border-border/40">
+        <div className="mx-auto max-w-5xl px-6 py-12">
+          <div className="flex flex-col items-center justify-between gap-8 sm:flex-row sm:items-start">
+            <div className="space-y-3 text-center sm:text-left">
+              <Link
+                href="/"
+                className="text-sm font-semibold tracking-[0.2em] uppercase text-foreground"
+              >
+                Resume Coach
+              </Link>
+              <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
+                Log accomplishments. Get tailored resumes. No hallucinations.
+              </p>
+            </div>
+
+            <div className="flex gap-12 text-sm">
+              <div className="space-y-3">
+                <p className="font-medium text-foreground">Product</p>
+                <ul className="space-y-2 text-muted-foreground">
+                  <li>
+                    <Link
+                      href="/signup"
+                      className="transition-colors hover:text-foreground"
+                    >
+                      Get started
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/login"
+                      className="transition-colors hover:text-foreground"
+                    >
+                      Sign in
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+              <div className="space-y-3">
+                <p className="font-medium text-foreground">Legal</p>
+                <ul className="space-y-2 text-muted-foreground">
+                  <li>
+                    <span className="cursor-default">Privacy</span>
+                  </li>
+                  <li>
+                    <span className="cursor-default">Terms</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-10 border-t border-border/40 pt-6 text-center text-xs text-muted-foreground">
+            &copy; {new Date().getFullYear()} Resume Coach. All rights
+            reserved.
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
