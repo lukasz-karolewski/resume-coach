@@ -21,6 +21,7 @@ model User {
   jobs          Job[]
   resumes       Resume[]
   chatThreads   ChatThread[]
+  accomplishmentProfile AccomplishmentProfile?
 
   linkedInProfileURL String? // Store LinkedIn profile URL
 
@@ -265,6 +266,50 @@ model ChatMessage {
 
   @@index([threadId])
   @@map("chat_messages")
+}
+
+model AccomplishmentProfile {
+  id        Int      @id @default(autoincrement())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  roles AccomplishmentRole[]
+}
+
+model AccomplishmentRole {
+  id        Int      @id @default(autoincrement())
+  profileId Int
+  profile   AccomplishmentProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  companyName String
+  title       String
+  location    String?
+  startDate   DateTime?
+  endDate     DateTime?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  entries AccomplishmentEntry[]
+
+  @@index([profileId])
+  @@index([profileId, sortOrder])
+}
+
+model AccomplishmentEntry {
+  id        Int      @id @default(autoincrement())
+  roleId     Int
+  role       AccomplishmentRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  content   String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([roleId])
+  @@index([roleId, sortOrder])
 }
 
 // end region App models

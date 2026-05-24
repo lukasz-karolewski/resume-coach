@@ -23,6 +23,8 @@ export default function CreateResumeButton({
   const [selectedJobId, setSelectedJobId] = useState<string | undefined>();
 
   const { data: jobs } = api.job.getJobs.useQuery();
+  const { data: accomplishmentProfile } =
+    api.profile.getAccomplishmentProfile.useQuery();
 
   const createMutation = api.resume.create.useMutation({
     onSuccess: () => {
@@ -32,6 +34,15 @@ export default function CreateResumeButton({
       router.refresh();
     },
   });
+  const createTailoredMutation =
+    api.resume.createTailoredFromProfile.useMutation({
+      onSuccess: () => {
+        setIsCreateModalOpen(false);
+        setNewResumeName("");
+        setSelectedJobId(undefined);
+        router.refresh();
+      },
+    });
 
   const handleCreateResume = () => {
     createMutation.mutate({
@@ -42,6 +53,20 @@ export default function CreateResumeButton({
       professionalSummary: "",
     });
   };
+
+  const handleGenerateFromProfile = () => {
+    if (!selectedJobId) {
+      return;
+    }
+
+    createTailoredMutation.mutate({
+      jobId: selectedJobId,
+      name: newResumeName || undefined,
+    });
+  };
+
+  const canGenerateFromProfile =
+    Boolean(selectedJobId) && (accomplishmentProfile?.roles.length ?? 0) > 0;
 
   return (
     <>
@@ -84,6 +109,17 @@ export default function CreateResumeButton({
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
+            {canGenerateFromProfile ? (
+              <Button
+                variant="secondary"
+                onClick={handleGenerateFromProfile}
+                disabled={createTailoredMutation.isPending}
+              >
+                {createTailoredMutation.isPending
+                  ? "Generating..."
+                  : "Generate from profile"}
+              </Button>
+            ) : null}
             <Button
               variant="outline"
               onClick={() => setIsCreateModalOpen(false)}

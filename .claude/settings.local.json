@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs ls:*)",
+      "Bash(dig:*)",
+      "Bash(find /workspace/resume-coach/src -type f \\\\\\(-name *.tsx -o -name *.ts \\\\\\))",
+      "Bash(npx next:*)"
+    ]
+  }
+}

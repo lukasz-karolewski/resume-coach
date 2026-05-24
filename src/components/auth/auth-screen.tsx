@@ -55,15 +55,11 @@ export function AuthScreen({
           </div>
 
           <div className="space-y-3">
-            <p className="text-sm font-medium">
-              Built for tech professionals
-            </p>
+            <p className="text-sm font-medium">Built for tech professionals</p>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>Continuous accomplishment tracking with reminders.</li>
               <li>AI-tailored resumes — no hallucinations, ever.</li>
-              <li>
-                Perf review drafts from the same accomplishment log.
-              </li>
+              <li>Perf review drafts from the same accomplishment log.</li>
             </ul>
           </div>
         </div>

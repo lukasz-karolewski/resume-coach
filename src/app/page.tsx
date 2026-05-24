@@ -399,8 +399,7 @@ export default async function HomePage() {
           </div>
 
           <div className="mt-10 border-t border-border/40 pt-6 text-center text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} Resume Coach. All rights
-            reserved.
+            &copy; {new Date().getFullYear()} Resume Coach. All rights reserved.
           </div>
         </div>
       </footer>

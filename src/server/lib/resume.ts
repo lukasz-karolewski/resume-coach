@@ -3,6 +3,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { EducationType, type PrismaClient } from "~/generated/prisma/client";
+import { getAccomplishmentProfile } from "~/server/lib/profile";
 
 // ============================================================================
 // Zod Schemas for CRUD Operations
@@ -72,6 +73,11 @@ export const duplicateResumeSchema = z.object({
   name: z.string().optional(),
 });
 
+export const createTailoredResumeFromProfileSchema = z.object({
+  jobId: z.string().trim().min(1),
+  name: z.string().trim().min(1).optional(),
+});
+
 export const getResumeSchema = z.object({ id: z.number() });
 export const getResumeMarkdownSchema = getResumeSchema;
 
@@ -118,6 +124,40 @@ export const updateSkillsSchema = z.object({
 });
 
 type ResumeWithMarkdownRelations = Awaited<ReturnType<typeof getResume>>;
+
+const MATCH_STOP_WORDS = new Set([
+  "about",
+  "across",
+  "after",
+  "also",
+  "and",
+  "are",
+  "build",
+  "built",
+  "from",
+  "have",
+  "into",
+  "looking",
+  "that",
+  "their",
+  "them",
+  "this",
+  "through",
+  "with",
+  "work",
+]);
+
+type ProfileRoleForTailoring = NonNullable<
+  Awaited<ReturnType<typeof getAccomplishmentProfile>>
+>["roles"][number];
+
+type ProfileEntryForTailoring = ProfileRoleForTailoring["entries"][number];
+
+type TailoredEntryMatch = {
+  entry: ProfileEntryForTailoring;
+  role: ProfileRoleForTailoring;
+  score: number;
+};
 
 async function requireOwnedResume(
   db: PrismaClient,
@@ -177,11 +217,13 @@ async function requireOwnedPosition(
 function formatDateRange(startDate: Date, endDate?: Date | null) {
   const start = startDate.toLocaleDateString("en-US", {
     month: "short",
+    timeZone: "UTC",
     year: "numeric",
   });
   const end = endDate
     ? endDate.toLocaleDateString("en-US", {
         month: "short",
+        timeZone: "UTC",
         year: "numeric",
       })
     : "Present";
@@ -199,6 +241,181 @@ function formatMarkdownLink(label: string, href?: string | null) {
 
 function normalizeMarkdownBlock(value?: string | null) {
   return value?.trim() ?? "";
+}
+
+function tokenizeForMatching(...values: Array<string | null | undefined>) {
+  const tokens = new Set<string>();
+
+  for (const value of values) {
+    if (!value) {
+      continue;
+    }
+
+    const normalizedValue = value.toLowerCase().replace(/[^a-z0-9+#]+/g, " ");
+
+    for (const token of normalizedValue.split(/\s+/)) {
+      if (token.length < 3 || MATCH_STOP_WORDS.has(token)) {
+        continue;
+      }
+
+      tokens.add(token);
+
+      if (token.endsWith("s") && token.length > 4) {
+        tokens.add(token.slice(0, -1));
+      }
+    }
+  }
+
+  return tokens;
+}
+
+function scoreProfileEntryAgainstJob(
+  role: ProfileRoleForTailoring,
+  entry: ProfileEntryForTailoring,
+  jobKeywords: Set<string>,
+) {
+  const entryKeywords = tokenizeForMatching(
+    role.companyName,
+    role.title,
+    role.location,
+    entry.content,
+  );
+
+  let score = 0;
+
+  for (const keyword of entryKeywords) {
+    if (jobKeywords.has(keyword)) {
+      score += role.title.toLowerCase().includes(keyword) ? 3 : 1;
+    }
+  }
+
+  return score;
+}
+
+function selectTailoredEntries(
+  roles: ProfileRoleForTailoring[],
+  jobKeywords: Set<string>,
+) {
+  const matches: TailoredEntryMatch[] = [];
+
+  for (const role of roles) {
+    for (const entry of role.entries) {
+      matches.push({
+        entry,
+        role,
+        score: scoreProfileEntryAgainstJob(role, entry, jobKeywords),
+      });
+    }
+  }
+
+  const rankedMatches = [...matches].sort((left, right) => {
+    if (right.score !== left.score) {
+      return right.score - left.score;
+    }
+
+    if (left.role.sortOrder !== right.role.sortOrder) {
+      return left.role.sortOrder - right.role.sortOrder;
+    }
+
+    return left.entry.sortOrder - right.entry.sortOrder;
+  });
+
+  const selectedMatches = rankedMatches.some((match) => match.score > 0)
+    ? rankedMatches.filter((match) => match.score > 0).slice(0, 6)
+    : rankedMatches.slice(0, 4);
+
+  const groupedMatches = new Map<
+    number,
+    {
+      role: ProfileRoleForTailoring;
+      entries: ProfileEntryForTailoring[];
+    }
+  >();
+
+  for (const match of selectedMatches) {
+    const current = groupedMatches.get(match.role.id);
+
+    if (current) {
+      current.entries.push(match.entry);
+      continue;
+    }
+
+    groupedMatches.set(match.role.id, {
+      entries: [match.entry],
+      role: match.role,
+    });
+  }
+
+  return [...groupedMatches.values()]
+    .map((group) => ({
+      ...group,
+      entries: group.entries
+        .sort((left, right) => left.sortOrder - right.sortOrder)
+        .slice(0, 3),
+    }))
+    .filter((group) => group.entries.length > 0)
+    .filter((group) => group.role.startDate || group.role.endDate);
+}
+
+function buildTailoredResumeName(job: {
+  company?: string | null;
+  title?: string | null;
+}) {
+  if (job.title) {
+    return `${job.title} Resume`;
+  }
+
+  if (job.company) {
+    return `${job.company} Resume`;
+  }
+
+  return "Tailored Resume";
+}
+
+function buildTailoredSummary(
+  job: {
+    company?: string | null;
+    title?: string | null;
+  },
+  selectedRoles: Array<{
+    role: Pick<ProfileRoleForTailoring, "companyName" | "title">;
+  }>,
+  totalEntries: number,
+) {
+  const targetRole = job.title ?? "this role";
+  const sourceRoles = selectedRoles
+    .slice(0, 2)
+    .map(({ role }) => `${role.title} at ${role.companyName}`);
+
+  const summaryParts = [
+    `Tailored for ${targetRole} using ${totalEntries} verified accomplishment${totalEntries === 1 ? "" : "s"} from your profile.`,
+  ];
+
+  if (sourceRoles.length > 0) {
+    summaryParts.push(
+      `Most relevant source roles: ${sourceRoles.join(" and ")}.`,
+    );
+  }
+
+  if (job.company) {
+    summaryParts.push(
+      `Review and refine this draft before sending it to ${job.company}.`,
+    );
+  }
+
+  return summaryParts.join(" ");
+}
+
+function formatTailoredAccomplishments(
+  role: Pick<ProfileRoleForTailoring, "companyName" | "title">,
+  entries: ProfileEntryForTailoring[],
+) {
+  return entries
+    .map(
+      (entry, index) =>
+        `- ${entry.content}\n  _Source: accomplishment profile -> ${role.companyName} / ${role.title} / item ${index + 1}_`,
+    )
+    .join("\n\n");
 }
 
 function collectResumeSkills(resume: ResumeWithMarkdownRelations) {
@@ -416,6 +633,133 @@ export async function createResume(
   });
 
   return resume;
+}
+
+export async function createTailoredResumeFromProfile(
+  db: PrismaClient,
+  userId: string,
+  input: z.infer<typeof createTailoredResumeFromProfileSchema>,
+) {
+  const parsedInput = createTailoredResumeFromProfileSchema.parse(input);
+
+  const job = await db.job.findFirst({
+    where: {
+      id: parsedInput.jobId,
+      userId,
+    },
+  });
+
+  if (!job) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Job not found or does not belong to user",
+    });
+  }
+
+  const accomplishmentProfile = await getAccomplishmentProfile(db, userId);
+
+  if (!accomplishmentProfile || accomplishmentProfile.roles.length === 0) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Add accomplishments to your profile before generating a resume",
+    });
+  }
+
+  const selectedRoles = selectTailoredEntries(
+    accomplishmentProfile.roles,
+    tokenizeForMatching(
+      job.title,
+      job.company,
+      job.description,
+      job.notes,
+      job.url,
+    ),
+  );
+
+  if (selectedRoles.length === 0) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message:
+        "Add at least one dated role to your profile before generating a resume",
+    });
+  }
+
+  const baseResume = await db.resume.findFirst({
+    include: {
+      contactInfo: true,
+      education: true,
+    },
+    orderBy: [{ jobId: "asc" }, { updatedAt: "desc" }],
+    where: {
+      userId,
+    },
+  });
+
+  return db.resume.create({
+    data: {
+      ...(baseResume?.contactInfo
+        ? {
+            contactInfo: {
+              create: {
+                email: baseResume.contactInfo.email,
+                name: baseResume.contactInfo.name,
+                phone: baseResume.contactInfo.phone,
+              },
+            },
+          }
+        : {}),
+      education: {
+        create:
+          baseResume?.education.map((entry) => ({
+            distinction: entry.distinction,
+            endDate: entry.endDate,
+            institution: entry.institution,
+            link: entry.link,
+            location: entry.location,
+            notes: entry.notes,
+            startDate: entry.startDate,
+            type: entry.type,
+          })) ?? [],
+      },
+      experience: {
+        create: selectedRoles.map(({ role, entries }) => ({
+          companyName: role.companyName,
+          link: undefined,
+          positions: {
+            create: [
+              {
+                accomplishments: formatTailoredAccomplishments(role, entries),
+                endDate: role.endDate,
+                location: role.location ?? "",
+                startDate: role.startDate ?? role.endDate ?? new Date(),
+                title: role.title,
+              },
+            ],
+          },
+        })),
+      },
+      jobId: job.id,
+      name: parsedInput.name || buildTailoredResumeName(job),
+      summary: buildTailoredSummary(
+        job,
+        selectedRoles,
+        selectedRoles.reduce(
+          (total, currentRole) => total + currentRole.entries.length,
+          0,
+        ),
+      ),
+      userId,
+    },
+    include: {
+      contactInfo: true,
+      education: true,
+      experience: {
+        include: {
+          positions: true,
+        },
+      },
+    },
+  });
 }
 
 /**

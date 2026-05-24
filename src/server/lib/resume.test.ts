@@ -5,6 +5,7 @@ import {
   addExperience,
   createResume,
   createResumeCopy,
+  createTailoredResumeFromProfile,
   deleteResume,
   duplicateResume,
   getResume,
@@ -19,6 +20,9 @@ import {
 } from "./resume";
 
 const createMockDb = () => ({
+  accomplishmentProfile: {
+    findUnique: vi.fn(),
+  },
   contactInfo: {
     create: vi.fn(),
     update: vi.fn(),
@@ -195,6 +199,180 @@ describe("resume lib", () => {
       ).rejects.toMatchObject({
         code: "BAD_REQUEST",
         message: "Job not found or does not belong to user",
+      });
+    });
+  });
+
+  describe("createTailoredResumeFromProfile", () => {
+    it("creates a grounded tailored resume from the saved job and accomplishment profile", async () => {
+      mockDb.job.findFirst.mockResolvedValue({
+        company: "Acme",
+        description:
+          "Looking for a staff platform engineer to improve reliability, developer experience, and CI/CD systems.",
+        id: "job-123",
+        title: "Staff Platform Engineer",
+        url: "https://example.com/jobs/platform",
+        userId,
+      });
+      mockDb.accomplishmentProfile.findUnique.mockResolvedValue({
+        id: 15,
+        roles: [
+          {
+            companyName: "Orbit",
+            endDate: null,
+            entries: [
+              {
+                content:
+                  "Led the CI/CD migration to GitHub Actions and cut deploy times from 45 minutes to 8 minutes.",
+                id: 301,
+                sortOrder: 0,
+              },
+              {
+                content:
+                  "Partnered with product on quarterly planning for platform investments.",
+                id: 302,
+                sortOrder: 1,
+              },
+            ],
+            id: 21,
+            location: "Remote",
+            sortOrder: 0,
+            startDate: new Date("2022-01-01T00:00:00.000Z"),
+            title: "Staff Engineer",
+          },
+          {
+            companyName: "Northwind",
+            endDate: new Date("2021-12-01T00:00:00.000Z"),
+            entries: [
+              {
+                content:
+                  "Built dashboards for weekly sales reporting and stakeholder reviews.",
+                id: 401,
+                sortOrder: 0,
+              },
+            ],
+            id: 22,
+            location: "San Francisco, CA",
+            sortOrder: 1,
+            startDate: new Date("2020-01-01T00:00:00.000Z"),
+            title: "Analytics Engineer",
+          },
+        ],
+        userId,
+      });
+      mockDb.resume.findFirst.mockResolvedValue({
+        contactInfo: {
+          email: "jane@example.com",
+          name: "Jane Doe",
+          phone: "555-1111",
+        },
+        education: [
+          {
+            distinction: "BS Computer Science",
+            endDate: new Date("2016-06-01T00:00:00.000Z"),
+            institution: "State University",
+            link: "https://example.edu",
+            location: "Seattle, WA",
+            notes: "Dean's list",
+            startDate: new Date("2012-09-01T00:00:00.000Z"),
+            type: EducationType.EDUCATION,
+          },
+        ],
+        id: 77,
+      });
+      mockDb.resume.create.mockResolvedValue({
+        id: 88,
+        name: "Staff Platform Engineer Resume",
+      });
+
+      await createTailoredResumeFromProfile(
+        mockDb as unknown as PrismaClient,
+        userId,
+        { jobId: "job-123" },
+      );
+
+      expect(mockDb.resume.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          contactInfo: {
+            create: {
+              email: "jane@example.com",
+              name: "Jane Doe",
+              phone: "555-1111",
+            },
+          },
+          education: {
+            create: [
+              {
+                distinction: "BS Computer Science",
+                endDate: new Date("2016-06-01T00:00:00.000Z"),
+                institution: "State University",
+                link: "https://example.edu",
+                location: "Seattle, WA",
+                notes: "Dean's list",
+                startDate: new Date("2012-09-01T00:00:00.000Z"),
+                type: EducationType.EDUCATION,
+              },
+            ],
+          },
+          jobId: "job-123",
+          name: "Staff Platform Engineer Resume",
+          summary: expect.stringContaining("Staff Platform Engineer"),
+          userId,
+        }),
+        include: {
+          contactInfo: true,
+          education: true,
+          experience: {
+            include: {
+              positions: true,
+            },
+          },
+        },
+      });
+
+      const createPayload = mockDb.resume.create.mock.calls[0]?.[0];
+      expect(createPayload.data.experience.create[0]).toMatchObject({
+        companyName: "Orbit",
+        link: undefined,
+        positions: {
+          create: [
+            expect.objectContaining({
+              accomplishments: expect.stringContaining(
+                "Led the CI/CD migration to GitHub Actions",
+              ),
+              endDate: null,
+              location: "Remote",
+              startDate: new Date("2022-01-01T00:00:00.000Z"),
+              title: "Staff Engineer",
+            }),
+          ],
+        },
+      });
+    });
+
+    it("rejects generation when the accomplishment profile is empty", async () => {
+      mockDb.job.findFirst.mockResolvedValue({
+        id: "job-123",
+        title: "Platform Engineer",
+        url: "https://example.com/jobs/platform",
+        userId,
+      });
+      mockDb.accomplishmentProfile.findUnique.mockResolvedValue({
+        id: 15,
+        roles: [],
+        userId,
+      });
+
+      await expect(
+        createTailoredResumeFromProfile(
+          mockDb as unknown as PrismaClient,
+          userId,
+          { jobId: "job-123" },
+        ),
+      ).rejects.toMatchObject({
+        code: "BAD_REQUEST",
+        message:
+          "Add accomplishments to your profile before generating a resume",
       });
     });
   });

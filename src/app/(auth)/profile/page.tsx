@@ -1,9 +1,30 @@
+import { AccomplishmentProfileEditor } from "~/components/profile/accomplishment-profile-editor";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { formatMonthInput } from "~/server/lib/profile";
 import { api } from "~/trpc/server";
 
 export default async function ProfilePage() {
-  const userInformation = await api.profile.getUserInfo.query();
+  const [userInformation, accomplishmentProfile] = await Promise.all([
+    api.profile.getUserInfo.query(),
+    api.profile.getAccomplishmentProfile.query(),
+  ]);
+
+  const initialProfile = {
+    roles:
+      accomplishmentProfile?.roles.map((role) => ({
+        companyName: role.companyName,
+        endMonth: formatMonthInput(role.endDate),
+        entries: role.entries.map((entry) => ({
+          content: entry.content,
+          id: entry.id.toString(),
+        })),
+        id: role.id.toString(),
+        location: role.location ?? "",
+        startMonth: formatMonthInput(role.startDate),
+        title: role.title,
+      })) ?? [],
+  };
 
   return (
     <div className="grid w-full gap-6">
@@ -36,6 +57,8 @@ export default async function ProfilePage() {
           </div>
         </CardContent>
       </Card>
+
+      <AccomplishmentProfileEditor initialProfile={initialProfile} />
     </div>
   );
 }

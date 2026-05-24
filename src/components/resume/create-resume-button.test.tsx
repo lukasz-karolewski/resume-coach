@@ -4,7 +4,9 @@ import CreateResumeButton from "./create-resume-button";
 
 const mockPushRefresh = vi.fn();
 const mockGetJobsQuery = vi.fn();
+const mockGetProfileQuery = vi.fn();
 const mockCreateMutation = vi.fn();
+const mockCreateTailoredMutation = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
@@ -19,9 +21,17 @@ vi.mock("~/trpc/react", () => ({
         useQuery: () => mockGetJobsQuery(),
       },
     },
+    profile: {
+      getAccomplishmentProfile: {
+        useQuery: () => mockGetProfileQuery(),
+      },
+    },
     resume: {
       create: {
         useMutation: (opts: unknown) => mockCreateMutation(opts),
+      },
+      createTailoredFromProfile: {
+        useMutation: (opts: unknown) => mockCreateTailoredMutation(opts),
       },
     },
   },
@@ -43,8 +53,21 @@ describe("CreateResumeButton", () => {
     mockGetJobsQuery.mockReturnValue({
       data: mockJobs,
     });
+    mockGetProfileQuery.mockReturnValue({
+      data: {
+        roles: [
+          {
+            id: 1,
+          },
+        ],
+      },
+    });
 
     mockCreateMutation.mockReturnValue({
+      isPending: false,
+      mutate: vi.fn(),
+    });
+    mockCreateTailoredMutation.mockReturnValue({
       isPending: false,
       mutate: vi.fn(),
     });
@@ -108,5 +131,18 @@ describe("CreateResumeButton", () => {
     await waitFor(() => {
       expect(mockPushRefresh).toHaveBeenCalled();
     });
+  });
+
+  test("shows grounded generation when a job is selected and the profile has accomplishments", () => {
+    render(<CreateResumeButton />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Create new resume" }));
+    fireEvent.change(screen.getByLabelText("Link to Job (Optional)"), {
+      target: { value: "job-123" },
+    });
+
+    expect(
+      screen.getByRole("button", { name: "Generate from profile" }),
+    ).toBeInTheDocument();
   });
 });

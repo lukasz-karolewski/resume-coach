@@ -4,6 +4,8 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import {
   createResume,
   createResumeSchema,
+  createTailoredResumeFromProfile,
+  createTailoredResumeFromProfileSchema,
   deleteResume,
   deleteResumeSchema,
   duplicateResume,
@@ -28,6 +30,16 @@ export const resumeRouter = createTRPCRouter({
       return withErrorHandling(
         () => createResume(ctx.db, userId, input),
         "Failed to create resume",
+      );
+    }),
+
+  createTailoredFromProfile: protectedProcedure
+    .input(createTailoredResumeFromProfileSchema)
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.session.user.id!;
+      return withErrorHandling(
+        () => createTailoredResumeFromProfile(ctx.db, userId, input),
+        "Failed to generate tailored resume",
       );
     }),
 
