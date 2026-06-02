@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { AccomplishmentProfileEditor } from "~/components/profile/accomplishment-profile-editor";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -5,6 +6,8 @@ import { formatMonthInput } from "~/server/lib/profile";
 import { api } from "~/trpc/server";
 
 export default async function ProfilePage() {
+  await connection();
+
   const [userInformation, accomplishmentProfile] = await Promise.all([
     api.profile.getUserInfo.query(),
     api.profile.getAccomplishmentProfile.query(),

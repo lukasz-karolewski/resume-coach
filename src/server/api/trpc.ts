@@ -8,7 +8,6 @@
  */
 
 import { initTRPC, TRPCError } from "@trpc/server";
-import { headers } from "next/headers";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
@@ -29,7 +28,7 @@ import { db } from "~/server/db";
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   const session = await auth.api.getSession({
-    headers: await headers(), // you need to pass the headers object.
+    headers: opts.headers,
   });
   return {
     db,

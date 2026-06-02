@@ -314,10 +314,14 @@ describe("resume lib", () => {
               },
             ],
           },
-          jobId: "job-123",
+          Job: {
+            connect: { id: "job-123" },
+          },
           name: "Staff Platform Engineer Resume",
           summary: expect.stringContaining("Staff Platform Engineer"),
-          userId,
+          user: {
+            connect: { id: userId },
+          },
         }),
         include: {
           contactInfo: true,

@@ -5,6 +5,11 @@ import ProfilePage from "./page";
 
 const mockProfileQuery = vi.fn();
 const mockAccomplishmentProfileQuery = vi.fn();
+const mockConnection = vi.fn();
+
+vi.mock("next/server", () => ({
+  connection: () => mockConnection(),
+}));
 
 vi.mock("~/trpc/server", () => ({
   api: {
@@ -35,6 +40,7 @@ vi.mock("~/components/profile/accomplishment-profile-editor", () => ({
 describe("ProfilePage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockConnection.mockResolvedValue(undefined);
     mockAccomplishmentProfileQuery.mockResolvedValue({
       roles: [],
     });
@@ -50,6 +56,7 @@ describe("ProfilePage", () => {
 
     expect(screen.getByText("Profile")).toBeInTheDocument();
     expect(screen.getByText("Not provided")).toBeInTheDocument();
+    expect(mockConnection).toHaveBeenCalledBefore(mockProfileQuery);
   });
 
   test("renders profile details in the shadcn card layout", async () => {

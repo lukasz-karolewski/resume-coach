@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 
 import { auth } from "~/auth";
 import Assistant from "~/components/assistant";
@@ -11,6 +12,8 @@ export default async function AuthLayout({
 }: {
   children: React.ReactNode;
 }) {
+  await connection();
+
   const session = await auth.api.getSession({
     headers: await headers(),
   });
