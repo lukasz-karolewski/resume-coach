@@ -738,7 +738,9 @@ export async function createTailoredResumeFromProfile(
           },
         })),
       },
-      jobId: job.id,
+      Job: {
+        connect: { id: job.id },
+      },
       name: parsedInput.name || buildTailoredResumeName(job),
       summary: buildTailoredSummary(
         job,
@@ -748,7 +750,9 @@ export async function createTailoredResumeFromProfile(
           0,
         ),
       ),
-      userId,
+      user: {
+        connect: { id: userId },
+      },
     },
     include: {
       contactInfo: true,
