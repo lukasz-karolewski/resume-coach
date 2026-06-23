@@ -17,6 +17,10 @@ jobs:
         node-version: lts/*
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
+    - name: Generate Prisma Client
+      run: pnpm exec prisma generate
+      env:
+        DATABASE_URL: postgresql://user:pass@localhost:5432/resume_coach
     - name: Install Playwright Browsers
       run: pnpm exec playwright install --with-deps
     - name: Run Playwright tests
