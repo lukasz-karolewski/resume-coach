@@ -8,6 +8,24 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: resume_coach
+          POSTGRES_PASSWORD: pass
+          POSTGRES_USER: user
+        options: >-
+          --health-cmd "pg_isready -U user -d resume_coach"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    env:
+      BETTER_AUTH_SECRET: playwright-test-secret
+      BETTER_AUTH_URL: http://localhost:3000
+      DATABASE_URL: postgresql://user:pass@localhost:5432/resume_coach
     steps:
     - uses: actions/checkout@v6
     - uses: pnpm/action-setup@v6
@@ -19,8 +37,8 @@ jobs:
       run: pnpm install --frozen-lockfile
     - name: Generate Prisma Client
       run: pnpm exec prisma generate
-      env:
-        DATABASE_URL: postgresql://user:pass@localhost:5432/resume_coach
+    - name: Apply database migrations
+      run: pnpm exec prisma migrate deploy
     - name: Install Playwright Browsers
       run: pnpm exec playwright install --with-deps
     - name: Run Playwright tests
