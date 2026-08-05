@@ -24,11 +24,11 @@ vi.mock("~/auth", () => ({
 describe("HomePage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (headers as ReturnType<typeof vi.fn>).mockResolvedValue(new Headers());
+    vi.mocked(headers).mockResolvedValue(new Headers());
   });
 
   test("renders the public landing page when unauthenticated", async () => {
-    (auth.api.getSession as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+    vi.mocked(auth.api.getSession).mockResolvedValue(null);
 
     render(await HomePage());
 
@@ -47,9 +47,22 @@ describe("HomePage", () => {
   });
 
   test("redirects authenticated users to resume", async () => {
-    (auth.api.getSession as ReturnType<typeof vi.fn>).mockResolvedValue({
+    vi.mocked(auth.api.getSession).mockResolvedValue({
+      session: {
+        createdAt: new Date("2026-01-01T00:00:00.000Z"),
+        expiresAt: new Date("2026-01-02T00:00:00.000Z"),
+        id: "session-123",
+        token: "test-token",
+        updatedAt: new Date("2026-01-01T00:00:00.000Z"),
+        userId: "user-123",
+      },
       user: {
+        createdAt: new Date("2026-01-01T00:00:00.000Z"),
+        email: "test@example.com",
+        emailVerified: true,
         id: "user-123",
+        name: "Test User",
+        updatedAt: new Date("2026-01-01T00:00:00.000Z"),
       },
     });
 

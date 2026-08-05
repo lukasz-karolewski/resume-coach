@@ -1,7 +1,9 @@
-import type { Session } from "next-auth";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { EducationType } from "~/generated/prisma/client";
+import type { createTRPCContext } from "~/server/api/trpc";
 import { resumeRouter } from "./resume";
+
+type TRPCContext = Awaited<ReturnType<typeof createTRPCContext>>;
 
 // Mock database with proper vi.fn() for all methods
 const createMockDb = () => ({
@@ -37,21 +39,29 @@ const createMockDb = () => ({
 let mockDb: ReturnType<typeof createMockDb>;
 
 // Mock session
-const mockSession: Session = {
-  expires: new Date(Date.now() + 86400000).toISOString(),
+const mockSession: NonNullable<TRPCContext["session"]> = {
+  session: {
+    createdAt: new Date("2026-01-01T00:00:00.000Z"),
+    expiresAt: new Date("2026-01-02T00:00:00.000Z"),
+    id: "session-123",
+    token: "test-token",
+    updatedAt: new Date("2026-01-01T00:00:00.000Z"),
+    userId: "user-123",
+  },
   user: {
+    createdAt: new Date("2026-01-01T00:00:00.000Z"),
     email: "test@example.com",
+    emailVerified: true,
     id: "user-123",
     name: "Test User",
+    updatedAt: new Date("2026-01-01T00:00:00.000Z"),
   },
 };
 
 // Create caller helper
 const createCaller = () => {
-  const ctx: Parameters<typeof resumeRouter.createCaller>[0] = {
-    db: mockDb as unknown as Parameters<
-      typeof resumeRouter.createCaller
-    >[0]["db"],
+  const ctx: TRPCContext = {
+    db: mockDb as unknown as TRPCContext["db"],
     headers: new Headers(),
     session: mockSession,
   };

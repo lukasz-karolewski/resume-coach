@@ -1,6 +1,10 @@
 allowBuilds:
-  '@prisma/engines': true
+  "@prisma/engines": true
   esbuild: true
+  # Transitive optional peer of better-auth; we use Prisma/Postgres, not sqlite.
+  # Explicitly declined so pnpm doesn't fail the build on an undecided ignored
+  # build script (ERR_PNPM_IGNORED_BUILDS) during Vercel's fresh install.
+  better-sqlite3: false
   msw: true
   prisma: true
   sharp: true

@@ -193,8 +193,11 @@ describe("resume lib", () => {
 
       await expect(
         createResume(mockDb as unknown as PrismaClient, userId, {
+          education: [],
+          experience: [],
           jobId: "job-123",
           name: "Resume",
+          professionalSummary: "",
         }),
       ).rejects.toMatchObject({
         code: "BAD_REQUEST",

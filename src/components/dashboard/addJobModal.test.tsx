@@ -56,7 +56,7 @@ describe("AddJobModal", () => {
   });
 
   test("invalidates job data after the mutation settles", async () => {
-    render(<AddJobModal />);
+    render(<AddJobModal id="add-job-test" />);
 
     const urlInput =
       document.querySelector<HTMLInputElement>('input[name="url"]');
