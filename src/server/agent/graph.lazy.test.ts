@@ -1,7 +1,15 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 const redisFromUrl = vi.fn(() => Promise.resolve({}));
-const streamEvents = vi.fn(async function* () {});
+const streamEvents = vi.fn(async () => ({
+  messages: {
+    async *[Symbol.asyncIterator]() {},
+  },
+  output: Promise.resolve({}),
+  toolCalls: {
+    async *[Symbol.asyncIterator]() {},
+  },
+}));
 const createAgent = vi.fn(() => ({ streamEvents }));
 const chatOpenAIConstructor = vi.fn();
 
@@ -63,6 +71,7 @@ describe("graph Redis initialization", () => {
 
     expect(chatOpenAIConstructor).toHaveBeenCalledWith({
       model: "gpt-5.4",
+      outputVersion: "v1",
       useResponsesApi: true,
     });
   });

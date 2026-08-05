@@ -1,5 +1,32 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const { createRun } = vi.hoisted(() => ({
+  createRun(
+    textChunks = ["Hello", " world"],
+    toolCalls: Array<Record<string, unknown>> = [],
+  ) {
+    return {
+      messages: {
+        async *[Symbol.asyncIterator]() {
+          yield {
+            text: {
+              async *[Symbol.asyncIterator]() {
+                yield* textChunks;
+              },
+            },
+          };
+        },
+      },
+      output: Promise.resolve({}),
+      toolCalls: {
+        async *[Symbol.asyncIterator]() {
+          yield* toolCalls;
+        },
+      },
+    };
+  },
+}));
+
 // Mock dependencies before imports
 vi.mock("../db", () => ({
   db: {
@@ -15,17 +42,7 @@ vi.mock("../db", () => ({
 
 vi.mock("langchain", () => ({
   createAgent: vi.fn(() => ({
-    streamEvents: vi.fn(async function* () {
-      // Simulate streaming response
-      yield {
-        data: { chunk: { content: "Hello" } },
-        event: "on_chat_model_stream",
-      };
-      yield {
-        data: { chunk: { content: " world" } },
-        event: "on_chat_model_stream",
-      };
-    }),
+    streamEvents: vi.fn(async () => createRun()),
   })),
   HumanMessage: class HumanMessage {
     constructor(public content: string) {}
@@ -119,23 +136,24 @@ describe("executeChatStream", () => {
     });
   });
 
-  it("should flatten text content blocks before sending chunk events", async () => {
+  it("should stream typed tool-call lifecycle events", async () => {
     const { createAgent } = await import("langchain");
     vi.mocked(createAgent).mockReturnValueOnce({
-      streamEvents: vi.fn(async function* () {
-        yield {
-          data: {
-            chunk: {
-              content: [
-                { text: "hi", type: "text" },
-                { text: " there", type: "output_text" },
-                { args: { resumeId: 1 }, type: "tool_call" },
-              ],
+      streamEvents: vi.fn(async () =>
+        createRun(
+          [],
+          [
+            {
+              callId: "call-1",
+              error: Promise.resolve(undefined),
+              input: { resumeId: 1 },
+              name: "viewResume",
+              output: Promise.resolve("ok"),
+              status: Promise.resolve("finished"),
             },
-          },
-          event: "on_chat_model_stream",
-        };
-      }),
+          ],
+        ),
+      ),
     } as never);
 
     const mockThread = { id: "thread-blocks" };
@@ -149,9 +167,42 @@ describe("executeChatStream", () => {
       userId,
     });
 
-    expect(mockSendEvent).toHaveBeenCalledWith("chunk", {
-      content: "hi there",
+    expect(mockSendEvent).toHaveBeenCalledWith("tool_start", {
+      input: { resumeId: 1 },
+      runId: "call-1",
+      tool: "viewResume",
     });
+    expect(mockSendEvent).toHaveBeenCalledWith("tool_end", {
+      error: undefined,
+      output: "ok",
+      runId: "call-1",
+      status: "finished",
+      tool: "viewResume",
+    });
+  });
+
+  it("uses v3 projections and forwards the abort signal", async () => {
+    const { createAgent } = await import("langchain");
+    const streamEvents = vi.fn(async () => createRun([]));
+    vi.mocked(createAgent).mockReturnValueOnce({ streamEvents } as never);
+    const signal = new AbortController().signal;
+    vi.mocked(db.chatThread.create).mockResolvedValue({
+      id: "thread-signal",
+    } as never);
+
+    await executeChatStream({
+      message,
+      resumeId: undefined,
+      sendEvent: mockSendEvent,
+      signal,
+      threadId: undefined,
+      userId,
+    });
+
+    expect(streamEvents).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ signal, version: "v3" }),
+    );
   });
 
   it("should send done event with threadId", async () => {

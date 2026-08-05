@@ -1,4 +1,6 @@
 import { PlusIcon, XIcon } from "~/components/icons";
+import { Alert, AlertDescription } from "~/components/ui/alert";
+import { Button } from "~/components/ui/button";
 import { ChatInput } from "./chat-input";
 import { MessageList } from "./message-list";
 import type { ChatMessage, ToolExecution } from "./use-chat-stream";
@@ -68,33 +70,37 @@ export function ChatWindow({
           </select>
         </div>
         <div className="flex items-center gap-2">
-          <button
+          <Button
             onClick={onNewThread}
-            className="rounded-xl border border-transparent p-2 text-muted-foreground transition-colors hover:border-border hover:bg-background hover:text-foreground"
+            size="icon"
+            variant="ghost"
             aria-label="Start new conversation"
             title="Start new conversation"
           >
-            <PlusIcon className="w-5 h-5" />
-          </button>
-          <button
+            <PlusIcon className="size-5" />
+          </Button>
+          <Button
             onClick={onClose}
-            className="rounded-xl border border-transparent p-2 text-muted-foreground transition-colors hover:border-border hover:bg-background hover:text-foreground"
+            size="icon"
+            variant="ghost"
             aria-label="Close chat"
           >
-            <XIcon className="w-5 h-5" />
-          </button>
+            <XIcon className="size-5" />
+          </Button>
         </div>
       </div>
 
-      {error && (
-        <div className="mx-4 mt-3 rounded-2xl border border-destructive/20 bg-destructive/10 px-4 py-3">
-          <p className="text-sm text-destructive">{error}</p>
-        </div>
-      )}
+      {error ? (
+        <Alert className="mx-4 mt-3 w-auto" variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      ) : null}
 
       <MessageList
+        key={sessionId ?? "new-conversation"}
         messages={messages}
         currentChunk={currentChunk}
+        isStreaming={isLoading}
         toolExecutions={toolExecutions}
       />
 

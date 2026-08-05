@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { parseSseStream } from "./parse-sse-stream";
 
 export interface ChatMessage {
   role: "user" | "assistant" | "system";
@@ -45,14 +46,13 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
   const [error, setError] = useState<string | null>(null);
   const [currentChunk, setCurrentChunk] = useState("");
   const [toolExecutions, setToolExecutions] = useState<ToolExecution[]>([]);
-  const eventSourceRef = useRef<EventSource | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const skipThreadLoadRef = useRef<string | null>(null);
 
   const { threadId, resumeId, onThreadCreated, onViewResume } = options;
 
   useEffect(() => {
     return () => {
-      eventSourceRef.current?.close();
       abortControllerRef.current?.abort();
     };
   }, []);
@@ -66,7 +66,12 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
       return;
     }
 
-    let cancelled = false;
+    if (skipThreadLoadRef.current === threadId) {
+      skipThreadLoadRef.current = null;
+      return;
+    }
+
+    const controller = new AbortController();
     setMessages([]);
     setCurrentChunk("");
     setToolExecutions([]);
@@ -74,7 +79,9 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
 
     const loadMessages = async () => {
       try {
-        const response = await fetch(`/api/chat/threads/${threadId}`);
+        const response = await fetch(`/api/chat/threads/${threadId}`, {
+          signal: controller.signal,
+        });
 
         if (!response.ok) {
           throw new Error(`Failed to load conversation: ${response.status}`);
@@ -84,30 +91,30 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
           messages: ConversationMessage[];
         };
 
-        if (!cancelled) {
-          setMessages(
-            data.messages.map((message) => ({
-              content: message.content,
-              id: message.id,
-              role: message.role,
-            })),
-          );
-        }
+        setMessages(
+          data.messages.map((message) => ({
+            content: message.content,
+            id: message.id,
+            role: message.role,
+          })),
+        );
       } catch (err) {
-        if (!cancelled) {
-          const errorMessage =
-            err instanceof Error
-              ? err.message
-              : "Failed to load conversation history";
-          setError(errorMessage);
+        if (err instanceof Error && err.name === "AbortError") {
+          return;
         }
+
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "Failed to load conversation history";
+        setError(errorMessage);
       }
     };
 
     void loadMessages();
 
     return () => {
-      cancelled = true;
+      controller.abort();
     };
   }, [threadId]);
 
@@ -128,11 +135,10 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
       };
       setMessages((prev) => [...prev, userMessage]);
 
-      try {
-        // Create abort controller
-        abortControllerRef.current = new AbortController();
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
 
-        // Send POST request to start streaming
+      try {
         const response = await fetch("/api/chat", {
           body: JSON.stringify({
             message: content,
@@ -143,7 +149,7 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
             "Content-Type": "application/json",
           },
           method: "POST",
-          signal: abortControllerRef.current.signal,
+          signal: controller.signal,
         });
 
         if (!response.ok) {
@@ -153,82 +159,70 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        // Read the SSE stream
-        const reader = response.body?.getReader();
-        const decoder = new TextDecoder();
-
-        if (!reader) {
-          throw new Error("No reader available");
+        if (!response.body) {
+          throw new Error("The chat response did not include a stream");
         }
 
-        let buffer = "";
         let assistantContent = "";
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+        for await (const event of parseSseStream(response.body)) {
+          const data = event.data as Record<string, unknown>;
 
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() ?? "";
-
-          let i = 0;
-          while (i < lines.length) {
-            const line = lines[i];
-            if (line.startsWith("event:")) {
-              const eventType = line.substring(6).trim();
-              // Next line should be data
-              if (i + 1 < lines.length && lines[i + 1]?.startsWith("data:")) {
-                const data = JSON.parse(lines[i + 1].substring(5).trim());
-
-                switch (eventType) {
-                  case "chunk": {
-                    assistantContent += data.content;
-                    setCurrentChunk(assistantContent);
-                    break;
-                  }
-                  case "tool_start":
-                    setToolExecutions((prev) => [
-                      ...prev,
-                      {
-                        id:
-                          data.runId ??
-                          `${data.tool}-${Date.now()}-${Math.random()}`,
-                        input: data.input,
-                        status: "started",
-                        tool: data.tool,
-                      },
-                    ]);
-                    break;
-                  case "tool_end":
-                    setToolExecutions((prev) =>
-                      prev.map((t) =>
-                        t.id === data.runId ||
-                        (t.tool === data.tool && t.status === "started")
-                          ? {
-                              ...t,
-                              output: data.output,
-                              status: "ended" as const,
-                            }
-                          : t,
-                      ),
-                    );
-                    break;
-                  case "done":
-                    if (data.threadId && onThreadCreated) {
-                      onThreadCreated(data.threadId);
-                    }
-                    break;
-                  case "error":
-                    setError(data.message);
-                    break;
-                }
-                i += 2; // Skip both event and data lines
-              } else {
-                i++;
+          switch (event.type) {
+            case "chunk": {
+              if (typeof data.content === "string") {
+                assistantContent += data.content;
+                setCurrentChunk(assistantContent);
               }
-            } else {
-              i++;
+              break;
+            }
+            case "tool_start": {
+              if (typeof data.tool === "string") {
+                const toolName = data.tool;
+                setToolExecutions((prev) => [
+                  ...prev,
+                  {
+                    id:
+                      typeof data.runId === "string"
+                        ? data.runId
+                        : `${toolName}-${Date.now()}`,
+                    input: data.input,
+                    status: "started",
+                    tool: toolName,
+                  },
+                ]);
+              }
+              break;
+            }
+            case "tool_end": {
+              setToolExecutions((prev) =>
+                prev.map((tool) =>
+                  tool.id === data.runId ||
+                  (tool.tool === data.tool && tool.status === "started")
+                    ? {
+                        ...tool,
+                        output: data.output,
+                        status: "ended" as const,
+                      }
+                    : tool,
+                ),
+              );
+              break;
+            }
+            case "done": {
+              if (typeof data.threadId === "string") {
+                if (data.threadId !== threadId) {
+                  skipThreadLoadRef.current = data.threadId;
+                }
+                onThreadCreated?.(data.threadId);
+              }
+              break;
+            }
+            case "error": {
+              if (typeof data.message === "string") {
+                setError(data.message);
+              }
+              break;
             }
           }
         }
@@ -260,7 +254,10 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
         setError(errorMessage);
         console.error("Chat error:", err);
       } finally {
-        setIsLoading(false);
+        if (abortControllerRef.current === controller) {
+          abortControllerRef.current = null;
+          setIsLoading(false);
+        }
       }
     },
     [isLoading, threadId, resumeId, onThreadCreated, onViewResume],
@@ -268,11 +265,11 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
 
   const cancelRequest = useCallback(() => {
     abortControllerRef.current?.abort();
-    eventSourceRef.current?.close();
     setIsLoading(false);
   }, []);
 
   const resetChat = useCallback(() => {
+    abortControllerRef.current?.abort();
     setMessages([]);
     setCurrentChunk("");
     setToolExecutions([]);

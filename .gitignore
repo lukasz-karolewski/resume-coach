@@ -43,3 +43,4 @@ generated/
 /playwright/.cache/
 /playwright/.auth/
 prisma/*.db*
+.env*

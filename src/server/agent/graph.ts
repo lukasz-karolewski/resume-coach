@@ -17,6 +17,7 @@ let checkpointerPromise: Promise<
 
 const model = new ChatOpenAI({
   model: "gpt-5.4",
+  outputVersion: "v1",
   useResponsesApi: true,
 });
 
@@ -28,38 +29,6 @@ export const contextSchema = z.object({
 export const stateSchema = z.object({
   preferences: z.record(z.string(), z.any()),
 });
-
-function extractTextFromChunkContent(content: unknown): string {
-  if (typeof content === "string") {
-    return content;
-  }
-
-  if (Array.isArray(content)) {
-    return content.map(extractTextFromChunkContent).join("");
-  }
-
-  if (content && typeof content === "object") {
-    if (
-      "type" in content &&
-      content.type === "text" &&
-      "text" in content &&
-      typeof content.text === "string"
-    ) {
-      return content.text;
-    }
-
-    if (
-      "type" in content &&
-      content.type === "output_text" &&
-      "text" in content &&
-      typeof content.text === "string"
-    ) {
-      return content.text;
-    }
-  }
-
-  return "";
-}
 
 async function getCheckpointer() {
   checkpointerPromise ??= RedisSaver.fromUrl(redisUrl).catch((error) => {
@@ -97,6 +66,7 @@ interface ChatStreamParams {
   message: string;
   threadId?: string;
   resumeId?: number;
+  signal?: AbortSignal;
   userId: string;
   sendEvent: SendEvent;
 }
@@ -116,6 +86,7 @@ export async function executeChatStream({
   userId,
   message,
   sendEvent,
+  signal,
 }: ChatStreamParams): Promise<{ threadId: string }> {
   const persistedResumeId = resumeId ?? null;
 
@@ -147,10 +118,7 @@ export async function executeChatStream({
 
   let assistantMessage = "";
 
-  // Stream events from the agent
-  // TODO migrate to use stream() and Standard content blocks
-  // https://docs.langchain.com/oss/javascript/langchain/messages#content-block-reference
-  for await (const event of agent.streamEvents(
+  const run = await agent.streamEvents(
     {
       messages: [new HumanMessage(message)],
       preferences: {},
@@ -163,36 +131,47 @@ export async function executeChatStream({
         currentResumeId: resumeId ?? null,
         userId,
       },
-      version: "v2",
+      signal,
+      version: "v3",
     },
-  )) {
-    // Handle different event types https://v03.api.js.langchain.com/classes/_langchain_core.language_models_chat_models.BaseChatModel.html#streamEvents
-    if (event.event === "on_chat_model_stream") {
-      // LLM is streaming a response
-      const chunk = event.data?.chunk;
-      const content = extractTextFromChunkContent(chunk?.content);
-      if (content) {
+  );
+
+  const consumeMessages = async () => {
+    for await (const streamedMessage of run.messages) {
+      for await (const content of streamedMessage.text) {
+        if (!content) {
+          continue;
+        }
+
         assistantMessage += content;
-        await sendEvent("chunk", {
-          content,
-        });
+        await sendEvent("chunk", { content });
       }
-    } else if (event.event === "on_tool_start") {
-      // Tool execution started
+    }
+  };
+
+  const consumeToolCalls = async () => {
+    for await (const toolCall of run.toolCalls) {
       await sendEvent("tool_start", {
-        input: event.data?.input,
-        runId: event.run_id,
-        tool: event.name,
+        input: toolCall.input,
+        runId: toolCall.callId,
+        tool: toolCall.name,
       });
-    } else if (event.event === "on_tool_end") {
-      // Tool execution ended
+
+      const status = await toolCall.status;
+      const error = await toolCall.error;
+      const output = status === "finished" ? await toolCall.output : undefined;
+
       await sendEvent("tool_end", {
-        output: event.data?.output,
-        runId: event.run_id,
-        tool: event.name,
+        error,
+        output,
+        runId: toolCall.callId,
+        status,
+        tool: toolCall.name,
       });
     }
-  }
+  };
+
+  await Promise.all([consumeMessages(), consumeToolCalls(), run.output]);
 
   if (assistantMessage) {
     await createChatMessage(db, {

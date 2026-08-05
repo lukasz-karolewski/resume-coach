@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { ChatIcon } from "~/components/icons";
+import { Button } from "~/components/ui/button";
 import { ChatWindow } from "./chat/chat-window";
 import { useChatStream } from "./chat/use-chat-stream";
 
@@ -118,14 +119,16 @@ const Assistant: React.FC = () => {
   return (
     <>
       {!isOpen && (
-        <button
+        <Button
           data-testid="assistant-launcher"
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-5 right-5 flex h-12 w-12 items-center justify-center rounded-2xl border border-border/70 bg-card text-foreground shadow-lg shadow-black/5 transition-colors hover:bg-muted print:hidden"
+          className="fixed right-5 bottom-5 h-12 w-12 rounded-2xl border-border/70 bg-card text-foreground shadow-lg shadow-black/5 hover:bg-muted print:hidden"
+          size="icon"
+          variant="outline"
           aria-label="Open chat"
         >
           <ChatIcon className="h-5 w-5" />
-        </button>
+        </Button>
       )}
 
       {isOpen && (

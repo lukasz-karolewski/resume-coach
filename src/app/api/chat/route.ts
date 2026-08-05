@@ -30,50 +30,61 @@ export async function POST(req: NextRequest) {
 
     const { message, threadId, resumeId } = body;
 
-    if (!message) {
+    if (typeof message !== "string" || !message.trim()) {
       return NextResponse.json(
         { error: "Message is required" },
         { status: 400 },
       );
     }
 
-    // Create a TransformStream for SSE
     const encoder = new TextEncoder();
-    const stream = new TransformStream();
-    const writer = stream.writable.getWriter();
+    const responseAbortController = new AbortController();
+    const signal = AbortSignal.any([
+      req.signal,
+      responseAbortController.signal,
+    ]);
+    const stream = new ReadableStream<Uint8Array>({
+      cancel() {
+        responseAbortController.abort();
+      },
+      async start(controller) {
+        const sendEvent = async (event: string, data: unknown) => {
+          signal.throwIfAborted();
+          controller.enqueue(
+            encoder.encode(
+              `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`,
+            ),
+          );
+        };
 
-    // Helper to send SSE event
-    const sendEvent = async (event: string, data: unknown) => {
-      const message = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
-      await writer.write(encoder.encode(message));
-    };
+        try {
+          await executeChatStream({
+            message: message.trim(),
+            resumeId,
+            sendEvent,
+            signal,
+            threadId,
+            userId,
+          });
+        } catch (error) {
+          if (!signal.aborted) {
+            console.error("Agent error:", error);
+            await sendEvent("error", {
+              message: error instanceof Error ? error.message : "Unknown error",
+            });
+          }
+        } finally {
+          if (!signal.aborted) {
+            controller.close();
+          }
+        }
+      },
+    });
 
-    // Execute the chat stream in the background
-    (async () => {
-      try {
-        await executeChatStream({
-          message,
-          resumeId,
-          sendEvent,
-          threadId,
-          userId,
-        });
-      } catch (error) {
-        console.error("Agent error:", error);
-        await sendEvent("error", {
-          message: error instanceof Error ? error.message : "Unknown error",
-        });
-      } finally {
-        await writer.close();
-      }
-    })();
-
-    // Return the SSE stream
-    return new NextResponse(stream.readable, {
+    return new NextResponse(stream, {
       headers: {
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
-        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache, no-transform",
+        "Content-Type": "text/event-stream; charset=utf-8",
       },
     });
   } catch (error) {

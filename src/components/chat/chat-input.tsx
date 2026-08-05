@@ -5,6 +5,8 @@ import {
   useRef,
   useState,
 } from "react";
+import { Button } from "~/components/ui/button";
+import { Textarea } from "~/components/ui/textarea";
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -50,7 +52,7 @@ export function ChatInput({ onSend, onStop, disabled }: ChatInputProps) {
       className="border-t border-border/60 bg-muted/20 px-4 py-4"
     >
       <div className="flex items-end gap-2">
-        <textarea
+        <Textarea
           ref={textareaRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -58,26 +60,27 @@ export function ChatInput({ onSend, onStop, disabled }: ChatInputProps) {
           placeholder="Ask about your resume or paste a job URL..."
           disabled={disabled}
           rows={1}
-          className={`max-h-48 min-h-11 flex-1 resize-none rounded-2xl border border-border bg-background px-4 py-2.5 text-sm leading-6 text-foreground shadow-sm outline-hidden transition-colors focus:border-ring disabled:opacity-50 ${
+          className={`max-h-48 min-h-11 flex-1 rounded-2xl bg-background px-4 py-2.5 leading-6 shadow-sm ${
             isOverflowing ? "overflow-y-auto" : "overflow-y-hidden"
           }`}
         />
         {disabled ? (
-          <button
+          <Button
             type="button"
             onClick={onStop}
-            className="h-11 shrink-0 rounded-2xl bg-destructive px-4 text-sm font-medium text-destructive-foreground transition-colors hover:opacity-90"
+            className="h-11 rounded-2xl px-4"
+            variant="destructive"
           >
             Stop
-          </button>
+          </Button>
         ) : (
-          <button
+          <Button
             type="submit"
             disabled={!input.trim()}
-            className="h-11 shrink-0 rounded-2xl bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-11 rounded-2xl px-4"
           >
             Send
-          </button>
+          </Button>
         )}
       </div>
       <p className="mt-2 text-xs text-muted-foreground">

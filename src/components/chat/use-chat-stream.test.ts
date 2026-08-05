@@ -1,6 +1,40 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import { parseSseStream } from "./parse-sse-stream";
 import { parseViewResumeCommand, useChatStream } from "./use-chat-stream";
+
+function createByteStream(chunks: string[]) {
+  const encoder = new TextEncoder();
+
+  return new ReadableStream<Uint8Array>({
+    start(controller) {
+      for (const chunk of chunks) {
+        controller.enqueue(encoder.encode(chunk));
+      }
+      controller.close();
+    },
+  });
+}
+
+describe("parseSseStream", () => {
+  test("parses events split across arbitrary network chunks", async () => {
+    const events = [];
+
+    for await (const event of parseSseStream(
+      createByteStream([
+        'event: chunk\ndata: {"content":"Hel',
+        'lo"}\n\nevent: done\r\ndata: {"threadId":"thread-1"}\r\n\r\n',
+      ]),
+    )) {
+      events.push(event);
+    }
+
+    expect(events).toEqual([
+      { data: { content: "Hello" }, type: "chunk" },
+      { data: { threadId: "thread-1" }, type: "done" },
+    ]);
+  });
+});
 
 describe("parseViewResumeCommand", () => {
   beforeEach(() => {
