@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { AddJobModal } from "./addJobModal";
 
-const mockInvalidateQueries = vi.fn();
 const mockRemove = vi.fn();
+const mockReject = vi.fn();
 const mockResolve = vi.fn();
 
 vi.mock("@ebay/nice-modal-react", () => ({
@@ -12,27 +12,10 @@ vi.mock("@ebay/nice-modal-react", () => ({
     create: (component: React.ComponentType) => component,
   },
   useModal: () => ({
+    reject: mockReject,
     remove: mockRemove,
     resolve: mockResolve,
     visible: true,
-  }),
-}));
-
-vi.mock("@tanstack/react-query", () => ({
-  useMutation: (options: { onSettled?: () => Promise<void> }) => ({
-    mutate: () => {
-      void options.onSettled?.();
-    },
-  }),
-  useQueryClient: () => ({ invalidateQueries: mockInvalidateQueries }),
-}));
-
-vi.mock("~/trpc/react", () => ({
-  useTRPC: () => ({
-    job: {
-      addJob: { mutationOptions: (options: unknown) => options },
-      pathFilter: () => ({ queryKey: ["job"] }),
-    },
   }),
 }));
 
@@ -55,7 +38,7 @@ describe("AddJobModal", () => {
     vi.clearAllMocks();
   });
 
-  test("invalidates job data after the mutation settles", async () => {
+  test("resolves the entered url and lets the caller run the mutation", async () => {
     render(<AddJobModal id="add-job-test" />);
 
     const urlInput =
@@ -67,7 +50,20 @@ describe("AddJobModal", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() => {
-      expect(mockInvalidateQueries).toHaveBeenCalledWith({ queryKey: ["job"] });
+      expect(mockResolve).toHaveBeenCalledWith({
+        url: "https://example.com/job",
+      });
     });
+    expect(mockRemove).toHaveBeenCalled();
+  });
+
+  test("rejects on cancel without resolving", () => {
+    render(<AddJobModal id="add-job-test" />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(mockReject).toHaveBeenCalled();
+    expect(mockRemove).toHaveBeenCalled();
+    expect(mockResolve).not.toHaveBeenCalled();
   });
 });

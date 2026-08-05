@@ -431,7 +431,7 @@ describe("ResumeDetailClient", () => {
     fireEvent.click(
       screen.getByRole("button", { name: "Edit test accomplishments" }),
     );
-    const editor = await screen.findByLabelText("Accomplishments (Markdown)");
+    const editor = await screen.findByLabelText("Accomplishments");
     fireEvent.change(editor, {
       target: { value: "- Reduced deployment time by 80%" },
     });

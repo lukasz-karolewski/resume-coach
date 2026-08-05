@@ -76,7 +76,7 @@ export function MarkdownEditorDialog({
               }}
             />
             <p className="text-xs text-muted-foreground">
-              Tip: press {"⌘"}/Ctrl + Enter to save.
+              Markdown is supported. Press {"⌘"}/Ctrl + Enter to save.
             </p>
           </div>
 

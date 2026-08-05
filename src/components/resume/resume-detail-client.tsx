@@ -14,7 +14,6 @@ import {
 } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { AccomplishmentsEditorDialog } from "~/components/resume/accomplishments-editor-dialog";
 import ContactInfo from "~/components/resume/contact-info";
 import EducationExperience from "~/components/resume/education-experience";
 import JobExperience from "~/components/resume/job-experience";
@@ -416,11 +415,13 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: number }) {
       </div>
 
       {editingPosition ? (
-        <AccomplishmentsEditorDialog
-          accomplishments={editingPosition.accomplishments}
+        <MarkdownEditorDialog
+          description={editingPosition.title}
+          fieldLabel="Accomplishments"
           isPending={updateAccomplishmentsMutation.isPending}
           open
-          positionTitle={editingPosition.title}
+          title="Edit accomplishments"
+          value={editingPosition.accomplishments}
           onOpenChange={(open) => {
             if (!open) setEditingPosition(null);
           }}
@@ -434,7 +435,7 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: number }) {
       ) : null}
 
       <MarkdownEditorDialog
-        description="Update the resume-level professional summary. Markdown formatting is supported."
+        description="Update the resume-level professional summary."
         fieldLabel="Professional summary"
         isPending={updateSummaryMutation.isPending}
         open={isEditingSummary}
