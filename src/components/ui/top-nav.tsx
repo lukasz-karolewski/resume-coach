@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { cn } from "~/lib/utils";
 
-import { buttonVariants } from "./button-variants";
+import { buttonVariants } from "./button";
 import UserButton from "./user-button";
 
 const TopNav: React.FC = async () => {

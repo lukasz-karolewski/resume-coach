@@ -10,6 +10,7 @@ import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
@@ -34,14 +35,16 @@ export default function ResumeSortDropdown({ value }: ResumeSortDropdownProps) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="gap-2">
-          Sort by {resumeSortOptions[value]}
-          <ChevronDownIcon className="size-4" />
-        </Button>
+      <DropdownMenuTrigger
+        render={<Button variant="outline" className="gap-2" />}
+      >
+        Sort by {resumeSortOptions[value]}
+        <ChevronDownIcon className="size-4" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
-        <DropdownMenuLabel>Sort resumes</DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Sort resumes</DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuRadioGroup value={value} onValueChange={handleValueChange}>
           <DropdownMenuRadioItem value="created">Created</DropdownMenuRadioItem>

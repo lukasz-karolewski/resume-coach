@@ -5,8 +5,8 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import { toast } from "sonner";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import { toast } from "~/components/ui/toast";
 import ResumeDetailClient from "./resume-detail-client";
 
 const mockPush = vi.fn();
@@ -30,10 +30,9 @@ const mockResume = {
   summary: "Summary",
 };
 
-vi.mock("sonner", () => ({
+vi.mock("~/components/ui/toast", () => ({
   toast: {
-    error: vi.fn(),
-    success: vi.fn(),
+    add: vi.fn(),
   },
 }));
 
@@ -190,7 +189,10 @@ describe("ResumeDetailClient", () => {
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith("/resume/7/markdown");
       expect(mockClipboardWriteText).toHaveBeenCalledWith("# Resume markdown");
-      expect(toast.success).toHaveBeenCalledWith("Copied markdown");
+      expect(toast.add).toHaveBeenCalledWith({
+        title: "Copied markdown",
+        type: "success",
+      });
     });
   });
 
@@ -226,6 +228,24 @@ describe("ResumeDetailClient", () => {
     fireEvent.click(screen.getByRole("button", { name: /print resume/i }));
 
     expect(mockPrint).toHaveBeenCalled();
+  });
+
+  test("opens and cancels the delete confirmation dialog", async () => {
+    render(<ResumeDetailClient resumeId={7} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /delete resume/i }));
+
+    expect(
+      await screen.findByRole("heading", { name: "Delete resume?" }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole("heading", { name: "Delete resume?" }),
+      ).not.toBeInTheDocument();
+    });
   });
 
   test("shows a transient saved indicator after title autosave succeeds", async () => {

@@ -158,11 +158,11 @@ export default async function HomePage() {
             Resume Coach
           </Link>
           <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/login">Sign in</Link>
+            <Button render={<Link href="/login" />} variant="ghost" size="sm">
+              Sign in
             </Button>
-            <Button asChild size="sm">
-              <Link href="/signup">Get started</Link>
+            <Button render={<Link href="/signup" />} size="sm">
+              Get started
             </Button>
           </div>
         </div>
@@ -189,11 +189,19 @@ export default async function HomePage() {
                 entirely from what you actually did.
               </p>
               <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <Button asChild size="lg" className="px-8">
-                  <Link href="/signup">Start logging accomplishments</Link>
+                <Button
+                  render={<Link href="/signup" />}
+                  size="lg"
+                  className="px-8"
+                >
+                  Start logging accomplishments
                 </Button>
-                <Button asChild size="lg" variant="ghost">
-                  <Link href="/login">I already have an account</Link>
+                <Button
+                  render={<Link href="/login" />}
+                  size="lg"
+                  variant="ghost"
+                >
+                  I already have an account
                 </Button>
               </div>
             </div>
@@ -333,11 +341,19 @@ export default async function HomePage() {
                   </span>
                 </h2>
                 <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                  <Button asChild size="lg" className="px-8">
-                    <Link href="/signup">Create your profile</Link>
+                  <Button
+                    render={<Link href="/signup" />}
+                    size="lg"
+                    className="px-8"
+                  >
+                    Create your profile
                   </Button>
-                  <Button asChild size="lg" variant="ghost">
-                    <Link href="/login">Sign in</Link>
+                  <Button
+                    render={<Link href="/login" />}
+                    size="lg"
+                    variant="ghost"
+                  >
+                    Sign in
                   </Button>
                 </div>
               </div>

@@ -34,10 +34,7 @@ describe("UserMenu", () => {
 
     render(<UserMenu email="jane@example.com" initials="JD" name="Jane Doe" />);
 
-    fireEvent.pointerDown(screen.getByRole("button"), {
-      button: 0,
-      ctrlKey: false,
-    });
+    fireEvent.click(screen.getByRole("button"));
     fireEvent.click(await screen.findByText("Sign Out"));
 
     expect(signOut).toHaveBeenCalledWith({

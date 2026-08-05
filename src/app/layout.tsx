@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { Noto_Serif, Playfair_Display } from "next/font/google";
 import { siteConfig } from "~/app/site-config";
 import NiceModalProviderWrapper from "~/components/providers";
-import { Toaster } from "~/components/ui/sonner";
+import { Toaster } from "~/components/ui/toast";
 import { cn } from "~/lib/utils";
 import { TRPCReactProvider } from "~/trpc/react";
 import "./styles.css";

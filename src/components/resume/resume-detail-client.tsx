@@ -14,7 +14,6 @@ import {
 } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import ContactInfo from "~/components/resume/contact-info";
 import EducationExperience from "~/components/resume/education-experience";
 import JobExperience from "~/components/resume/job-experience";
@@ -33,6 +32,7 @@ import {
 } from "~/components/ui/alert-dialog";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { toast } from "~/components/ui/toast";
 import {
   Tooltip,
   TooltipContent,
@@ -173,15 +173,15 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: number }) {
       const response = await fetch(`/resume/${resume.id}/markdown`);
 
       if (!response.ok) {
-        toast.error("Failed to copy markdown");
+        toast.add({ title: "Failed to copy markdown", type: "error" });
         return;
       }
 
       const markdown = await response.text();
       await navigator.clipboard.writeText(markdown);
-      toast.success("Copied markdown");
+      toast.add({ title: "Copied markdown", type: "success" });
     } catch {
-      toast.error("Failed to copy markdown");
+      toast.add({ title: "Failed to copy markdown", type: "error" });
     } finally {
       setIsCopyingMarkdown(false);
     }
@@ -189,7 +189,7 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: number }) {
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-      <TooltipProvider delayDuration={150}>
+      <TooltipProvider delay={150}>
         <div className="sticky top-[89px] z-20 mx-auto w-full max-w-[calc(8.5in+6rem)] print:hidden">
           <div className="rounded-2xl border bg-card/95 px-12 py-3 shadow-sm backdrop-blur">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -219,72 +219,82 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: number }) {
               </div>
               <div className="flex items-center gap-1 self-end md:self-auto">
                 <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="icon-sm"
-                      variant="ghost"
-                      className="cursor-pointer"
-                      aria-label="Copy as markdown"
-                      disabled={isCopyingMarkdown}
-                      onClick={() => {
-                        void copyMarkdownToClipboard();
-                      }}
-                    >
-                      <ClipboardDocumentIcon className="size-4" />
-                    </Button>
+                  <TooltipTrigger
+                    render={
+                      <Button
+                        size="icon-sm"
+                        variant="ghost"
+                        className="cursor-pointer"
+                        aria-label="Copy as markdown"
+                        disabled={isCopyingMarkdown}
+                        onClick={() => {
+                          void copyMarkdownToClipboard();
+                        }}
+                      />
+                    }
+                  >
+                    <ClipboardDocumentIcon className="size-4" />
                   </TooltipTrigger>
                   <TooltipContent>Copy as markdown</TooltipContent>
                 </Tooltip>
                 <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="icon-sm"
-                      variant="ghost"
-                      className="cursor-pointer"
-                      aria-label="Print resume"
-                      onClick={() => {
-                        window.print();
-                      }}
-                    >
-                      <PrinterIcon className="size-4" />
-                    </Button>
+                  <TooltipTrigger
+                    render={
+                      <Button
+                        size="icon-sm"
+                        variant="ghost"
+                        className="cursor-pointer"
+                        aria-label="Print resume"
+                        onClick={() => {
+                          window.print();
+                        }}
+                      />
+                    }
+                  >
+                    <PrinterIcon className="size-4" />
                   </TooltipTrigger>
                   <TooltipContent>Print</TooltipContent>
                 </Tooltip>
                 <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="icon-sm"
-                      variant="ghost"
-                      className="cursor-pointer"
-                      aria-label="Duplicate resume"
-                      disabled={duplicateMutation.isPending}
-                      onClick={() =>
-                        duplicateMutation.mutate({
-                          id: resume.id,
-                          name: `${resume.name} (Copy)`,
-                        })
-                      }
-                    >
-                      <Squares2X2Icon className="size-4" />
-                    </Button>
+                  <TooltipTrigger
+                    render={
+                      <Button
+                        size="icon-sm"
+                        variant="ghost"
+                        className="cursor-pointer"
+                        aria-label="Duplicate resume"
+                        disabled={duplicateMutation.isPending}
+                        onClick={() =>
+                          duplicateMutation.mutate({
+                            id: resume.id,
+                            name: `${resume.name} (Copy)`,
+                          })
+                        }
+                      />
+                    }
+                  >
+                    <Squares2X2Icon className="size-4" />
                   </TooltipTrigger>
                   <TooltipContent>Duplicate</TooltipContent>
                 </Tooltip>
                 <AlertDialog>
                   <Tooltip>
-                    <TooltipTrigger asChild>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          size="icon-sm"
-                          variant="ghost"
-                          className="cursor-pointer"
-                          aria-label="Delete resume"
-                          disabled={deleteMutation.isPending}
-                        >
-                          <TrashIcon className="size-4" />
-                        </Button>
-                      </AlertDialogTrigger>
+                    <TooltipTrigger
+                      render={
+                        <AlertDialogTrigger
+                          render={
+                            <Button
+                              size="icon-sm"
+                              variant="ghost"
+                              className="cursor-pointer"
+                              aria-label="Delete resume"
+                              disabled={deleteMutation.isPending}
+                            />
+                          }
+                        />
+                      }
+                    >
+                      <TrashIcon className="size-4" />
                     </TooltipTrigger>
                     <TooltipContent>Delete</TooltipContent>
                   </Tooltip>
@@ -299,6 +309,7 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: number }) {
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction
+                        variant="destructive"
                         onClick={() => {
                           deleteMutation.mutate({ id: resume.id });
                         }}

@@ -19,15 +19,17 @@ type ResumeDateProps = {
 
 export default function ResumeDate({ label, value }: ResumeDateProps) {
   return (
-    <TooltipProvider delayDuration={150}>
+    <TooltipProvider delay={150}>
       <Tooltip>
-        <TooltipTrigger asChild>
-          <time
-            dateTime={toDateTimeValue(value)}
-            className="cursor-default underline decoration-dotted underline-offset-2"
-          >
-            {label} {formatRelativeTime(value)}
-          </time>
+        <TooltipTrigger
+          render={
+            <time
+              dateTime={toDateTimeValue(value)}
+              className="cursor-default underline decoration-dotted underline-offset-2"
+            />
+          }
+        >
+          {label} {formatRelativeTime(value)}
         </TooltipTrigger>
         <TooltipContent>{formatTimestampTooltip(value)}</TooltipContent>
       </Tooltip>
