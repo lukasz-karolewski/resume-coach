@@ -32,24 +32,30 @@ vi.mock("~/auth", () => ({
 }));
 
 // Mock ResizeObserver as a proper class constructor
-class ResizeObserverMock {
+class ResizeObserverMock implements ResizeObserver {
   observe() {}
   unobserve() {}
   disconnect() {}
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-global.ResizeObserver = ResizeObserverMock as any;
+global.ResizeObserver = ResizeObserverMock;
 
 // Mock IntersectionObserver
-class IntersectionObserverMock {
+class IntersectionObserverMock implements IntersectionObserver {
+  readonly root = null;
+  readonly rootMargin = "";
+  readonly scrollMargin = "";
+  readonly thresholds = [];
+
   observe() {}
   unobserve() {}
   disconnect() {}
+  takeRecords(): IntersectionObserverEntry[] {
+    return [];
+  }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-global.IntersectionObserver = IntersectionObserverMock as any;
+global.IntersectionObserver = IntersectionObserverMock;
 
 global.CSS = {
   ...global.CSS,
