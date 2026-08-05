@@ -1,9 +1,13 @@
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
+
 import ResumeDetailClient from "~/components/resume/resume-detail-client";
-import { api } from "~/trpc/server";
+import { resumeDetailQuery } from "~/components/resume/resume-queries";
+import PageLoading from "~/components/ui/page-loading";
+import { HydrateClient, prefetch, trpc } from "~/trpc/server";
 
 export default async function ResumePage(props: {
-  params: Promise<{ resume_id: string }> | { resume_id: string };
+  params: Promise<{ resume_id: string }>;
 }) {
   const params = await props.params;
   const resumeId = Number.parseInt(params.resume_id, 10);
@@ -12,7 +16,13 @@ export default async function ResumePage(props: {
     notFound();
   }
 
-  const resume = await api.resume.getById.query({ id: resumeId });
+  prefetch(resumeDetailQuery(trpc, resumeId));
 
-  return <ResumeDetailClient resume={resume} />;
+  return (
+    <HydrateClient>
+      <Suspense fallback={<PageLoading variant="document" />}>
+        <ResumeDetailClient resumeId={resumeId} />
+      </Suspense>
+    </HydrateClient>
+  );
 }

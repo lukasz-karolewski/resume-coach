@@ -13,10 +13,22 @@ const mockPush = vi.fn();
 const mockUpdateTitleMutation = vi.fn();
 const mockDuplicateMutation = vi.fn();
 const mockDeleteMutation = vi.fn();
-const mockUseUtils = vi.fn();
+const mockInvalidateQueries = vi.fn();
 const mockFetch = vi.fn();
 const mockClipboardWriteText = vi.fn();
 const mockPrint = vi.fn();
+const mockResume = {
+  contactInfo: {
+    email: "jane@example.com",
+    name: "Jane Doe",
+    phone: "123",
+  },
+  education: [],
+  experience: [],
+  id: 7,
+  name: "Platform Resume",
+  summary: "Summary",
+};
 
 vi.mock("sonner", () => ({
   toast: {
@@ -63,36 +75,49 @@ vi.mock("~/components/resume/section", () => ({
 }));
 
 vi.mock("~/trpc/react", () => ({
-  api: {
+  useTRPC: () => ({
     resume: {
       delete: {
-        useMutation: (opts: unknown) => mockDeleteMutation(opts),
+        mutationOptions: (opts: unknown) => ({
+          ...(opts as object),
+          mutationKey: ["delete"],
+        }),
       },
       duplicate: {
-        useMutation: (opts: unknown) => mockDuplicateMutation(opts),
+        mutationOptions: (opts: unknown) => ({
+          ...(opts as object),
+          mutationKey: ["duplicate"],
+        }),
       },
+      getById: {
+        queryOptions: (input: unknown) => ({ input, queryKey: ["detail"] }),
+      },
+      pathFilter: () => ({ queryKey: ["resume"] }),
       updateTitle: {
-        useMutation: (opts: unknown) => mockUpdateTitleMutation(opts),
+        mutationOptions: (opts: unknown) => ({
+          ...(opts as object),
+          mutationKey: ["updateTitle"],
+        }),
       },
     },
-    useUtils: () => mockUseUtils(),
+  }),
+}));
+
+vi.mock("@tanstack/react-query", () => ({
+  useMutation: (options: { mutationKey: string[] }) => {
+    if (options.mutationKey[0] === "delete") {
+      return mockDeleteMutation(options);
+    }
+    if (options.mutationKey[0] === "duplicate") {
+      return mockDuplicateMutation(options);
+    }
+    return mockUpdateTitleMutation(options);
   },
+  useQueryClient: () => ({ invalidateQueries: mockInvalidateQueries }),
+  useSuspenseQuery: () => ({ data: mockResume }),
 }));
 
 describe("ResumeDetailClient", () => {
-  const resume = {
-    contactInfo: {
-      email: "jane@example.com",
-      name: "Jane Doe",
-      phone: "123",
-    },
-    education: [],
-    experience: [],
-    id: 7,
-    name: "Platform Resume",
-    summary: "Summary",
-  };
-
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal("fetch", mockFetch);
@@ -104,12 +129,6 @@ describe("ResumeDetailClient", () => {
         writeText: mockClipboardWriteText,
       },
     });
-    mockUseUtils.mockReturnValue({
-      resume: {
-        list: { invalidate: vi.fn() },
-      },
-    });
-
     mockUpdateTitleMutation.mockReturnValue({
       isPending: false,
       mutate: vi.fn(),
@@ -125,7 +144,7 @@ describe("ResumeDetailClient", () => {
   });
 
   test("renders an inline title input without edit controls", () => {
-    render(<ResumeDetailClient resume={resume} />);
+    render(<ResumeDetailClient resumeId={7} />);
 
     const input = screen.getByLabelText("Resume name");
 
@@ -164,7 +183,7 @@ describe("ResumeDetailClient", () => {
     });
     mockClipboardWriteText.mockResolvedValue(undefined);
 
-    render(<ResumeDetailClient resume={resume} />);
+    render(<ResumeDetailClient resumeId={7} />);
 
     fireEvent.click(screen.getByRole("button", { name: /copy as markdown/i }));
 
@@ -183,7 +202,7 @@ describe("ResumeDetailClient", () => {
       mutate,
     });
 
-    render(<ResumeDetailClient resume={resume} />);
+    render(<ResumeDetailClient resumeId={7} />);
 
     const input = screen.getByLabelText("Resume name");
     fireEvent.change(input, { target: { value: "Platform Resume v2" } });
@@ -202,7 +221,7 @@ describe("ResumeDetailClient", () => {
   });
 
   test("opens the browser print dialog from the toolbar", () => {
-    render(<ResumeDetailClient resume={resume} />);
+    render(<ResumeDetailClient resumeId={7} />);
 
     fireEvent.click(screen.getByRole("button", { name: /print resume/i }));
 
@@ -230,7 +249,7 @@ describe("ResumeDetailClient", () => {
       };
     });
 
-    render(<ResumeDetailClient resume={resume} />);
+    render(<ResumeDetailClient resumeId={7} />);
 
     fireEvent.change(screen.getByLabelText("Resume name"), {
       target: { value: "Platform Resume v2" },
@@ -257,7 +276,7 @@ describe("ResumeDetailClient", () => {
       mutate,
     });
 
-    render(<ResumeDetailClient resume={resume} />);
+    render(<ResumeDetailClient resumeId={7} />);
 
     fireEvent.click(screen.getByRole("button", { name: /duplicate resume/i }));
 
@@ -276,7 +295,7 @@ describe("ResumeDetailClient", () => {
       mutate,
     });
 
-    render(<ResumeDetailClient resume={resume} />);
+    render(<ResumeDetailClient resumeId={7} />);
 
     fireEvent.click(screen.getByRole("button", { name: /delete resume/i }));
     fireEvent.click(screen.getByRole("button", { name: "Delete" }));

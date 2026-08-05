@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { startTransition, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -13,7 +13,7 @@ import {
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Textarea } from "~/components/ui/textarea";
-import { api } from "~/trpc/react";
+import { useTRPC } from "~/trpc/react";
 
 function createDraftId() {
   return `draft-${Math.random().toString(36).slice(2, 10)}`;
@@ -73,17 +73,18 @@ export function AccomplishmentProfileEditor({
 }: {
   initialProfile: AccomplishmentProfileDraft;
 }) {
-  const router = useRouter();
+  const queryClient = useQueryClient();
+  const trpc = useTRPC();
   const [profile, setProfile] =
     useState<AccomplishmentProfileDraft>(initialProfile);
 
-  const saveMutation = api.profile.saveAccomplishmentProfile.useMutation({
-    onSuccess: () => {
-      startTransition(() => {
-        router.refresh();
-      });
-    },
-  });
+  const saveMutation = useMutation(
+    trpc.profile.saveAccomplishmentProfile.mutationOptions({
+      onSettled: async () => {
+        await queryClient.invalidateQueries(trpc.profile.pathFilter());
+      },
+    }),
+  );
 
   const roles = profile.roles;
 

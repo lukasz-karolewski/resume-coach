@@ -3,100 +3,51 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import ProfilePage from "./page";
 
-const mockProfileQuery = vi.fn();
-const mockAccomplishmentProfileQuery = vi.fn();
-const mockConnection = vi.fn();
-
-vi.mock("next/server", () => ({
-  connection: () => mockConnection(),
+const mockPrefetch = vi.fn();
+const mockUserInformationQueryOptions = vi.fn(() => ({
+  queryKey: ["profile", "getUserInfo"],
+}));
+const mockAccomplishmentQueryOptions = vi.fn(() => ({
+  queryKey: ["profile", "getAccomplishmentProfile"],
 }));
 
 vi.mock("~/trpc/server", () => ({
-  api: {
+  HydrateClient: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="hydrate-client">{children}</div>
+  ),
+  prefetch: (options: unknown) => mockPrefetch(options),
+  trpc: {
     profile: {
       getAccomplishmentProfile: {
-        query: () => mockAccomplishmentProfileQuery(),
+        queryOptions: () => mockAccomplishmentQueryOptions(),
       },
       getUserInfo: {
-        query: () => mockProfileQuery(),
+        queryOptions: () => mockUserInformationQueryOptions(),
       },
     },
   },
 }));
 
-vi.mock("~/components/profile/accomplishment-profile-editor", () => ({
-  AccomplishmentProfileEditor: ({
-    initialProfile,
-  }: {
-    initialProfile: { roles: { companyName: string; id: string }[] };
-  }) => (
-    <div>
-      <h2>Accomplishment profile</h2>
-      <div>{`Profile editor (${initialProfile.roles.length})`}</div>
-    </div>
-  ),
+vi.mock("~/components/profile/profile-page-client", () => ({
+  ProfilePageClient: () => <div>Profile client body</div>,
 }));
 
 describe("ProfilePage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockConnection.mockResolvedValue(undefined);
-    mockAccomplishmentProfileQuery.mockResolvedValue({
-      roles: [],
-    });
   });
 
-  test("renders profile details when the server returns no name", async () => {
-    mockProfileQuery.mockResolvedValue({
-      email: "jane@example.com",
-      name: null,
+  test("prefetches both profile queries inside the hydration boundary", () => {
+    render(<ProfilePage />);
+
+    expect(mockPrefetch).toHaveBeenCalledWith({
+      queryKey: ["profile", "getUserInfo"],
     });
-
-    render(await ProfilePage());
-
-    expect(screen.getByText("Profile")).toBeInTheDocument();
-    expect(screen.getByText("Not provided")).toBeInTheDocument();
-    expect(mockConnection).toHaveBeenCalledBefore(mockProfileQuery);
-  });
-
-  test("renders profile details in the shadcn card layout", async () => {
-    mockProfileQuery.mockResolvedValue({
-      email: "jane@example.com",
-      name: "Jane Doe",
+    expect(mockPrefetch).toHaveBeenCalledWith({
+      queryKey: ["profile", "getAccomplishmentProfile"],
     });
-
-    render(await ProfilePage());
-
-    expect(screen.getByText("Account information")).toBeInTheDocument();
-    expect(screen.getByText("Jane Doe")).toBeInTheDocument();
-    expect(screen.getByText("jane@example.com")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /import your linkedin profile/i }),
-    ).toBeInTheDocument();
-  });
-
-  test("renders the accomplishment profile editor section", async () => {
-    mockProfileQuery.mockResolvedValue({
-      email: "jane@example.com",
-      name: "Jane Doe",
-    });
-    mockAccomplishmentProfileQuery.mockResolvedValue({
-      roles: [
-        {
-          companyName: "Example Corp",
-          endDate: null,
-          entries: [{ content: "Improved onboarding conversion.", id: 1 }],
-          id: 1,
-          location: "Remote",
-          startDate: new Date("2023-01-01T00:00:00.000Z"),
-          title: "Senior Engineer",
-        },
-      ],
-    });
-
-    render(await ProfilePage());
-
-    expect(screen.getByText("Accomplishment profile")).toBeInTheDocument();
-    expect(screen.getByText("Profile editor (1)")).toBeInTheDocument();
+    expect(screen.getByTestId("hydrate-client")).toContainElement(
+      screen.getByText("Profile client body"),
+    );
   });
 });

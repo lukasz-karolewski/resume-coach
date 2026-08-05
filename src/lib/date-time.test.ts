@@ -1,11 +1,19 @@
 import { describe, expect, test, vi } from "vitest";
 import {
+  formatMonthInput,
   formatRelativeTime,
   formatTimestampTooltip,
   toDateTimeValue,
 } from "./date-time";
 
 describe("date-time", () => {
+  test("formats dates for month inputs", () => {
+    expect(formatMonthInput(new Date("2026-08-04T12:00:00.000Z"))).toBe(
+      "2026-08",
+    );
+    expect(formatMonthInput(null)).toBe("");
+  });
+
   test("formats relative dates against the current time", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-03-24T12:00:00.000Z"));

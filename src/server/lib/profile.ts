@@ -44,16 +44,6 @@ export function parseMonthInput(value?: string | null) {
   return new Date(`${parsed.data}T00:00:00.000Z`);
 }
 
-export function formatMonthInput(value?: Date | null) {
-  if (!value) {
-    return "";
-  }
-
-  const year = value.getUTCFullYear();
-  const month = String(value.getUTCMonth() + 1).padStart(2, "0");
-  return `${year}-${month}`;
-}
-
 function isMissingAccomplishmentProfileTableError(error: unknown) {
   if (!error || typeof error !== "object") {
     return false;

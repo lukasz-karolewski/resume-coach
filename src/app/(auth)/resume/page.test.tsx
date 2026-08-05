@@ -1,172 +1,62 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+
 import ResumePage from "./page";
 
-const mockResumeListQuery = vi.fn();
+const mockPrefetch = vi.fn();
 
 vi.mock("~/trpc/server", () => ({
-  api: {
+  HydrateClient: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="hydrate-client">{children}</div>
+  ),
+  prefetch: (options: unknown) => mockPrefetch(options),
+  trpc: {
+    job: { getJobs: { queryOptions: () => ({ queryKey: ["job"] }) } },
+    profile: {
+      getAccomplishmentProfile: {
+        queryOptions: () => ({ queryKey: ["profile"] }),
+      },
+    },
     resume: {
       list: {
-        query: (...args: unknown[]) => mockResumeListQuery(...args),
+        queryOptions: (input: unknown) => ({ input, queryKey: ["resume"] }),
       },
     },
   },
 }));
 
-vi.mock("~/components/resume/create-resume-button", () => ({
-  default: ({
-    buttonLabel = "Create new resume",
-  }: {
-    buttonLabel?: string;
-  }) => <button type="button">{buttonLabel}</button>,
-}));
-
-vi.mock("~/components/resume/resume-sort-dropdown", () => ({
-  default: ({ value }: { value: string }) => <div>{`Sort by ${value}`}</div>,
-}));
-
-vi.mock("~/components/resume/resume-sort", () => ({
-  normalizeResumeSort: (value?: string | string[]) => {
-    const normalizedValue = Array.isArray(value) ? value[0] : value;
-    if (normalizedValue === "created") {
-      return "created";
-    }
-    return normalizedValue === "name" ? "name" : "last-updated";
-  },
-}));
-
-vi.mock("~/components/resume/resume-date", () => ({
-  default: ({ label, value }: { label: string; value: Date | string }) => (
-    <p>{`${label} ${String(value)}`}</p>
+vi.mock("~/components/resume/resume-page-client", () => ({
+  ResumePageClient: ({ sort }: { sort: string }) => (
+    <div>{`Resume client body ${sort}`}</div>
   ),
 }));
 
-vi.mock("next/link", () => ({
-  default: ({
-    children,
-    href,
-  }: {
-    children: React.ReactNode;
-    href: string;
-  }) => <a href={href}>{children}</a>,
-}));
-
 describe("ResumePage", () => {
-  const mockResumes = [
-    {
-      _count: {
-        education: 2,
-        experience: 3,
-      },
-      createdAt: new Date("2024-01-01T10:00:00.000Z"),
-      id: 1,
-      Job: null,
-      name: "Software Engineer Resume",
-      updatedAt: new Date("2024-01-15T15:30:00.000Z"),
-    },
-    {
-      _count: {
-        education: 1,
-        experience: 2,
-      },
-      createdAt: new Date("2024-02-01T12:00:00.000Z"),
-      id: 2,
-      Job: {
-        company: "Tech Corp",
-        title: "Senior Data Scientist",
-      },
-      name: "Data Scientist Resume",
-      updatedAt: new Date("2024-02-10T09:45:00.000Z"),
-    },
-  ];
-
   beforeEach(() => {
     vi.clearAllMocks();
-    mockResumeListQuery.mockResolvedValue(mockResumes);
   });
 
-  test("renders the resume list from a server-side query", async () => {
-    render(await ResumePage());
-
-    expect(mockResumeListQuery).toHaveBeenCalledWith({ sort: "last-updated" });
-    expect(screen.getByText("My Resumes")).toBeInTheDocument();
-    expect(screen.getByText("Software Engineer Resume")).toBeInTheDocument();
-    expect(screen.getByText("Data Scientist Resume")).toBeInTheDocument();
-  });
-
-  test("shows empty state when no resumes exist", async () => {
-    mockResumeListQuery.mockResolvedValue([]);
-
-    render(await ResumePage());
-
-    expect(screen.getByText("No resumes yet")).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "Create your first resume to start building tailored versions.",
-      ),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Create your first resume" }),
-    ).toBeInTheDocument();
-  });
-
-  test("renders linked titles and resume summary information", async () => {
-    render(await ResumePage());
-
-    expect(
-      screen.getByRole("link", { name: "Software Engineer Resume" }),
-    ).toHaveAttribute("href", "/resume/1");
-    expect(
-      screen.getByRole("link", { name: "Data Scientist Resume" }),
-    ).toHaveAttribute("href", "/resume/2");
-    expect(screen.getByText(/3 roles/)).toBeInTheDocument();
-    expect(screen.getByText(/2 entries/)).toBeInTheDocument();
-    expect(screen.getByText(/Senior Data Scientist/)).toBeInTheDocument();
-  });
-
-  test("sorts resumes by name when requested in search params", async () => {
+  test("prefetches route and modal data with the normalized sort", async () => {
     render(
       await ResumePage({ searchParams: Promise.resolve({ sort: "name" }) }),
     );
 
-    expect(screen.getByText("Sort by name")).toBeInTheDocument();
-    expect(mockResumeListQuery).toHaveBeenCalledWith({ sort: "name" });
+    expect(mockPrefetch).toHaveBeenCalledWith({
+      input: { sort: "name" },
+      queryKey: ["resume"],
+    });
+    expect(mockPrefetch).toHaveBeenCalledWith({ queryKey: ["job"] });
+    expect(mockPrefetch).toHaveBeenCalledWith({ queryKey: ["profile"] });
+    expect(screen.getByTestId("hydrate-client")).toContainElement(
+      screen.getByText("Resume client body name"),
+    );
   });
 
-  test("sorts resumes by last updated by default", async () => {
+  test("uses last-updated by default", async () => {
     render(await ResumePage());
 
-    expect(screen.getByText("Sort by last-updated")).toBeInTheDocument();
-    expect(mockResumeListQuery).toHaveBeenCalledWith({ sort: "last-updated" });
-  });
-
-  test("sorts resumes by created when requested in search params", async () => {
-    render(
-      await ResumePage({ searchParams: Promise.resolve({ sort: "created" }) }),
-    );
-
-    expect(screen.getByText("Sort by created")).toBeInTheDocument();
-    expect(mockResumeListQuery).toHaveBeenCalledWith({ sort: "created" });
-  });
-
-  test("renders updated above created in a left-aligned footer stack", async () => {
-    const { container } = render(await ResumePage());
-
     expect(
-      container.querySelector(
-        ".flex.flex-col.items-start.gap-1.text-xs.text-muted-foreground\\/80",
-      ),
-    ).toBeTruthy();
-  });
-
-  test("centers the header actions vertically on desktop", async () => {
-    const { container } = render(await ResumePage());
-
-    expect(
-      container.querySelector(
-        ".flex.flex-col.gap-4.md\\:flex-row.md\\:items-center.md\\:justify-between",
-      ),
-    ).toBeTruthy();
+      screen.getByText("Resume client body last-updated"),
+    ).toBeInTheDocument();
   });
 });

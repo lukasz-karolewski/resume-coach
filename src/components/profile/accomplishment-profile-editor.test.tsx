@@ -5,23 +5,23 @@ import {
   AccomplishmentProfileEditor,
 } from "./accomplishment-profile-editor";
 
-const mockRefresh = vi.fn();
 const mockUseMutation = vi.fn();
+const mockInvalidateQueries = vi.fn();
 
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({
-    refresh: mockRefresh,
+vi.mock("~/trpc/react", () => ({
+  useTRPC: () => ({
+    profile: {
+      pathFilter: () => ({ queryKey: ["profile"] }),
+      saveAccomplishmentProfile: {
+        mutationOptions: (options: unknown) => options,
+      },
+    },
   }),
 }));
 
-vi.mock("~/trpc/react", () => ({
-  api: {
-    profile: {
-      saveAccomplishmentProfile: {
-        useMutation: (options: unknown) => mockUseMutation(options),
-      },
-    },
-  },
+vi.mock("@tanstack/react-query", () => ({
+  useMutation: (options: unknown) => mockUseMutation(options),
+  useQueryClient: () => ({ invalidateQueries: mockInvalidateQueries }),
 }));
 
 describe("AccomplishmentProfileEditor", () => {
@@ -72,15 +72,15 @@ describe("AccomplishmentProfileEditor", () => {
     expect(screen.getByLabelText("Role title")).toBeInTheDocument();
   });
 
-  test("saves a sanitized payload and refreshes after success", async () => {
+  test("saves a sanitized payload and invalidates profile data", async () => {
     let capturedOptions:
       | {
-          onSuccess?: () => void;
+          onSettled?: () => Promise<void>;
         }
       | undefined;
 
     const mutate = vi.fn(() => {
-      capturedOptions?.onSuccess?.();
+      void capturedOptions?.onSettled?.();
     });
 
     mockUseMutation.mockImplementation((options) => {
@@ -128,7 +128,9 @@ describe("AccomplishmentProfileEditor", () => {
     });
 
     await waitFor(() => {
-      expect(mockRefresh).toHaveBeenCalled();
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ["profile"],
+      });
     });
   });
 });

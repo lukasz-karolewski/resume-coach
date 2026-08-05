@@ -1,12 +1,21 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import Modal from "~/components/ui/modal";
-import { api } from "~/trpc/react";
+import { useTRPC } from "~/trpc/react";
+
+import {
+  accomplishmentProfileForResumeQuery,
+  jobsForResumeQuery,
+} from "./resume-queries";
 
 type CreateResumeButtonProps = {
   buttonLabel?: string;
@@ -17,32 +26,41 @@ export default function CreateResumeButton({
   buttonLabel = "Create new resume",
   buttonProps,
 }: CreateResumeButtonProps) {
-  const router = useRouter();
+  const queryClient = useQueryClient();
+  const trpc = useTRPC();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newResumeName, setNewResumeName] = useState("");
   const [selectedJobId, setSelectedJobId] = useState<string | undefined>();
 
-  const { data: jobs } = api.job.getJobs.useQuery();
-  const { data: accomplishmentProfile } =
-    api.profile.getAccomplishmentProfile.useQuery();
+  const { data: jobs } = useSuspenseQuery(jobsForResumeQuery(trpc));
+  const { data: accomplishmentProfile } = useSuspenseQuery(
+    accomplishmentProfileForResumeQuery(trpc),
+  );
 
-  const createMutation = api.resume.create.useMutation({
-    onSuccess: () => {
-      setIsCreateModalOpen(false);
-      setNewResumeName("");
-      setSelectedJobId(undefined);
-      router.refresh();
-    },
-  });
-  const createTailoredMutation =
-    api.resume.createTailoredFromProfile.useMutation({
+  const createMutation = useMutation(
+    trpc.resume.create.mutationOptions({
+      onSettled: async () => {
+        await queryClient.invalidateQueries(trpc.resume.pathFilter());
+      },
       onSuccess: () => {
         setIsCreateModalOpen(false);
         setNewResumeName("");
         setSelectedJobId(undefined);
-        router.refresh();
       },
-    });
+    }),
+  );
+  const createTailoredMutation = useMutation(
+    trpc.resume.createTailoredFromProfile.mutationOptions({
+      onSettled: async () => {
+        await queryClient.invalidateQueries(trpc.resume.pathFilter());
+      },
+      onSuccess: () => {
+        setIsCreateModalOpen(false);
+        setNewResumeName("");
+        setSelectedJobId(undefined);
+      },
+    }),
+  );
 
   const handleCreateResume = () => {
     createMutation.mutate({

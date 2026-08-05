@@ -1,9 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+
 import ResumeDetailPage from "./page";
 
-const mockGetByIdQuery = vi.fn();
 const mockNotFound = vi.fn();
+const mockPrefetch = vi.fn();
 
 vi.mock("next/navigation", () => ({
   notFound: () => {
@@ -13,49 +14,50 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("~/trpc/server", () => ({
-  api: {
+  HydrateClient: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="hydrate-client">{children}</div>
+  ),
+  prefetch: (options: unknown) => mockPrefetch(options),
+  trpc: {
     resume: {
       getById: {
-        query: (...args: unknown[]) => mockGetByIdQuery(...args),
+        queryOptions: (input: unknown) => ({ input, queryKey: ["resume"] }),
       },
     },
   },
 }));
 
 vi.mock("~/components/resume/resume-detail-client", () => ({
-  default: ({ resume }: { resume: { name: string } }) => (
-    <div>{`Resume detail ${resume.name}`}</div>
+  default: ({ resumeId }: { resumeId: number }) => (
+    <div>{`Resume detail ${resumeId}`}</div>
   ),
 }));
 
 describe("ResumeDetailPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetByIdQuery.mockResolvedValue({
-      contactInfo: null,
-      education: [],
-      experience: [],
-      id: 7,
-      name: "Platform Resume",
-      summary: "Summary",
-    });
   });
 
-  test("renders resume detail from a server-side query", async () => {
-    render(await ResumeDetailPage({ params: { resume_id: "7" } }));
+  test("prefetches the detail query inside the hydration boundary", async () => {
+    render(
+      await ResumeDetailPage({ params: Promise.resolve({ resume_id: "7" }) }),
+    );
 
-    expect(mockGetByIdQuery).toHaveBeenCalledWith({ id: 7 });
-    expect(
-      screen.getByText("Resume detail Platform Resume"),
-    ).toBeInTheDocument();
+    expect(mockPrefetch).toHaveBeenCalledWith({
+      input: { id: 7 },
+      queryKey: ["resume"],
+    });
+    expect(screen.getByTestId("hydrate-client")).toContainElement(
+      screen.getByText("Resume detail 7"),
+    );
   });
 
   test("calls notFound for invalid resume ids", async () => {
     await expect(
-      ResumeDetailPage({ params: { resume_id: "abc" } }),
+      ResumeDetailPage({ params: Promise.resolve({ resume_id: "abc" }) }),
     ).rejects.toThrow("NEXT_NOT_FOUND");
 
     expect(mockNotFound).toHaveBeenCalled();
-    expect(mockGetByIdQuery).not.toHaveBeenCalled();
+    expect(mockPrefetch).not.toHaveBeenCalled();
   });
 });

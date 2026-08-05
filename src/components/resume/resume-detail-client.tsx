@@ -7,6 +7,11 @@ import {
   Squares2X2Icon,
   TrashIcon,
 } from "@heroicons/react/20/solid";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -35,21 +40,20 @@ import {
   TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { EducationType } from "~/generated/prisma/enums";
-import { api } from "~/trpc/react";
-import type { RouterOutputs } from "~/trpc/shared";
+import { useTRPC } from "~/trpc/react";
+
+import { resumeDetailQuery } from "./resume-queries";
 
 const TITLE_AUTOSAVE_DELAY_MS = 800;
 const SAVED_INDICATOR_DURATION_MS = 2000;
 
-type ResumeDetail = RouterOutputs["resume"]["getById"];
-
-export default function ResumeDetailClient({
-  resume: initialResume,
-}: {
-  resume: ResumeDetail;
-}) {
+export default function ResumeDetailClient({ resumeId }: { resumeId: number }) {
   const router = useRouter();
-  const utils = api.useUtils();
+  const queryClient = useQueryClient();
+  const trpc = useTRPC();
+  const { data: initialResume } = useSuspenseQuery(
+    resumeDetailQuery(trpc, resumeId),
+  );
   const [resume, setResume] = useState(initialResume);
   const [draftName, setDraftName] = useState(initialResume.name);
   const [isCopyingMarkdown, setIsCopyingMarkdown] = useState(false);
@@ -58,48 +62,59 @@ export default function ResumeDetailClient({
   const pendingSaveNameRef = useRef<string | null>(null);
   const savedIndicatorTimeoutRef = useRef<number | null>(null);
 
-  const updateTitleMutation = api.resume.updateTitle.useMutation({
-    onError: () => {
-      pendingSaveNameRef.current = null;
-      setShowSavedIndicator(false);
-    },
-    onSuccess: async (updatedResume) => {
-      lastSyncedNameRef.current = updatedResume.name;
-      pendingSaveNameRef.current = null;
-      setResume((currentResume) => ({
-        ...currentResume,
-        name: updatedResume.name,
-      }));
-      setDraftName((currentDraft) =>
-        currentDraft.trim() === updatedResume.name
-          ? updatedResume.name
-          : currentDraft,
-      );
-      setShowSavedIndicator(true);
-
-      if (savedIndicatorTimeoutRef.current !== null) {
-        window.clearTimeout(savedIndicatorTimeoutRef.current);
-      }
-
-      savedIndicatorTimeoutRef.current = window.setTimeout(() => {
+  const updateTitleMutation = useMutation(
+    trpc.resume.updateTitle.mutationOptions({
+      onError: () => {
+        pendingSaveNameRef.current = null;
         setShowSavedIndicator(false);
-      }, SAVED_INDICATOR_DURATION_MS);
+      },
+      onSettled: async () => {
+        await queryClient.invalidateQueries(trpc.resume.pathFilter());
+      },
+      onSuccess: async (updatedResume) => {
+        lastSyncedNameRef.current = updatedResume.name;
+        pendingSaveNameRef.current = null;
+        setResume((currentResume) => ({
+          ...currentResume,
+          name: updatedResume.name,
+        }));
+        setDraftName((currentDraft) =>
+          currentDraft.trim() === updatedResume.name
+            ? updatedResume.name
+            : currentDraft,
+        );
+        setShowSavedIndicator(true);
 
-      await utils.resume.list.invalidate();
-    },
-  });
-  const duplicateMutation = api.resume.duplicate.useMutation({
-    onSuccess: async (nextResume) => {
-      await utils.resume.list.invalidate();
-      router.push(`/resume/${nextResume.id}`);
-    },
-  });
-  const deleteMutation = api.resume.delete.useMutation({
-    onSuccess: async () => {
-      await utils.resume.list.invalidate();
-      router.push("/resume");
-    },
-  });
+        if (savedIndicatorTimeoutRef.current !== null) {
+          window.clearTimeout(savedIndicatorTimeoutRef.current);
+        }
+
+        savedIndicatorTimeoutRef.current = window.setTimeout(() => {
+          setShowSavedIndicator(false);
+        }, SAVED_INDICATOR_DURATION_MS);
+      },
+    }),
+  );
+  const duplicateMutation = useMutation(
+    trpc.resume.duplicate.mutationOptions({
+      onSettled: async () => {
+        await queryClient.invalidateQueries(trpc.resume.pathFilter());
+      },
+      onSuccess: async (nextResume) => {
+        router.push(`/resume/${nextResume.id}`);
+      },
+    }),
+  );
+  const deleteMutation = useMutation(
+    trpc.resume.delete.mutationOptions({
+      onSettled: async () => {
+        await queryClient.invalidateQueries(trpc.resume.pathFilter());
+      },
+      onSuccess: async () => {
+        router.push("/resume");
+      },
+    }),
+  );
 
   useEffect(() => {
     setResume(initialResume);

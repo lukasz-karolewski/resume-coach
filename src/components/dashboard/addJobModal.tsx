@@ -1,10 +1,11 @@
 import NiceModal, { useModal } from "@ebay/nice-modal-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 
 import { Button } from "~/components/ui/button";
 import Modal from "~/components/ui/modal";
-import { api } from "~/trpc/react";
+import { useTRPC } from "~/trpc/react";
 import type { RouterInputs } from "~/trpc/shared";
 import { zodErrorsToString } from "~/utils";
 
@@ -18,21 +19,28 @@ type FormValues = RouterInputs["job"]["addJob"];
 
 export const AddJobModal = NiceModal.create<AddJobModalProps>(() => {
   const modal = useModal();
+  const queryClient = useQueryClient();
+  const trpc = useTRPC();
 
   const { register, handleSubmit } = useForm<FormValues>();
 
-  const { mutate: create } = api.job.addJob.useMutation({
-    onError: (error) => {
-      const errorMessage = zodErrorsToString(error);
-      if (errorMessage) toast.error(errorMessage);
-      else toast.error("Failed to save");
-    },
-    onSuccess: (_data) => {
-      toast.success("Saved");
-      modal.resolve();
-      modal.remove();
-    },
-  });
+  const { mutate: create } = useMutation(
+    trpc.job.addJob.mutationOptions({
+      onError: (error) => {
+        const errorMessage = zodErrorsToString(error);
+        if (errorMessage) toast.error(errorMessage);
+        else toast.error("Failed to save");
+      },
+      onSettled: async () => {
+        await queryClient.invalidateQueries(trpc.job.pathFilter());
+      },
+      onSuccess: (_data) => {
+        toast.success("Saved");
+        modal.resolve();
+        modal.remove();
+      },
+    }),
+  );
 
   const onSubmit: SubmitHandler<FormValues> = (data, _event) => {
     return create(data);

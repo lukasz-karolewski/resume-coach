@@ -2,39 +2,50 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import CreateResumeButton from "./create-resume-button";
 
-const mockPushRefresh = vi.fn();
 const mockGetJobsQuery = vi.fn();
 const mockGetProfileQuery = vi.fn();
 const mockCreateMutation = vi.fn();
 const mockCreateTailoredMutation = vi.fn();
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({
-    refresh: mockPushRefresh,
-  }),
-}));
+const mockInvalidateQueries = vi.fn();
 
 vi.mock("~/trpc/react", () => ({
-  api: {
+  useTRPC: () => ({
     job: {
       getJobs: {
-        useQuery: () => mockGetJobsQuery(),
+        queryOptions: () => ({ queryKey: ["job"] }),
       },
     },
     profile: {
       getAccomplishmentProfile: {
-        useQuery: () => mockGetProfileQuery(),
+        queryOptions: () => ({ queryKey: ["profile"] }),
       },
     },
     resume: {
       create: {
-        useMutation: (opts: unknown) => mockCreateMutation(opts),
+        mutationOptions: (opts: unknown) => ({
+          ...(opts as object),
+          mutationKey: ["create"],
+        }),
       },
       createTailoredFromProfile: {
-        useMutation: (opts: unknown) => mockCreateTailoredMutation(opts),
+        mutationOptions: (opts: unknown) => ({
+          ...(opts as object),
+          mutationKey: ["tailored"],
+        }),
       },
+      pathFilter: () => ({ queryKey: ["resume"] }),
     },
-  },
+  }),
+}));
+
+vi.mock("@tanstack/react-query", () => ({
+  useMutation: (options: { mutationKey: string[] }) =>
+    options.mutationKey[0] === "create"
+      ? mockCreateMutation(options)
+      : mockCreateTailoredMutation(options),
+  useQueryClient: () => ({ invalidateQueries: mockInvalidateQueries }),
+  useSuspenseQuery: ({ queryKey }: { queryKey: string[] }) =>
+    queryKey[0] === "job" ? mockGetJobsQuery() : mockGetProfileQuery(),
 }));
 
 describe("CreateResumeButton", () => {
@@ -105,14 +116,14 @@ describe("CreateResumeButton", () => {
     });
   });
 
-  test("refreshes the route after a successful create", async () => {
+  test("invalidates resume data after create settles", async () => {
     let mutationOptions:
       | {
-          onSuccess?: () => void;
+          onSettled?: () => Promise<void>;
         }
       | undefined;
     const mutate = vi.fn(() => {
-      mutationOptions?.onSuccess?.();
+      void mutationOptions?.onSettled?.();
     });
 
     mockCreateMutation.mockImplementation((opts) => {
@@ -129,7 +140,9 @@ describe("CreateResumeButton", () => {
     fireEvent.click(screen.getByRole("button", { name: "Create Resume" }));
 
     await waitFor(() => {
-      expect(mockPushRefresh).toHaveBeenCalled();
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ["resume"],
+      });
     });
   });
 

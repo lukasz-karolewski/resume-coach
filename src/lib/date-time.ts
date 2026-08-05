@@ -18,4 +18,19 @@ function formatTimestampTooltip(value: Date | string) {
   }).format(new Date(value));
 }
 
-export { formatRelativeTime, formatTimestampTooltip, toDateTimeValue };
+function formatMonthInput(value?: Date | null) {
+  if (!value) {
+    return "";
+  }
+
+  const year = value.getUTCFullYear();
+  const month = String(value.getUTCMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+}
+
+export {
+  formatMonthInput,
+  formatRelativeTime,
+  formatTimestampTooltip,
+  toDateTimeValue,
+};
