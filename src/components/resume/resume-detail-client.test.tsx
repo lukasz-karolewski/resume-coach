@@ -13,6 +13,8 @@ const mockPush = vi.fn();
 const mockUpdateTitleMutation = vi.fn();
 const mockDuplicateMutation = vi.fn();
 const mockDeleteMutation = vi.fn();
+const mockUpdateAccomplishmentsMutation = vi.fn();
+const mockUpdateSummaryMutation = vi.fn();
 const mockInvalidateQueries = vi.fn();
 const mockFetch = vi.fn();
 const mockClipboardWriteText = vi.fn();
@@ -24,7 +26,26 @@ const mockResume = {
     phone: "123",
   },
   education: [],
-  experience: [],
+  experience: [
+    {
+      companyName: "Acme",
+      id: 12,
+      link: null,
+      positions: [
+        {
+          accomplishments: "- Reduced deployment time by 50%",
+          endDate: null,
+          experienceId: 12,
+          id: 34,
+          location: "Remote",
+          skillPosition: [],
+          startDate: new Date("2022-01-01T00:00:00.000Z"),
+          title: "Staff Engineer",
+        },
+      ],
+      resumeId: 7,
+    },
+  ],
   id: 7,
   name: "Platform Resume",
   summary: "Summary",
@@ -51,11 +72,45 @@ vi.mock("~/components/resume/education-experience", () => ({
 }));
 
 vi.mock("~/components/resume/job-experience", () => ({
-  default: () => <div>Experience</div>,
+  default: ({
+    jobs,
+    onEditAccomplishments,
+  }: {
+    jobs: typeof mockResume.experience;
+    onEditAccomplishments?: (
+      position: (typeof mockResume.experience)[number]["positions"][number],
+    ) => void;
+  }) => (
+    <div>
+      <span>{jobs[0]?.positions[0]?.accomplishments}</span>
+      <button
+        type="button"
+        onClick={() => {
+          const position = jobs[0]?.positions[0];
+          if (position) onEditAccomplishments?.(position);
+        }}
+      >
+        Edit test accomplishments
+      </button>
+    </div>
+  ),
 }));
 
 vi.mock("~/components/resume/professional-summary", () => ({
-  ProfessionalSummary: () => <div>Summary</div>,
+  ProfessionalSummary: ({
+    info,
+    onEdit,
+  }: {
+    info: string;
+    onEdit?: () => void;
+  }) => (
+    <div>
+      <span>{info}</span>
+      <button type="button" onClick={onEdit}>
+        Edit test summary
+      </button>
+    </div>
+  ),
 }));
 
 vi.mock("~/components/resume/section", () => ({
@@ -92,6 +147,18 @@ vi.mock("~/trpc/react", () => ({
         queryOptions: (input: unknown) => ({ input, queryKey: ["detail"] }),
       },
       pathFilter: () => ({ queryKey: ["resume"] }),
+      updateAccomplishments: {
+        mutationOptions: (opts: unknown) => ({
+          ...(opts as object),
+          mutationKey: ["updateAccomplishments"],
+        }),
+      },
+      updateSummary: {
+        mutationOptions: (opts: unknown) => ({
+          ...(opts as object),
+          mutationKey: ["updateSummary"],
+        }),
+      },
       updateTitle: {
         mutationOptions: (opts: unknown) => ({
           ...(opts as object),
@@ -109,6 +176,12 @@ vi.mock("@tanstack/react-query", () => ({
     }
     if (options.mutationKey[0] === "duplicate") {
       return mockDuplicateMutation(options);
+    }
+    if (options.mutationKey[0] === "updateAccomplishments") {
+      return mockUpdateAccomplishmentsMutation(options);
+    }
+    if (options.mutationKey[0] === "updateSummary") {
+      return mockUpdateSummaryMutation(options);
     }
     return mockUpdateTitleMutation(options);
   },
@@ -137,6 +210,14 @@ describe("ResumeDetailClient", () => {
       mutate: vi.fn(),
     });
     mockDeleteMutation.mockReturnValue({
+      isPending: false,
+      mutate: vi.fn(),
+    });
+    mockUpdateAccomplishmentsMutation.mockReturnValue({
+      isPending: false,
+      mutate: vi.fn(),
+    });
+    mockUpdateSummaryMutation.mockReturnValue({
       isPending: false,
       mutate: vi.fn(),
     });
@@ -322,6 +403,86 @@ describe("ResumeDetailClient", () => {
 
     await waitFor(() => {
       expect(mutate).toHaveBeenCalledWith({ id: 7 });
+    });
+  });
+
+  test("edits a position's accomplishments in a modal", async () => {
+    let mutationOptions:
+      | {
+          onSuccess?: (
+            data: unknown,
+            variables: { accomplishments: string; positionId: number },
+          ) => void | Promise<void>;
+        }
+      | undefined;
+    const mutate = vi.fn(
+      (variables: { accomplishments: string; positionId: number }) => {
+        void mutationOptions?.onSuccess?.({}, variables);
+      },
+    );
+
+    mockUpdateAccomplishmentsMutation.mockImplementation((opts) => {
+      mutationOptions = opts as typeof mutationOptions;
+      return { isPending: false, mutate };
+    });
+
+    render(<ResumeDetailClient resumeId={7} />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Edit test accomplishments" }),
+    );
+    const editor = await screen.findByLabelText("Accomplishments (Markdown)");
+    fireEvent.change(editor, {
+      target: { value: "- Reduced deployment time by 80%" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    expect(mutate).toHaveBeenCalledWith({
+      accomplishments: "- Reduced deployment time by 80%",
+      positionId: 34,
+    });
+    await waitFor(() => {
+      expect(
+        screen.getByText("- Reduced deployment time by 80%"),
+      ).toBeInTheDocument();
+    });
+  });
+
+  test("edits the professional summary in a modal", async () => {
+    let mutationOptions:
+      | {
+          onSuccess?: (
+            data: unknown,
+            variables: { resumeId: number; summary: string },
+          ) => void | Promise<void>;
+        }
+      | undefined;
+    const mutate = vi.fn((variables: { resumeId: number; summary: string }) => {
+      void mutationOptions?.onSuccess?.({}, variables);
+    });
+
+    mockUpdateSummaryMutation.mockImplementation((opts) => {
+      mutationOptions = opts as typeof mutationOptions;
+      return { isPending: false, mutate };
+    });
+
+    render(<ResumeDetailClient resumeId={7} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit test summary" }));
+    const editor = await screen.findByLabelText("Professional summary");
+    fireEvent.change(editor, {
+      target: { value: "Platform engineer focused on reliable delivery." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    expect(mutate).toHaveBeenCalledWith({
+      resumeId: 7,
+      summary: "Platform engineer focused on reliable delivery.",
+    });
+    await waitFor(() => {
+      expect(
+        screen.getByText("Platform engineer focused on reliable delivery."),
+      ).toBeInTheDocument();
     });
   });
 });

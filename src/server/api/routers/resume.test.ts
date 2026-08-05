@@ -26,6 +26,8 @@ const createMockDb = () => ({
   },
   position: {
     createMany: vi.fn(),
+    findFirst: vi.fn(),
+    update: vi.fn(),
   },
   resume: {
     create: vi.fn(),
@@ -594,6 +596,54 @@ describe("Resume Router", () => {
       await expect(
         caller.updateTitle({ id: 999, name: "Test" }),
       ).rejects.toThrow("Resume not found");
+    });
+  });
+
+  describe("updateAccomplishments", () => {
+    test("should update accomplishments for an owned position", async () => {
+      mockDb.position.findFirst.mockResolvedValue({
+        id: 4,
+        title: "Staff Engineer",
+      });
+      mockDb.position.update.mockResolvedValue({
+        id: 4,
+        title: "Staff Engineer",
+      });
+
+      const caller = createCaller();
+      const result = await caller.updateAccomplishments({
+        accomplishments: "- Improved deployment time by 80%",
+        positionId: 4,
+      });
+
+      expect(result).toEqual({
+        positionId: 4,
+        success: true,
+        title: "Staff Engineer",
+      });
+      expect(mockDb.position.update).toHaveBeenCalledWith({
+        data: { accomplishments: "- Improved deployment time by 80%" },
+        where: { id: 4 },
+      });
+    });
+  });
+
+  describe("updateSummary", () => {
+    test("should update the summary for an owned resume", async () => {
+      mockDb.resume.findFirst.mockResolvedValue({ id: 1 });
+      mockDb.resume.update.mockResolvedValue({ id: 1 });
+
+      const caller = createCaller();
+      const result = await caller.updateSummary({
+        resumeId: 1,
+        summary: "Platform engineer focused on reliable delivery.",
+      });
+
+      expect(result).toEqual({ resumeId: 1, success: true });
+      expect(mockDb.resume.update).toHaveBeenCalledWith({
+        data: { summary: "Platform engineer focused on reliable delivery." },
+        where: { id: 1 },
+      });
     });
   });
 

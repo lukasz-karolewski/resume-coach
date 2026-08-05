@@ -14,9 +14,11 @@ import {
 } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { AccomplishmentsEditorDialog } from "~/components/resume/accomplishments-editor-dialog";
 import ContactInfo from "~/components/resume/contact-info";
 import EducationExperience from "~/components/resume/education-experience";
 import JobExperience from "~/components/resume/job-experience";
+import { MarkdownEditorDialog } from "~/components/resume/markdown-editor-dialog";
 import { ProfessionalSummary } from "~/components/resume/professional-summary";
 import Section from "~/components/resume/section";
 import {
@@ -41,11 +43,15 @@ import {
 } from "~/components/ui/tooltip";
 import { EducationType } from "~/generated/prisma/enums";
 import { useTRPC } from "~/trpc/react";
+import type { RouterOutputs } from "~/trpc/shared";
 
 import { resumeDetailQuery } from "./resume-queries";
 
 const TITLE_AUTOSAVE_DELAY_MS = 800;
 const SAVED_INDICATOR_DURATION_MS = 2000;
+
+type ResumePosition =
+  RouterOutputs["resume"]["getById"]["experience"][number]["positions"][number];
 
 export default function ResumeDetailClient({ resumeId }: { resumeId: number }) {
   const router = useRouter();
@@ -58,6 +64,10 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: number }) {
   const [draftName, setDraftName] = useState(initialResume.name);
   const [isCopyingMarkdown, setIsCopyingMarkdown] = useState(false);
   const [showSavedIndicator, setShowSavedIndicator] = useState(false);
+  const [editingPosition, setEditingPosition] = useState<ResumePosition | null>(
+    null,
+  );
+  const [isEditingSummary, setIsEditingSummary] = useState(false);
   const lastSyncedNameRef = useRef(initialResume.name);
   const pendingSaveNameRef = useRef<string | null>(null);
   const savedIndicatorTimeoutRef = useRef<number | null>(null);
@@ -112,6 +122,52 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: number }) {
       },
       onSuccess: async () => {
         router.push("/resume");
+      },
+    }),
+  );
+  const updateAccomplishmentsMutation = useMutation(
+    trpc.resume.updateAccomplishments.mutationOptions({
+      onError: () => {
+        toast.add({
+          title: "Failed to update accomplishments",
+          type: "error",
+        });
+      },
+      onSettled: async () => {
+        await queryClient.invalidateQueries(trpc.resume.pathFilter());
+      },
+      onSuccess: (_result, variables) => {
+        setResume((currentResume) => ({
+          ...currentResume,
+          experience: currentResume.experience.map((experience) => ({
+            ...experience,
+            positions: experience.positions.map((position) =>
+              position.id === variables.positionId
+                ? { ...position, accomplishments: variables.accomplishments }
+                : position,
+            ),
+          })),
+        }));
+        setEditingPosition(null);
+        toast.add({ title: "Accomplishments updated", type: "success" });
+      },
+    }),
+  );
+  const updateSummaryMutation = useMutation(
+    trpc.resume.updateSummary.mutationOptions({
+      onError: () => {
+        toast.add({ title: "Failed to update summary", type: "error" });
+      },
+      onSettled: async () => {
+        await queryClient.invalidateQueries(trpc.resume.pathFilter());
+      },
+      onSuccess: (_result, variables) => {
+        setResume((currentResume) => ({
+          ...currentResume,
+          summary: variables.summary,
+        }));
+        setIsEditingSummary(false);
+        toast.add({ title: "Summary updated", type: "success" });
       },
     }),
   );
@@ -330,11 +386,23 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: number }) {
           <ContactInfo contactInfo={resume.contactInfo} />
 
           <Section title="Summary">
-            <ProfessionalSummary info={resume.summary} />
+            <ProfessionalSummary
+              info={resume.summary}
+              onEdit={() => {
+                setEditingPosition(null);
+                setIsEditingSummary(true);
+              }}
+            />
           </Section>
 
           <Section title="Experience">
-            <JobExperience jobs={resume.experience} />
+            <JobExperience
+              jobs={resume.experience}
+              onEditAccomplishments={(position) => {
+                setIsEditingSummary(false);
+                setEditingPosition(position);
+              }}
+            />
           </Section>
 
           <Section title="Education" layout="compact">
@@ -346,6 +414,37 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: number }) {
           </Section>
         </div>
       </div>
+
+      {editingPosition ? (
+        <AccomplishmentsEditorDialog
+          accomplishments={editingPosition.accomplishments}
+          isPending={updateAccomplishmentsMutation.isPending}
+          open
+          positionTitle={editingPosition.title}
+          onOpenChange={(open) => {
+            if (!open) setEditingPosition(null);
+          }}
+          onSave={(accomplishments) => {
+            updateAccomplishmentsMutation.mutate({
+              accomplishments,
+              positionId: editingPosition.id,
+            });
+          }}
+        />
+      ) : null}
+
+      <MarkdownEditorDialog
+        description="Update the resume-level professional summary. Markdown formatting is supported."
+        fieldLabel="Professional summary"
+        isPending={updateSummaryMutation.isPending}
+        open={isEditingSummary}
+        title="Edit professional summary"
+        value={resume.summary}
+        onOpenChange={setIsEditingSummary}
+        onSave={(summary) => {
+          updateSummaryMutation.mutate({ resumeId: resume.id, summary });
+        }}
+      />
     </div>
   );
 }
