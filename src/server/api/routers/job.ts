@@ -1,7 +1,15 @@
 "server-only";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { addJob, addJobSchema, getJobs } from "~/server/lib/job";
+import {
+  addJob,
+  addJobSchema,
+  getJobs,
+  updateJob,
+  updateJobSchema,
+  updateJobStatus,
+  updateJobStatusSchema,
+} from "~/server/lib/job";
 import { withErrorHandling } from "~/server/utils";
 
 export const jobRouter = createTRPCRouter({
@@ -22,4 +30,24 @@ export const jobRouter = createTRPCRouter({
       "Failed to get jobs",
     );
   }),
+
+  updateJob: protectedProcedure
+    .input(updateJobSchema)
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.session.user.id!;
+      return withErrorHandling(
+        () => updateJob(ctx.db, userId, input),
+        "Failed to update job",
+      );
+    }),
+
+  updateJobStatus: protectedProcedure
+    .input(updateJobStatusSchema)
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.session.user.id!;
+      return withErrorHandling(
+        () => updateJobStatus(ctx.db, userId, input),
+        "Failed to update job status",
+      );
+    }),
 });

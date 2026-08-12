@@ -1,4 +1,4 @@
-type PageLoadingVariant = "cards" | "document" | "panel";
+type PageLoadingVariant = "cards" | "document" | "panel" | "table";
 
 const CARD_SKELETON_KEYS = [
   "resume-loading-card-1",
@@ -29,6 +29,26 @@ export default function PageLoading({
 }: {
   variant?: PageLoadingVariant;
 }) {
+  if (variant === "table") {
+    return (
+      <div
+        className="mx-auto flex max-w-6xl flex-col gap-6"
+        role="status"
+        aria-label="Loading applications"
+      >
+        <div className="flex items-end justify-between">
+          <div className="space-y-2">
+            <LoadingBlock className="h-8 w-44 rounded-md" />
+            <LoadingBlock className="h-4 w-80 rounded-md" />
+          </div>
+          <LoadingBlock className="h-9 w-40 rounded-full" />
+        </div>
+        <LoadingBlock className="h-20 rounded-2xl" />
+        <LoadingBlock className="h-96 rounded-2xl" />
+      </div>
+    );
+  }
+
   if (variant === "cards") {
     return (
       <div

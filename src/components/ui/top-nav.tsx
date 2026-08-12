@@ -15,6 +15,12 @@ const TopNav: React.FC = async () => {
 
         <div className="flex grow items-center gap-2">
           <Link
+            href="/jobs"
+            className={cn(buttonVariants({ size: "sm", variant: "ghost" }))}
+          >
+            Jobs
+          </Link>
+          <Link
             href="/resume"
             className={cn(buttonVariants({ size: "sm", variant: "ghost" }))}
           >

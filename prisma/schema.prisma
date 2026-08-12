@@ -81,20 +81,37 @@ model Verification {
 
 // region App models
 
+enum JobStatus {
+  SAVED
+  APPLIED
+  INTERVIEW
+  OFFER
+  REJECTED
+  WITHDRAWN
+}
+
 model Job {
   userId String
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   id        String   @id @default(cuid())
-  url       String   @unique
+  url       String
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   company     String?
   title       String?
+  location    String?
   description String?
   notes       String?
+  status       JobStatus @default(SAVED)
+  nextActionAt DateTime?
 
   resume Resume[]
+
+  @@index([userId, status])
+  @@index([userId, nextActionAt])
+  @@unique([userId, url])
 }
 
 model ContactInfo {

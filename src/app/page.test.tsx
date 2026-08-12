@@ -46,7 +46,7 @@ describe("HomePage", () => {
     ).toHaveAttribute("href", "/login");
   });
 
-  test("redirects authenticated users to resume", async () => {
+  test("redirects authenticated users to the job tracker", async () => {
     vi.mocked(auth.api.getSession).mockResolvedValue({
       session: {
         createdAt: new Date("2026-01-01T00:00:00.000Z"),
@@ -68,6 +68,6 @@ describe("HomePage", () => {
 
     await HomePage();
 
-    expect(redirect).toHaveBeenCalledWith("/resume");
+    expect(redirect).toHaveBeenCalledWith("/jobs");
   });
 });
