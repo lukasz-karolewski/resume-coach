@@ -3,6 +3,7 @@
 import {
   CheckIcon,
   ClipboardDocumentIcon,
+  EyeIcon,
   PrinterIcon,
   Squares2X2Icon,
   TrashIcon,
@@ -12,6 +13,7 @@ import {
   useQueryClient,
   useSuspenseQuery,
 } from "@tanstack/react-query";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import ContactInfo from "~/components/resume/contact-info";
@@ -40,10 +42,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
-import { EducationType } from "~/generated/prisma/enums";
 import { useTRPC } from "~/trpc/react";
 import type { RouterOutputs } from "~/trpc/shared";
-
+import { partitionResumeEducation } from "./resume-content";
 import { resumeDetailQuery } from "./resume-queries";
 
 const TITLE_AUTOSAVE_DELAY_MS = 800;
@@ -214,11 +215,8 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: number }) {
     };
   }, []);
 
-  const education = resume.education.filter(
-    (entry) => entry.type === EducationType.EDUCATION,
-  );
-  const certificates = resume.education.filter(
-    (entry) => entry.type === EducationType.CERTIFICATION,
+  const { certificates, education } = partitionResumeEducation(
+    resume.education,
   );
 
   const copyMarkdownToClipboard = async () => {
@@ -273,6 +271,22 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: number }) {
                 </div>
               </div>
               <div className="flex items-center gap-1 self-end md:self-auto">
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <Button
+                        render={<Link href={`/resume/${resume.id}/preview`} />}
+                        size="icon-sm"
+                        variant="ghost"
+                        className="cursor-pointer"
+                        aria-label="Preview resume"
+                      />
+                    }
+                  >
+                    <EyeIcon className="size-4" />
+                  </TooltipTrigger>
+                  <TooltipContent>Preview</TooltipContent>
+                </Tooltip>
                 <Tooltip>
                   <TooltipTrigger
                     render={

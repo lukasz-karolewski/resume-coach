@@ -13,9 +13,7 @@ type ResumePageProps = {
   searchParams?: Promise<{ sort?: string | string[] }>;
 };
 
-export default async function ResumePage({
-  searchParams,
-}: ResumePageProps = {}) {
+export default async function ResumePage({ searchParams }: ResumePageProps) {
   const resolvedSearchParams = await searchParams;
   const sort = normalizeResumeSort(resolvedSearchParams?.sort);
 

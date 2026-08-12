@@ -252,6 +252,9 @@ describe("ResumeDetailClient", () => {
       screen.getByRole("button", { name: /print resume/i }),
     ).toBeInTheDocument();
     expect(
+      screen.getByRole("link", { name: /preview resume/i }),
+    ).toHaveAttribute("href", "/resume/7/preview");
+    expect(
       screen.getByRole("button", { name: /delete resume/i }),
     ).toBeInTheDocument();
   });

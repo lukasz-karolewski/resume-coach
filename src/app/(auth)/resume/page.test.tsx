@@ -53,7 +53,7 @@ describe("ResumePage", () => {
   });
 
   test("uses last-updated by default", async () => {
-    render(await ResumePage());
+    render(await ResumePage({}));
 
     expect(
       screen.getByText("Resume client body last-updated"),
