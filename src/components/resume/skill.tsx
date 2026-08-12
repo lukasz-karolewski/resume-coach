@@ -1,12 +1,28 @@
 import type React from "react";
+import { Button } from "~/components/ui/button";
 
 import Section from "./section";
 
 interface SkillProps {
   children: string;
+  onEdit?: () => void;
 }
 
-export const Skill: React.FC<SkillProps> = ({ children }) => {
+export const Skill: React.FC<SkillProps> = ({ children, onEdit }) => {
+  if (onEdit) {
+    return (
+      <Button
+        aria-label={`Edit skill ${children}`}
+        className="h-auto rounded-sm bg-gray-200 px-1 py-0.5 text-xs text-black hover:bg-gray-300"
+        type="button"
+        variant="ghost"
+        onClick={onEdit}
+      >
+        {children}
+      </Button>
+    );
+  }
+
   return <span className="rounded-sm bg-gray-200 px-1 py-0.5">{children}</span>;
 };
 

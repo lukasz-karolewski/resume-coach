@@ -1,23 +1,33 @@
 "server-only";
 
+import {
+  addResumeSectionItemSchema,
+  deleteResumeSectionItemSchema,
+  removeResumeSectionSchema,
+  updateResumeSectionItemSchema,
+} from "~/lib/schemas/resume-section-item";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import {
+  addResumeSectionItem,
   createResume,
   createResumeSchema,
   createTailoredResumeFromProfile,
   createTailoredResumeFromProfileSchema,
   deleteResume,
   deleteResumeSchema,
+  deleteResumeSectionItem,
   duplicateResume,
   duplicateResumeSchema,
   getResume,
   getResumeSchema,
   listResumes,
   listResumesSchema,
+  removeResumeSection,
   updateAccomplishments,
   updateAccomplishmentsSchema,
   updateResume,
   updateResumeSchema,
+  updateResumeSectionItem,
   updateResumeTitle,
   updateResumeTitleSchema,
   updateSummary,
@@ -26,6 +36,16 @@ import {
 import { withErrorHandling } from "~/server/utils";
 
 export const resumeRouter = createTRPCRouter({
+  addSectionItem: protectedProcedure
+    .input(addResumeSectionItemSchema)
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.session.user.id!;
+      return withErrorHandling(
+        () => addResumeSectionItem(ctx.db, userId, input),
+        "Failed to add resume section item",
+      );
+    }),
+
   // Create a new resume
   create: protectedProcedure
     .input(createResumeSchema)
@@ -55,6 +75,16 @@ export const resumeRouter = createTRPCRouter({
       return withErrorHandling(
         () => deleteResume(ctx.db, userId, input),
         "Failed to delete resume",
+      );
+    }),
+
+  deleteSectionItem: protectedProcedure
+    .input(deleteResumeSectionItemSchema)
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.session.user.id!;
+      return withErrorHandling(
+        () => deleteResumeSectionItem(ctx.db, userId, input),
+        "Failed to delete resume section item",
       );
     }),
 
@@ -91,6 +121,16 @@ export const resumeRouter = createTRPCRouter({
       );
     }),
 
+  removeSection: protectedProcedure
+    .input(removeResumeSectionSchema)
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.session.user.id!;
+      return withErrorHandling(
+        () => removeResumeSection(ctx.db, userId, input),
+        "Failed to remove resume section",
+      );
+    }),
+
   // Update resume
   update: protectedProcedure
     .input(updateResumeSchema)
@@ -109,6 +149,16 @@ export const resumeRouter = createTRPCRouter({
       return withErrorHandling(
         () => updateAccomplishments(ctx.db, userId, input),
         "Failed to update accomplishments",
+      );
+    }),
+
+  updateSectionItem: protectedProcedure
+    .input(updateResumeSectionItemSchema)
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.session.user.id!;
+      return withErrorHandling(
+        () => updateResumeSectionItem(ctx.db, userId, input),
+        "Failed to update resume section item",
       );
     }),
 

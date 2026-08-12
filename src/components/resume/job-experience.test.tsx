@@ -25,37 +25,17 @@ const jobs = [
 ];
 
 describe("JobExperience", () => {
-  test("requests position-level editing when accomplishments are double-clicked", () => {
-    const onEditAccomplishments = vi.fn();
+  test("provides an explicit control for editing the complete experience item", () => {
+    const onEditPosition = vi.fn();
 
-    render(
-      <JobExperience
-        jobs={jobs}
-        onEditAccomplishments={onEditAccomplishments}
-      />,
-    );
-
-    fireEvent.doubleClick(screen.getByText("Reduced deployment time by 50%"));
-
-    expect(onEditAccomplishments).toHaveBeenCalledWith(position);
-  });
-
-  test("provides an explicit keyboard-accessible edit control", () => {
-    const onEditAccomplishments = vi.fn();
-
-    render(
-      <JobExperience
-        jobs={jobs}
-        onEditAccomplishments={onEditAccomplishments}
-      />,
-    );
+    render(<JobExperience jobs={jobs} onEditPosition={onEditPosition} />);
 
     fireEvent.click(
       screen.getByRole("button", {
-        name: "Edit accomplishments for Staff Engineer",
+        name: "Edit experience Staff Engineer at Acme",
       }),
     );
 
-    expect(onEditAccomplishments).toHaveBeenCalledWith(position);
+    expect(onEditPosition).toHaveBeenCalledWith(position, "Acme");
   });
 });

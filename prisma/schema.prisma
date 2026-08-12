@@ -147,6 +147,7 @@ model Skill {
   id            Int             @id @default(autoincrement())
   name          String          @unique // e.g. "JavaScript"
   positionSkill PositionSkill[]
+  resumeSkill   ResumeSkill[]
 }
 
 model PositionSkill {
@@ -159,6 +160,19 @@ model PositionSkill {
   skill    Skill    @relation(fields: [skillId], references: [id])
 
   @@unique([positionId, skillId])
+}
+
+model ResumeSkill {
+  id Int @id @default(autoincrement())
+
+  resumeId Int
+  skillId  Int
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  skill  Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([resumeId, skillId])
+  @@index([skillId])
 }
 
 model Education {
@@ -184,8 +198,13 @@ model Patent {
 
   title       String
   description String
-  link        String
+  link        String?
   date        DateTime
+
+  resumeId Int?
+  resume   Resume? @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([resumeId])
 }
 
 enum SectionType {
@@ -229,6 +248,8 @@ model Resume {
   // Multiple education and experience entries
   education  Education[]
   experience Experience[]
+  patents    Patent[]
+  skills     ResumeSkill[]
 
   // Chat thread working on this resume copy
   ChatThread ChatThread[]

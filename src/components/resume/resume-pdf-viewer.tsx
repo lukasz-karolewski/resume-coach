@@ -24,6 +24,7 @@ type Resume = ResumePdfData;
 type Education = Resume["education"][number];
 type Experience = Resume["experience"][number];
 type Position = Experience["positions"][number];
+type Patent = Resume["patents"][number];
 
 const PDF_FONT_FAMILY = "Noto Serif";
 const FONT_BASE_PATH =
@@ -327,6 +328,7 @@ function EducationItem({ education }: { education: Education }) {
         <Text style={styles.timeframe}>{timeframe}</Text>
       </View>
       <Text style={styles.educationDetails}>{education.distinction}</Text>
+      <Text style={styles.educationDetails}>{education.location}</Text>
       {education.notes ? (
         <Text style={styles.educationDetails}>{education.notes}</Text>
       ) : null}
@@ -334,10 +336,53 @@ function EducationItem({ education }: { education: Education }) {
   );
 }
 
+function PatentItem({ patent }: { patent: Patent }) {
+  const date = patent.date.toLocaleDateString("en-US", {
+    month: "short",
+    timeZone: "UTC",
+    year: "numeric",
+  });
+
+  return (
+    <View style={styles.educationItem} wrap={false}>
+      <View style={styles.educationHeader}>
+        <Text style={styles.educationTitle}>
+          {patent.link ? (
+            <Link src={patent.link} style={styles.link}>
+              {patent.title}
+            </Link>
+          ) : (
+            patent.title
+          )}
+        </Text>
+        <Text style={styles.timeframe}>{date}</Text>
+      </View>
+      <Text style={styles.educationDetails}>{patent.description}</Text>
+    </View>
+  );
+}
+
+function getResumeSkillNames(resume: Resume) {
+  const names = new Set(
+    resume.skills.map((resumeSkill) => resumeSkill.skill.name),
+  );
+
+  for (const experience of resume.experience) {
+    for (const position of experience.positions) {
+      for (const positionSkill of position.skillPosition ?? []) {
+        names.add(positionSkill.skill.name);
+      }
+    }
+  }
+
+  return [...names].sort((left, right) => left.localeCompare(right));
+}
+
 export function ResumePdfDocument({ resume }: { resume: Resume }) {
   const { certificates, education } = partitionResumeEducation(
     resume.education,
   );
+  const skillNames = getResumeSkillNames(resume);
 
   return (
     <Document
@@ -393,6 +438,20 @@ export function ResumePdfDocument({ resume }: { resume: Resume }) {
           <PdfSection title="Certificates">
             {certificates.map((entry) => (
               <EducationItem education={entry} key={entry.id} />
+            ))}
+          </PdfSection>
+        ) : null}
+
+        {skillNames.length > 0 ? (
+          <PdfSection title="Skills">
+            <Text>{skillNames.join(", ")}</Text>
+          </PdfSection>
+        ) : null}
+
+        {resume.patents.length > 0 ? (
+          <PdfSection title="Patents">
+            {resume.patents.map((patent) => (
+              <PatentItem key={patent.id} patent={patent} />
             ))}
           </PdfSection>
         ) : null}

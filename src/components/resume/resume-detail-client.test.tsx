@@ -11,9 +11,12 @@ import ResumeDetailClient from "./resume-detail-client";
 
 const mockPush = vi.fn();
 const mockUpdateTitleMutation = vi.fn();
+const mockAddSectionItemMutation = vi.fn();
+const mockDeleteSectionItemMutation = vi.fn();
 const mockDuplicateMutation = vi.fn();
 const mockDeleteMutation = vi.fn();
-const mockUpdateAccomplishmentsMutation = vi.fn();
+const mockRemoveSectionMutation = vi.fn();
+const mockUpdateSectionItemMutation = vi.fn();
 const mockUpdateSummaryMutation = vi.fn();
 const mockInvalidateQueries = vi.fn();
 const mockFetch = vi.fn();
@@ -48,6 +51,9 @@ const mockResume = {
   ],
   id: 7,
   name: "Platform Resume",
+  patents: [],
+  sections: [],
+  skills: [],
   summary: "Summary",
 };
 
@@ -74,11 +80,12 @@ vi.mock("~/components/resume/education-experience", () => ({
 vi.mock("~/components/resume/job-experience", () => ({
   default: ({
     jobs,
-    onEditAccomplishments,
+    onEditPosition,
   }: {
     jobs: typeof mockResume.experience;
-    onEditAccomplishments?: (
+    onEditPosition?: (
       position: (typeof mockResume.experience)[number]["positions"][number],
+      companyName: string,
     ) => void;
   }) => (
     <div>
@@ -87,10 +94,10 @@ vi.mock("~/components/resume/job-experience", () => ({
         type="button"
         onClick={() => {
           const position = jobs[0]?.positions[0];
-          if (position) onEditAccomplishments?.(position);
+          if (position) onEditPosition?.(position, jobs[0]?.companyName ?? "");
         }}
       >
-        Edit test accomplishments
+        Edit test experience
       </button>
     </div>
   ),
@@ -115,14 +122,19 @@ vi.mock("~/components/resume/professional-summary", () => ({
 
 vi.mock("~/components/resume/section", () => ({
   default: ({
+    action,
     children,
     title,
   }: {
+    action?: React.ReactNode;
     children: React.ReactNode;
     title: string;
   }) => (
     <section>
-      <h2>{title}</h2>
+      <div>
+        <h2>{title}</h2>
+        {action}
+      </div>
       {children}
     </section>
   ),
@@ -131,10 +143,22 @@ vi.mock("~/components/resume/section", () => ({
 vi.mock("~/trpc/react", () => ({
   useTRPC: () => ({
     resume: {
+      addSectionItem: {
+        mutationOptions: (opts: unknown) => ({
+          ...(opts as object),
+          mutationKey: ["addSectionItem"],
+        }),
+      },
       delete: {
         mutationOptions: (opts: unknown) => ({
           ...(opts as object),
           mutationKey: ["delete"],
+        }),
+      },
+      deleteSectionItem: {
+        mutationOptions: (opts: unknown) => ({
+          ...(opts as object),
+          mutationKey: ["deleteSectionItem"],
         }),
       },
       duplicate: {
@@ -147,10 +171,16 @@ vi.mock("~/trpc/react", () => ({
         queryOptions: (input: unknown) => ({ input, queryKey: ["detail"] }),
       },
       pathFilter: () => ({ queryKey: ["resume"] }),
-      updateAccomplishments: {
+      removeSection: {
         mutationOptions: (opts: unknown) => ({
           ...(opts as object),
-          mutationKey: ["updateAccomplishments"],
+          mutationKey: ["removeSection"],
+        }),
+      },
+      updateSectionItem: {
+        mutationOptions: (opts: unknown) => ({
+          ...(opts as object),
+          mutationKey: ["updateSectionItem"],
         }),
       },
       updateSummary: {
@@ -171,14 +201,23 @@ vi.mock("~/trpc/react", () => ({
 
 vi.mock("@tanstack/react-query", () => ({
   useMutation: (options: { mutationKey: string[] }) => {
+    if (options.mutationKey[0] === "addSectionItem") {
+      return mockAddSectionItemMutation(options);
+    }
     if (options.mutationKey[0] === "delete") {
       return mockDeleteMutation(options);
+    }
+    if (options.mutationKey[0] === "deleteSectionItem") {
+      return mockDeleteSectionItemMutation(options);
     }
     if (options.mutationKey[0] === "duplicate") {
       return mockDuplicateMutation(options);
     }
-    if (options.mutationKey[0] === "updateAccomplishments") {
-      return mockUpdateAccomplishmentsMutation(options);
+    if (options.mutationKey[0] === "removeSection") {
+      return mockRemoveSectionMutation(options);
+    }
+    if (options.mutationKey[0] === "updateSectionItem") {
+      return mockUpdateSectionItemMutation(options);
     }
     if (options.mutationKey[0] === "updateSummary") {
       return mockUpdateSummaryMutation(options);
@@ -205,6 +244,10 @@ describe("ResumeDetailClient", () => {
       isPending: false,
       mutate: vi.fn(),
     });
+    mockAddSectionItemMutation.mockReturnValue({
+      isPending: false,
+      mutate: vi.fn(),
+    });
     mockDuplicateMutation.mockReturnValue({
       isPending: false,
       mutate: vi.fn(),
@@ -213,7 +256,15 @@ describe("ResumeDetailClient", () => {
       isPending: false,
       mutate: vi.fn(),
     });
-    mockUpdateAccomplishmentsMutation.mockReturnValue({
+    mockDeleteSectionItemMutation.mockReturnValue({
+      isPending: false,
+      mutate: vi.fn(),
+    });
+    mockRemoveSectionMutation.mockReturnValue({
+      isPending: false,
+      mutate: vi.fn(),
+    });
+    mockUpdateSectionItemMutation.mockReturnValue({
       isPending: false,
       mutate: vi.fn(),
     });
@@ -257,6 +308,110 @@ describe("ResumeDetailClient", () => {
     expect(
       screen.getByRole("button", { name: /delete resume/i }),
     ).toBeInTheDocument();
+  });
+
+  test("collects initial content before adding a section", async () => {
+    let onSuccess: ((updatedResume: unknown) => void) | undefined;
+    const mutate = vi.fn(() => {
+      onSuccess?.({
+        ...mockResume,
+        patents: [
+          {
+            date: new Date("2021-06-01T00:00:00.000Z"),
+            description: "Reduced stale reads in distributed systems.",
+            id: 21,
+            link: null,
+            resumeId: 7,
+            title: "Adaptive cache invalidation",
+          },
+        ],
+        sections: [{ id: 22, resumeId: 7, title: "Patents", type: "PATENTS" }],
+      });
+    });
+    mockAddSectionItemMutation.mockImplementation((options) => {
+      onSuccess = (options as { onSuccess?: (updatedResume: unknown) => void })
+        .onSuccess;
+      return { isPending: false, mutate };
+    });
+
+    render(<ResumeDetailClient resumeId={7} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Add section" }));
+
+    expect(
+      screen.getByRole("menuitem", { name: /experience/i }),
+    ).toHaveAttribute("aria-disabled", "true");
+    expect(screen.getByRole("menuitem", { name: "Education" })).toBeEnabled();
+    expect(
+      screen.getByRole("menuitem", { name: "Certifications" }),
+    ).toBeEnabled();
+    expect(screen.getByRole("menuitem", { name: "Skills" })).toBeEnabled();
+
+    fireEvent.click(screen.getByRole("menuitem", { name: "Patents" }));
+
+    expect(
+      await screen.findByRole("heading", { name: "Add patent" }),
+    ).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Patent title"), {
+      target: { value: "Adaptive cache invalidation" },
+    });
+    fireEvent.change(screen.getByLabelText("Date"), {
+      target: { value: "2021-06" },
+    });
+    fireEvent.change(screen.getByLabelText("Description"), {
+      target: { value: "Reduced stale reads in distributed systems." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Add patent" }));
+
+    expect(mutate).toHaveBeenCalledWith({
+      date: "2021-06",
+      description: "Reduced stale reads in distributed systems.",
+      resumeId: 7,
+      title: "Adaptive cache invalidation",
+      type: "PATENTS",
+    });
+    expect(
+      await screen.findByText("Adaptive cache invalidation"),
+    ).toBeInTheDocument();
+  });
+
+  test("adds another item to an existing section", async () => {
+    const mutate = vi.fn();
+    mockAddSectionItemMutation.mockReturnValue({ isPending: false, mutate });
+
+    render(<ResumeDetailClient resumeId={7} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Add experience" }));
+
+    expect(
+      await screen.findByRole("heading", { name: "Add experience" }),
+    ).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Company"), {
+      target: { value: "Globex" },
+    });
+    fireEvent.change(screen.getByLabelText("Role"), {
+      target: { value: "Principal Engineer" },
+    });
+    fireEvent.change(screen.getByLabelText("Location"), {
+      target: { value: "Remote" },
+    });
+    fireEvent.change(screen.getByLabelText("Start date"), {
+      target: { value: "2024-01" },
+    });
+    fireEvent.change(screen.getByLabelText("Accomplishments"), {
+      target: { value: "- Built a resilient platform" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Add experience" }));
+
+    expect(mutate).toHaveBeenCalledWith({
+      accomplishments: "- Built a resilient platform",
+      companyName: "Globex",
+      location: "Remote",
+      resumeId: 7,
+      roleTitle: "Principal Engineer",
+      startDate: "2024-01",
+      type: "EXPERIENCE",
+    });
   });
 
   test("copies the resume markdown from the toolbar", async () => {
@@ -409,22 +564,40 @@ describe("ResumeDetailClient", () => {
     });
   });
 
-  test("edits a position's accomplishments in a modal", async () => {
+  test("edits all experience details in the section-item modal", async () => {
     let mutationOptions:
       | {
           onSuccess?: (
             data: unknown,
-            variables: { accomplishments: string; positionId: number },
+            variables: {
+              accomplishments: string;
+              companyName: string;
+              itemId: number;
+              location: string;
+              resumeId: number;
+              roleTitle: string;
+              startDate: string;
+              type: "EXPERIENCE";
+            },
           ) => void | Promise<void>;
         }
       | undefined;
     const mutate = vi.fn(
-      (variables: { accomplishments: string; positionId: number }) => {
-        void mutationOptions?.onSuccess?.({}, variables);
+      (variables: {
+        accomplishments: string;
+        companyName: string;
+        itemId: number;
+        location: string;
+        resumeId: number;
+        roleTitle: string;
+        startDate: string;
+        type: "EXPERIENCE";
+      }) => {
+        void mutationOptions?.onSuccess?.(mockResume, variables);
       },
     );
 
-    mockUpdateAccomplishmentsMutation.mockImplementation((opts) => {
+    mockUpdateSectionItemMutation.mockImplementation((opts) => {
       mutationOptions = opts as typeof mutationOptions;
       return { isPending: false, mutate };
     });
@@ -432,9 +605,13 @@ describe("ResumeDetailClient", () => {
     render(<ResumeDetailClient resumeId={7} />);
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Edit test accomplishments" }),
+      screen.getByRole("button", { name: "Edit test experience" }),
     );
-    const editor = await screen.findByLabelText("Accomplishments");
+    expect(
+      await screen.findByRole("heading", { name: "Edit experience" }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Company")).toHaveValue("Acme");
+    const editor = screen.getByLabelText("Accomplishments");
     fireEvent.change(editor, {
       target: { value: "- Reduced deployment time by 80%" },
     });
@@ -442,12 +619,35 @@ describe("ResumeDetailClient", () => {
 
     expect(mutate).toHaveBeenCalledWith({
       accomplishments: "- Reduced deployment time by 80%",
-      positionId: 34,
+      companyName: "Acme",
+      itemId: 34,
+      location: "Remote",
+      resumeId: 7,
+      roleTitle: "Staff Engineer",
+      startDate: "2022-01",
+      type: "EXPERIENCE",
     });
-    await waitFor(() => {
-      expect(
-        screen.getByText("- Reduced deployment time by 80%"),
-      ).toBeInTheDocument();
+  });
+
+  test("removes an entire section after confirmation", async () => {
+    const mutate = vi.fn();
+    mockRemoveSectionMutation.mockReturnValue({ isPending: false, mutate });
+
+    render(<ResumeDetailClient resumeId={7} />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Remove Experience section" }),
+    );
+    expect(
+      await screen.findByRole("heading", {
+        name: "Remove Experience section?",
+      }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Remove section" }));
+
+    expect(mutate).toHaveBeenCalledWith({
+      resumeId: 7,
+      type: "EXPERIENCE",
     });
   });
 

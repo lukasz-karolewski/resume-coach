@@ -38,6 +38,7 @@ const mockResume = {
           endDate: new Date("2024-01-01T00:00:00.000Z"),
           id: 34,
           location: "Remote",
+          skillPosition: [],
           startDate: new Date("2022-01-01T00:00:00.000Z"),
           title: "Staff Engineer",
         },
@@ -46,6 +47,16 @@ const mockResume = {
   ],
   id: 7,
   name: "Platform Resume",
+  patents: [
+    {
+      date: new Date("2021-06-01T00:00:00.000Z"),
+      description: "Reduced stale reads in distributed systems.",
+      id: 52,
+      link: "https://patents.example.com/cache",
+      title: "Adaptive cache invalidation",
+    },
+  ],
+  skills: [{ id: 61, skill: { id: 62, name: "TypeScript" } }],
   summary: "Builds reliable systems.",
 } as unknown as ResumePdfData;
 

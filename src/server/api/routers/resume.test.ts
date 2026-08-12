@@ -6,37 +6,62 @@ import { resumeRouter } from "./resume";
 type TRPCContext = Awaited<ReturnType<typeof createTRPCContext>>;
 
 // Mock database with proper vi.fn() for all methods
-const createMockDb = () => ({
-  contactInfo: {
-    create: vi.fn(),
-    update: vi.fn(),
-  },
-  education: {
-    createMany: vi.fn(),
-    deleteMany: vi.fn(),
-  },
-  experience: {
-    create: vi.fn(),
-    createMany: vi.fn(),
-    deleteMany: vi.fn(),
-    findMany: vi.fn(),
-  },
-  job: {
-    findFirst: vi.fn(),
-  },
-  position: {
-    createMany: vi.fn(),
-    findFirst: vi.fn(),
-    update: vi.fn(),
-  },
-  resume: {
-    create: vi.fn(),
-    delete: vi.fn(),
-    findFirst: vi.fn(),
-    findMany: vi.fn(),
-    update: vi.fn(),
-  },
-});
+const createMockDb = () => {
+  const db = {
+    contactInfo: {
+      create: vi.fn(),
+      update: vi.fn(),
+    },
+    education: {
+      create: vi.fn(),
+      createMany: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+      findFirst: vi.fn(),
+      update: vi.fn(),
+    },
+    experience: {
+      create: vi.fn(),
+      createMany: vi.fn(),
+      deleteMany: vi.fn(),
+      findMany: vi.fn(),
+    },
+    job: {
+      findFirst: vi.fn(),
+    },
+    patent: {
+      create: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+      findFirst: vi.fn(),
+      update: vi.fn(),
+    },
+    position: {
+      createMany: vi.fn(),
+      findFirst: vi.fn(),
+      update: vi.fn(),
+    },
+    resume: {
+      create: vi.fn(),
+      delete: vi.fn(),
+      findFirst: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+    },
+    section: {
+      create: vi.fn(),
+      deleteMany: vi.fn(),
+      findFirst: vi.fn(),
+    },
+  };
+
+  return {
+    ...db,
+    $transaction: vi.fn(async (callback: (transaction: typeof db) => unknown) =>
+      callback(db),
+    ),
+  };
+};
 
 let mockDb: ReturnType<typeof createMockDb>;
 
@@ -74,6 +99,60 @@ const createCaller = () => {
 describe("Resume Router", () => {
   beforeEach(() => {
     mockDb = createMockDb();
+  });
+
+  describe("addSectionItem", () => {
+    test("adds initial content to a section on the authenticated user's resume", async () => {
+      mockDb.resume.findFirst.mockResolvedValue({ id: 1 });
+      mockDb.section.findFirst.mockResolvedValue(null);
+      mockDb.patent.create.mockResolvedValue({ id: 4 });
+
+      const result = await createCaller().addSectionItem({
+        date: "2021-06",
+        description: "A distributed systems patent.",
+        resumeId: 1,
+        title: "Adaptive cache invalidation",
+        type: "PATENTS",
+      });
+
+      expect(result).toMatchObject({ id: 1 });
+      expect(mockDb.resume.findFirst).toHaveBeenCalledWith({
+        select: { id: true },
+        where: { id: 1, userId: "user-123" },
+      });
+    });
+  });
+
+  describe("section item mutations", () => {
+    test("updates, deletes, and removes owned patent content", async () => {
+      mockDb.resume.findFirst.mockResolvedValue({ id: 1 });
+      mockDb.patent.findFirst.mockResolvedValue({ id: 4 });
+      const caller = createCaller();
+
+      await caller.updateSectionItem({
+        date: "2024-03",
+        description: "Updated description.",
+        itemId: 4,
+        resumeId: 1,
+        title: "Updated patent",
+        type: "PATENTS",
+      });
+      await caller.deleteSectionItem({
+        itemId: 4,
+        resumeId: 1,
+        type: "PATENTS",
+      });
+      await caller.removeSection({ resumeId: 1, type: "PATENTS" });
+
+      expect(mockDb.patent.update).toHaveBeenCalled();
+      expect(mockDb.patent.delete).toHaveBeenCalledWith({ where: { id: 4 } });
+      expect(mockDb.patent.deleteMany).toHaveBeenCalledWith({
+        where: { resumeId: 1 },
+      });
+      expect(mockDb.section.deleteMany).toHaveBeenCalledWith({
+        where: { resumeId: 1, type: "PATENTS" },
+      });
+    });
   });
 
   describe("create", () => {
@@ -728,6 +807,9 @@ describe("Resume Router", () => {
         id: 1,
         jobId: null,
         name: "Original",
+        patents: [],
+        sections: [],
+        skills: [],
         summary: JSON.stringify(["Summary"]),
         updatedAt: new Date(),
         userId: "user-123",
@@ -767,6 +849,9 @@ describe("Resume Router", () => {
         id: 1,
         jobId: null,
         name: "Original",
+        patents: [],
+        sections: [],
+        skills: [],
         summary: "[]",
         updatedAt: new Date(),
         userId: "user-123",

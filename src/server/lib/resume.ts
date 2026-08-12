@@ -2,7 +2,19 @@
 
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { EducationType, type PrismaClient } from "~/generated/prisma/client";
+import {
+  EducationType,
+  type Prisma,
+  type PrismaClient,
+} from "~/generated/prisma/client";
+import { getResumeSectionLabel } from "~/lib/resume-sections";
+import type {
+  addResumeSectionItemSchema,
+  deleteResumeSectionItemSchema,
+  ResumeSectionItem,
+  removeResumeSectionSchema,
+  updateResumeSectionItemSchema,
+} from "~/lib/schemas/resume-section-item";
 import { getAccomplishmentProfile } from "~/server/lib/profile";
 
 // ============================================================================
@@ -421,6 +433,10 @@ function formatTailoredAccomplishments(
 function collectResumeSkills(resume: ResumeWithMarkdownRelations) {
   const skillNames = new Set<string>();
 
+  for (const resumeSkill of resume.skills) {
+    skillNames.add(resumeSkill.skill.name);
+  }
+
   for (const experience of resume.experience) {
     for (const position of experience.positions) {
       for (const skillPosition of position.skillPosition ?? []) {
@@ -530,6 +546,7 @@ export function renderResumeMarkdown(resume: ResumeWithMarkdownRelations) {
   }
 
   const shouldRenderSkills =
+    resume.skills.length > 0 ||
     resume.sections.some((section) => section.type === "SKILLS_SUMMARY") ||
     resume.experience.some((experience) =>
       experience.positions.some(
@@ -541,12 +558,362 @@ export function renderResumeMarkdown(resume: ResumeWithMarkdownRelations) {
     lines.push("", "## Skills", "", skills.join(", "));
   }
 
+  if (resume.patents.length > 0) {
+    lines.push("", "## Patents");
+
+    for (const patent of resume.patents) {
+      lines.push(
+        "",
+        `### ${formatMarkdownLink(patent.title, patent.link)}`,
+        patent.date.toLocaleDateString("en-US", {
+          month: "short",
+          timeZone: "UTC",
+          year: "numeric",
+        }),
+        "",
+        patent.description,
+      );
+    }
+  }
+
   return `${lines.join("\n").trim()}\n`;
 }
 
 // ============================================================================
 // Business Logic Functions
 // ============================================================================
+
+function parseResumeMonth(value: string) {
+  return new Date(`${value}-01T00:00:00.000Z`);
+}
+
+async function ensureResumeSection(
+  db: Prisma.TransactionClient,
+  resumeId: number,
+  type: ResumeSectionItem["type"],
+) {
+  const section = await db.section.findFirst({
+    select: { id: true },
+    where: { resumeId, type },
+  });
+
+  if (!section) {
+    await db.section.create({
+      data: {
+        resumeId,
+        title: getResumeSectionLabel(type),
+        type,
+      },
+    });
+  }
+}
+
+export async function addResumeSectionItem(
+  db: PrismaClient,
+  userId: string,
+  input: z.infer<typeof addResumeSectionItemSchema>,
+) {
+  await requireOwnedResume(db, userId, input.resumeId);
+
+  await db.$transaction(async (transaction) => {
+    await ensureResumeSection(transaction, input.resumeId, input.type);
+
+    if (input.type === "EXPERIENCE") {
+      const experience = await transaction.experience.findFirst({
+        select: { id: true },
+        where: {
+          companyName: input.companyName,
+          resumeId: input.resumeId,
+        },
+      });
+      const position = {
+        accomplishments: input.accomplishments,
+        endDate: input.endDate ? parseResumeMonth(input.endDate) : null,
+        location: input.location,
+        startDate: parseResumeMonth(input.startDate),
+        title: input.roleTitle,
+      };
+
+      if (experience) {
+        await transaction.position.create({
+          data: { ...position, experienceId: experience.id },
+        });
+      } else {
+        await transaction.experience.create({
+          data: {
+            companyName: input.companyName,
+            positions: { create: position },
+            resumeId: input.resumeId,
+          },
+        });
+      }
+      return;
+    }
+
+    if (input.type === "EDUCATION" || input.type === "CERTIFICATION") {
+      await transaction.education.create({
+        data: {
+          distinction: input.distinction,
+          endDate: parseResumeMonth(input.endDate),
+          institution: input.institution,
+          link: input.link ?? "",
+          location: input.location,
+          notes: input.notes,
+          resumeId: input.resumeId,
+          startDate: parseResumeMonth(
+            input.type === "CERTIFICATION" ? input.endDate : input.startDate,
+          ),
+          type: input.type,
+        },
+      });
+      return;
+    }
+
+    if (input.type === "SKILLS_SUMMARY") {
+      const skill = await transaction.skill.upsert({
+        create: { name: input.name },
+        update: {},
+        where: { name: input.name },
+      });
+      const existingSkill = await transaction.resumeSkill.findFirst({
+        select: { id: true },
+        where: { resumeId: input.resumeId, skillId: skill.id },
+      });
+
+      if (existingSkill) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "That skill is already on this resume",
+        });
+      }
+
+      await transaction.resumeSkill.create({
+        data: { resumeId: input.resumeId, skillId: skill.id },
+      });
+      return;
+    }
+
+    await transaction.patent.create({
+      data: {
+        date: parseResumeMonth(input.date),
+        description: input.description,
+        link: input.link ?? null,
+        resumeId: input.resumeId,
+        title: input.title,
+      },
+    });
+  });
+
+  return getResume(db, userId, { id: input.resumeId });
+}
+
+async function requireOwnedSectionItem(
+  transaction: Prisma.TransactionClient,
+  input: z.infer<typeof deleteResumeSectionItemSchema>,
+): Promise<
+  | { experienceId: number; kind: "EXPERIENCE"; positionCount: number }
+  | { kind: "ITEM" }
+> {
+  if (input.type === "EXPERIENCE") {
+    const position = await transaction.position.findFirst({
+      select: {
+        experience: {
+          select: {
+            _count: { select: { positions: true } },
+            id: true,
+          },
+        },
+        id: true,
+      },
+      where: {
+        experience: { resumeId: input.resumeId },
+        id: input.itemId,
+      },
+    });
+    if (position?.experience) {
+      return {
+        experienceId: position.experience.id,
+        kind: "EXPERIENCE",
+        positionCount: position.experience._count.positions,
+      };
+    }
+  } else if (input.type === "EDUCATION" || input.type === "CERTIFICATION") {
+    const education = await transaction.education.findFirst({
+      select: { id: true },
+      where: {
+        id: input.itemId,
+        resumeId: input.resumeId,
+        type: input.type,
+      },
+    });
+    if (education) return { kind: "ITEM" };
+  } else if (input.type === "SKILLS_SUMMARY") {
+    const skill = await transaction.resumeSkill.findFirst({
+      select: { id: true },
+      where: { id: input.itemId, resumeId: input.resumeId },
+    });
+    if (skill) return { kind: "ITEM" };
+  } else {
+    const patent = await transaction.patent.findFirst({
+      select: { id: true },
+      where: { id: input.itemId, resumeId: input.resumeId },
+    });
+    if (patent) return { kind: "ITEM" };
+  }
+
+  throw new TRPCError({
+    code: "NOT_FOUND",
+    message: "Resume section item not found",
+  });
+}
+
+export async function updateResumeSectionItem(
+  db: PrismaClient,
+  userId: string,
+  input: z.infer<typeof updateResumeSectionItemSchema>,
+) {
+  await requireOwnedResume(db, userId, input.resumeId);
+
+  await db.$transaction(async (transaction) => {
+    const ownedItem = await requireOwnedSectionItem(transaction, input);
+
+    if (input.type === "EXPERIENCE") {
+      if (ownedItem.kind !== "EXPERIENCE") return;
+      await transaction.experience.update({
+        data: { companyName: input.companyName },
+        where: { id: ownedItem.experienceId },
+      });
+      await transaction.position.update({
+        data: {
+          accomplishments: input.accomplishments,
+          endDate: input.endDate ? parseResumeMonth(input.endDate) : null,
+          location: input.location,
+          startDate: parseResumeMonth(input.startDate),
+          title: input.roleTitle,
+        },
+        where: { id: input.itemId },
+      });
+      return;
+    }
+
+    if (input.type === "EDUCATION" || input.type === "CERTIFICATION") {
+      await transaction.education.update({
+        data: {
+          distinction: input.distinction,
+          endDate: parseResumeMonth(input.endDate),
+          institution: input.institution,
+          link: input.link ?? "",
+          location: input.location,
+          notes: input.notes,
+          startDate: parseResumeMonth(
+            input.type === "CERTIFICATION" ? input.endDate : input.startDate,
+          ),
+        },
+        where: { id: input.itemId },
+      });
+      return;
+    }
+
+    if (input.type === "SKILLS_SUMMARY") {
+      const skill = await transaction.skill.upsert({
+        create: { name: input.name },
+        update: {},
+        where: { name: input.name },
+      });
+      await transaction.resumeSkill.update({
+        data: { skillId: skill.id },
+        where: { id: input.itemId },
+      });
+      return;
+    }
+
+    await transaction.patent.update({
+      data: {
+        date: parseResumeMonth(input.date),
+        description: input.description,
+        link: input.link ?? null,
+        title: input.title,
+      },
+      where: { id: input.itemId },
+    });
+  });
+
+  return getResume(db, userId, { id: input.resumeId });
+}
+
+export async function deleteResumeSectionItem(
+  db: PrismaClient,
+  userId: string,
+  input: z.infer<typeof deleteResumeSectionItemSchema>,
+) {
+  await requireOwnedResume(db, userId, input.resumeId);
+
+  await db.$transaction(async (transaction) => {
+    const ownedItem = await requireOwnedSectionItem(transaction, input);
+
+    if (input.type === "EXPERIENCE") {
+      if (ownedItem.kind !== "EXPERIENCE") return;
+      await transaction.positionSkill.deleteMany({
+        where: { positionId: input.itemId },
+      });
+      if (ownedItem.positionCount === 1) {
+        await transaction.experience.delete({
+          where: { id: ownedItem.experienceId },
+        });
+      } else {
+        await transaction.position.delete({ where: { id: input.itemId } });
+      }
+    } else if (input.type === "EDUCATION" || input.type === "CERTIFICATION") {
+      await transaction.education.delete({ where: { id: input.itemId } });
+    } else if (input.type === "SKILLS_SUMMARY") {
+      await transaction.resumeSkill.delete({ where: { id: input.itemId } });
+    } else {
+      await transaction.patent.delete({ where: { id: input.itemId } });
+    }
+  });
+
+  return getResume(db, userId, { id: input.resumeId });
+}
+
+export async function removeResumeSection(
+  db: PrismaClient,
+  userId: string,
+  input: z.infer<typeof removeResumeSectionSchema>,
+) {
+  await requireOwnedResume(db, userId, input.resumeId);
+
+  await db.$transaction(async (transaction) => {
+    if (input.type === "EXPERIENCE") {
+      await transaction.positionSkill.deleteMany({
+        where: { position: { experience: { resumeId: input.resumeId } } },
+      });
+      await transaction.experience.deleteMany({
+        where: { resumeId: input.resumeId },
+      });
+    } else if (input.type === "EDUCATION" || input.type === "CERTIFICATION") {
+      await transaction.education.deleteMany({
+        where: { resumeId: input.resumeId, type: input.type },
+      });
+    } else if (input.type === "SKILLS_SUMMARY") {
+      await transaction.resumeSkill.deleteMany({
+        where: { resumeId: input.resumeId },
+      });
+      await transaction.positionSkill.deleteMany({
+        where: { position: { experience: { resumeId: input.resumeId } } },
+      });
+    } else {
+      await transaction.patent.deleteMany({
+        where: { resumeId: input.resumeId },
+      });
+    }
+
+    await transaction.section.deleteMany({
+      where: { resumeId: input.resumeId, type: input.type },
+    });
+  });
+
+  return getResume(db, userId, { id: input.resumeId });
+}
 
 /**
  * Create a new resume
@@ -830,6 +1197,9 @@ export async function duplicateResume(
           positions: true,
         },
       },
+      patents: true,
+      sections: true,
+      skills: true,
     },
     where: {
       id: input.id,
@@ -892,6 +1262,25 @@ export async function duplicateResume(
           },
         })),
       },
+      patents: {
+        create: original.patents.map((patent) => ({
+          date: patent.date,
+          description: patent.description,
+          link: patent.link,
+          title: patent.title,
+        })),
+      },
+      sections: {
+        create: original.sections.map((section) => ({
+          title: section.title,
+          type: section.type,
+        })),
+      },
+      skills: {
+        create: original.skills.map((resumeSkill) => ({
+          skill: { connect: { id: resumeSkill.skillId } },
+        })),
+      },
       summary: original.summary,
     },
     include: {
@@ -901,6 +1290,11 @@ export async function duplicateResume(
         include: {
           positions: true,
         },
+      },
+      patents: true,
+      sections: true,
+      skills: {
+        include: { skill: true },
       },
     },
   });
@@ -937,7 +1331,13 @@ export async function getResume(
         },
       },
       Job: true,
+      patents: {
+        orderBy: { date: "desc" },
+      },
       sections: true,
+      skills: {
+        include: { skill: true },
+      },
     },
     where: {
       id: input.id,
@@ -1197,7 +1597,9 @@ export async function createResumeCopy(
           },
         },
       },
+      patents: true,
       sections: true,
+      skills: true,
     },
     where: {
       id: input.sourceResumeId,
@@ -1252,6 +1654,14 @@ export async function createResumeCopy(
           },
         })),
       },
+      patents: {
+        create: sourceResume.patents.map((patent) => ({
+          date: patent.date,
+          description: patent.description,
+          link: patent.link,
+          title: patent.title,
+        })),
+      },
       ...(sourceResume.jobId && {
         Job: {
           connect: { id: sourceResume.jobId },
@@ -1262,6 +1672,11 @@ export async function createResumeCopy(
         create: sourceResume.sections.map((section) => ({
           title: section.title,
           type: section.type,
+        })),
+      },
+      skills: {
+        create: sourceResume.skills.map((resumeSkill) => ({
+          skill: { connect: { id: resumeSkill.skillId } },
         })),
       },
       summary: sourceResume.summary,

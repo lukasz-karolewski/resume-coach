@@ -3,75 +3,417 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { EducationType, type PrismaClient } from "~/generated/prisma/client";
 import {
   addExperience,
+  addResumeSectionItem,
   createResume,
   createResumeCopy,
   createTailoredResumeFromProfile,
   deleteResume,
+  deleteResumeSectionItem,
   duplicateResume,
   getResume,
   getResumeMarkdown,
   listResumes,
+  removeResumeSection,
   renderResumeMarkdown,
   updateAccomplishments,
   updateResume,
+  updateResumeSectionItem,
   updateResumeTitle,
   updateSkills,
   updateSummary,
 } from "./resume";
 
-const createMockDb = () => ({
-  accomplishmentProfile: {
-    findUnique: vi.fn(),
-  },
-  contactInfo: {
-    create: vi.fn(),
-    update: vi.fn(),
-  },
-  education: {
-    createMany: vi.fn(),
-    deleteMany: vi.fn(),
-  },
-  experience: {
-    create: vi.fn(),
-    createMany: vi.fn(),
-    deleteMany: vi.fn(),
-    findMany: vi.fn(),
-  },
-  job: {
-    findFirst: vi.fn(),
-  },
-  position: {
-    create: vi.fn(),
-    createMany: vi.fn(),
-    findFirst: vi.fn(),
-    update: vi.fn(),
-  },
-  positionSkill: {
-    create: vi.fn(),
-    deleteMany: vi.fn(),
-  },
-  resume: {
-    create: vi.fn(),
-    delete: vi.fn(),
-    findFirst: vi.fn(),
-    findMany: vi.fn(),
-    update: vi.fn(),
-  },
-  skill: {
-    create: vi.fn(),
-    findUnique: vi.fn(),
-  },
-});
+const createMockDb = () => {
+  const db = {
+    accomplishmentProfile: {
+      findUnique: vi.fn(),
+    },
+    contactInfo: {
+      create: vi.fn(),
+      update: vi.fn(),
+    },
+    education: {
+      create: vi.fn(),
+      createMany: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+      findFirst: vi.fn(),
+      update: vi.fn(),
+    },
+    experience: {
+      create: vi.fn(),
+      createMany: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+      findFirst: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+    },
+    job: {
+      findFirst: vi.fn(),
+    },
+    patent: {
+      create: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+      findFirst: vi.fn(),
+      update: vi.fn(),
+    },
+    position: {
+      create: vi.fn(),
+      createMany: vi.fn(),
+      delete: vi.fn(),
+      findFirst: vi.fn(),
+      update: vi.fn(),
+    },
+    positionSkill: {
+      create: vi.fn(),
+      deleteMany: vi.fn(),
+    },
+    resume: {
+      create: vi.fn(),
+      delete: vi.fn(),
+      findFirst: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+    },
+    resumeSkill: {
+      create: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+      findFirst: vi.fn(),
+      update: vi.fn(),
+    },
+    section: {
+      create: vi.fn(),
+      deleteMany: vi.fn(),
+      findFirst: vi.fn(),
+    },
+    skill: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      upsert: vi.fn(),
+    },
+  };
+
+  return {
+    ...db,
+    $transaction: vi.fn(async (callback: (transaction: typeof db) => unknown) =>
+      callback(db),
+    ),
+  };
+};
 
 type MockDb = ReturnType<typeof createMockDb>;
 
 const userId = "user-123";
+const parseTestMonth = (value: string) => new Date(`${value}-01T00:00:00.000Z`);
 
 describe("resume lib", () => {
   let mockDb: MockDb;
 
   beforeEach(() => {
     mockDb = createMockDb();
+  });
+
+  describe("addResumeSectionItem", () => {
+    it("atomically adds a section with its first patent", async () => {
+      mockDb.resume.findFirst.mockResolvedValue({ id: 10 });
+      mockDb.section.findFirst.mockResolvedValue(null);
+      mockDb.patent.create.mockResolvedValue({ id: 30 });
+
+      await expect(
+        addResumeSectionItem(mockDb as unknown as PrismaClient, userId, {
+          date: "2021-06",
+          description: "Reduced stale reads in distributed systems.",
+          resumeId: 10,
+          title: "Adaptive cache invalidation",
+          type: "PATENTS",
+        }),
+      ).resolves.toMatchObject({ id: 10 });
+
+      expect(mockDb.section.create).toHaveBeenCalledWith({
+        data: {
+          resumeId: 10,
+          title: "Patents",
+          type: "PATENTS",
+        },
+      });
+      expect(mockDb.patent.create).toHaveBeenCalledWith({
+        data: {
+          date: new Date("2021-06-01T00:00:00.000Z"),
+          description: "Reduced stale reads in distributed systems.",
+          link: null,
+          resumeId: 10,
+          title: "Adaptive cache invalidation",
+        },
+      });
+    });
+
+    it("adds another resume-level skill without duplicating its section", async () => {
+      mockDb.resume.findFirst.mockResolvedValue({ id: 10 });
+      mockDb.section.findFirst.mockResolvedValue({ id: 20 });
+      mockDb.resumeSkill.findFirst.mockResolvedValue(null);
+      mockDb.skill.upsert.mockResolvedValue({ id: 40, name: "TypeScript" });
+
+      await expect(
+        addResumeSectionItem(mockDb as unknown as PrismaClient, userId, {
+          name: "TypeScript",
+          resumeId: 10,
+          type: "SKILLS_SUMMARY",
+        }),
+      ).resolves.toMatchObject({ id: 10 });
+
+      expect(mockDb.section.create).not.toHaveBeenCalled();
+      expect(mockDb.resumeSkill.create).toHaveBeenCalledWith({
+        data: {
+          resumeId: 10,
+          skillId: 40,
+        },
+      });
+    });
+
+    it("adds an experience item with its first position", async () => {
+      mockDb.resume.findFirst.mockResolvedValue({ id: 10 });
+      mockDb.section.findFirst.mockResolvedValue(null);
+      mockDb.experience.findFirst.mockResolvedValue(null);
+
+      await addResumeSectionItem(mockDb as unknown as PrismaClient, userId, {
+        accomplishments: "- Built a resilient platform",
+        companyName: "Globex",
+        location: "Remote",
+        resumeId: 10,
+        roleTitle: "Principal Engineer",
+        startDate: "2024-01",
+        type: "EXPERIENCE",
+      });
+
+      expect(mockDb.experience.create).toHaveBeenCalledWith({
+        data: {
+          companyName: "Globex",
+          positions: {
+            create: {
+              accomplishments: "- Built a resilient platform",
+              endDate: null,
+              location: "Remote",
+              startDate: parseTestMonth("2024-01"),
+              title: "Principal Engineer",
+            },
+          },
+          resumeId: 10,
+        },
+      });
+    });
+
+    it.each([
+      {
+        endDate: "2020-06",
+        expectedStartDate: "2016-09",
+        startDate: "2016-09",
+        type: "EDUCATION" as const,
+      },
+      {
+        endDate: "2023-04",
+        expectedStartDate: "2023-04",
+        startDate: undefined,
+        type: "CERTIFICATION" as const,
+      },
+    ])(
+      "adds a $type item",
+      async ({ endDate, expectedStartDate, startDate, type }) => {
+        mockDb.resume.findFirst.mockResolvedValue({ id: 10 });
+        mockDb.section.findFirst.mockResolvedValue(null);
+
+        if (type === "EDUCATION") {
+          await addResumeSectionItem(
+            mockDb as unknown as PrismaClient,
+            userId,
+            {
+              distinction: "BS Computer Science",
+              endDate,
+              institution: "Stanford",
+              location: "Remote",
+              resumeId: 10,
+              startDate: startDate ?? "",
+              type,
+            },
+          );
+        } else {
+          await addResumeSectionItem(
+            mockDb as unknown as PrismaClient,
+            userId,
+            {
+              distinction: "AWS Architect",
+              endDate,
+              institution: "AWS",
+              location: "Remote",
+              resumeId: 10,
+              type,
+            },
+          );
+        }
+
+        expect(mockDb.education.create).toHaveBeenCalledWith({
+          data: expect.objectContaining({
+            endDate: parseTestMonth(endDate),
+            startDate: parseTestMonth(expectedStartDate),
+            type,
+          }),
+        });
+      },
+    );
+  });
+
+  describe("updateResumeSectionItem", () => {
+    it("updates an owned patent and returns the refreshed resume", async () => {
+      mockDb.resume.findFirst.mockResolvedValue({ id: 10 });
+      mockDb.patent.findFirst.mockResolvedValue({ id: 30 });
+
+      await expect(
+        updateResumeSectionItem(mockDb as unknown as PrismaClient, userId, {
+          date: "2024-03",
+          description: "Updated patent description.",
+          itemId: 30,
+          link: "https://patents.example.com/30",
+          resumeId: 10,
+          title: "Adaptive cache invalidation v2",
+          type: "PATENTS",
+        }),
+      ).resolves.toMatchObject({ id: 10 });
+
+      expect(mockDb.patent.update).toHaveBeenCalledWith({
+        data: {
+          date: parseTestMonth("2024-03"),
+          description: "Updated patent description.",
+          link: "https://patents.example.com/30",
+          title: "Adaptive cache invalidation v2",
+        },
+        where: { id: 30 },
+      });
+    });
+
+    it("updates all education details", async () => {
+      mockDb.resume.findFirst.mockResolvedValue({ id: 10 });
+      mockDb.education.findFirst.mockResolvedValue({ id: 31 });
+
+      await updateResumeSectionItem(mockDb as unknown as PrismaClient, userId, {
+        distinction: "MSc Computer Science",
+        endDate: "2022-06",
+        institution: "Example University",
+        itemId: 31,
+        link: "https://example.edu",
+        location: "Seattle, WA",
+        notes: "Distributed systems",
+        resumeId: 10,
+        startDate: "2020-09",
+        type: "EDUCATION",
+      });
+
+      expect(mockDb.education.update).toHaveBeenCalledWith({
+        data: {
+          distinction: "MSc Computer Science",
+          endDate: parseTestMonth("2022-06"),
+          institution: "Example University",
+          link: "https://example.edu",
+          location: "Seattle, WA",
+          notes: "Distributed systems",
+          startDate: parseTestMonth("2020-09"),
+        },
+        where: { id: 31 },
+      });
+    });
+
+    it("updates an owned resume skill", async () => {
+      mockDb.resume.findFirst.mockResolvedValue({ id: 10 });
+      mockDb.resumeSkill.findFirst.mockResolvedValue({ id: 32 });
+      mockDb.skill.upsert.mockResolvedValue({ id: 41, name: "React" });
+
+      await updateResumeSectionItem(mockDb as unknown as PrismaClient, userId, {
+        itemId: 32,
+        name: "React",
+        resumeId: 10,
+        type: "SKILLS_SUMMARY",
+      });
+
+      expect(mockDb.resumeSkill.update).toHaveBeenCalledWith({
+        data: { skillId: 41 },
+        where: { id: 32 },
+      });
+    });
+  });
+
+  describe("deleteResumeSectionItem", () => {
+    it("deletes an education item without removing its section", async () => {
+      mockDb.resume.findFirst.mockResolvedValue({ id: 10 });
+      mockDb.education.findFirst.mockResolvedValue({ id: 31 });
+
+      await deleteResumeSectionItem(mockDb as unknown as PrismaClient, userId, {
+        itemId: 31,
+        resumeId: 10,
+        type: "EDUCATION",
+      });
+
+      expect(mockDb.education.delete).toHaveBeenCalledWith({
+        where: { id: 31 },
+      });
+      expect(mockDb.section.deleteMany).not.toHaveBeenCalled();
+    });
+
+    it("deletes a last experience position and its company safely", async () => {
+      mockDb.resume.findFirst.mockResolvedValue({ id: 10 });
+      mockDb.position.findFirst.mockResolvedValue({
+        experience: { _count: { positions: 1 }, id: 40 },
+        id: 33,
+      });
+
+      await deleteResumeSectionItem(mockDb as unknown as PrismaClient, userId, {
+        itemId: 33,
+        resumeId: 10,
+        type: "EXPERIENCE",
+      });
+
+      expect(mockDb.positionSkill.deleteMany).toHaveBeenCalledWith({
+        where: { positionId: 33 },
+      });
+      expect(mockDb.experience.delete).toHaveBeenCalledWith({
+        where: { id: 40 },
+      });
+    });
+  });
+
+  describe("removeResumeSection", () => {
+    it("removes the section and all of its patent items atomically", async () => {
+      mockDb.resume.findFirst.mockResolvedValue({ id: 10 });
+
+      await removeResumeSection(mockDb as unknown as PrismaClient, userId, {
+        resumeId: 10,
+        type: "PATENTS",
+      });
+
+      expect(mockDb.patent.deleteMany).toHaveBeenCalledWith({
+        where: { resumeId: 10 },
+      });
+      expect(mockDb.section.deleteMany).toHaveBeenCalledWith({
+        where: { resumeId: 10, type: "PATENTS" },
+      });
+      expect(mockDb.$transaction).toHaveBeenCalledOnce();
+    });
+
+    it("removes both resume-level and position-level skills", async () => {
+      mockDb.resume.findFirst.mockResolvedValue({ id: 10 });
+
+      await removeResumeSection(mockDb as unknown as PrismaClient, userId, {
+        resumeId: 10,
+        type: "SKILLS_SUMMARY",
+      });
+
+      expect(mockDb.resumeSkill.deleteMany).toHaveBeenCalledWith({
+        where: { resumeId: 10 },
+      });
+      expect(mockDb.positionSkill.deleteMany).toHaveBeenCalledWith({
+        where: { position: { experience: { resumeId: 10 } } },
+      });
+    });
   });
 
   describe("createResume", () => {
@@ -484,7 +826,13 @@ describe("resume lib", () => {
             },
           },
           Job: true,
+          patents: {
+            orderBy: { date: "desc" },
+          },
           sections: true,
+          skills: {
+            include: { skill: true },
+          },
         },
         where: {
           id: 10,
@@ -560,12 +908,21 @@ describe("resume lib", () => {
           title: "Principal Engineer",
         },
         name: "Jane Resume",
+        patents: [
+          {
+            date: new Date("2021-06-01T00:00:00.000Z"),
+            description: "Reduced stale reads in distributed systems.",
+            link: "https://patents.example.com/cache",
+            title: "Adaptive cache invalidation",
+          },
+        ],
         sections: [
           {
             title: "Skills Summary",
             type: "SKILLS_SUMMARY",
           },
         ],
+        skills: [{ skill: { name: "React" } }],
         summary: "Builder of pragmatic developer platforms.",
       } as Awaited<ReturnType<typeof getResume>>);
 
@@ -584,7 +941,12 @@ describe("resume lib", () => {
       expect(markdown).toContain("## Education");
       expect(markdown).toContain("## Certifications");
       expect(markdown).toContain("## Skills");
-      expect(markdown).toContain("Prisma ORM, TypeScript");
+      expect(markdown).toContain("Prisma ORM, React, TypeScript");
+      expect(markdown).toContain("## Patents");
+      expect(markdown).toContain(
+        "### [Adaptive cache invalidation](https://patents.example.com/cache)",
+      );
+      expect(markdown).toContain("Reduced stale reads in distributed systems.");
       expect(markdown.endsWith("\n")).toBe(true);
       expect(markdown).not.toContain("<div");
     });
@@ -600,7 +962,9 @@ describe("resume lib", () => {
         experience: [],
         id: 22,
         Job: null,
+        patents: [],
         sections: [],
+        skills: [],
         summary: "Summary",
         userId,
       });
@@ -633,7 +997,13 @@ describe("resume lib", () => {
             },
           },
           Job: true,
+          patents: {
+            orderBy: { date: "desc" },
+          },
           sections: true,
+          skills: {
+            include: { skill: true },
+          },
         },
         where: {
           id: 22,
@@ -906,6 +1276,16 @@ describe("resume lib", () => {
           },
         ],
         name: "Base Resume",
+        patents: [
+          {
+            date: new Date("2021-06-01T00:00:00.000Z"),
+            description: "Distributed cache patent",
+            link: null,
+            title: "Adaptive cache invalidation",
+          },
+        ],
+        sections: [{ title: "Patents", type: "PATENTS" }],
+        skills: [{ skillId: 55 }],
         summary: "Strong summary",
       });
       mockDb.resume.create.mockResolvedValue({ id: 20, name: "Custom Copy" });
@@ -927,6 +1307,9 @@ describe("resume lib", () => {
               positions: true,
             },
           },
+          patents: true,
+          sections: true,
+          skills: true,
         },
         where: {
           id: 10,
@@ -981,6 +1364,22 @@ describe("resume lib", () => {
             },
           },
           name: "Custom Copy",
+          patents: {
+            create: [
+              {
+                date: new Date("2021-06-01T00:00:00.000Z"),
+                description: "Distributed cache patent",
+                link: null,
+                title: "Adaptive cache invalidation",
+              },
+            ],
+          },
+          sections: {
+            create: [{ title: "Patents", type: "PATENTS" }],
+          },
+          skills: {
+            create: [{ skill: { connect: { id: 55 } } }],
+          },
           summary: "Strong summary",
           user: {
             connect: { id: userId },
@@ -993,6 +1392,11 @@ describe("resume lib", () => {
             include: {
               positions: true,
             },
+          },
+          patents: true,
+          sections: true,
+          skills: {
+            include: { skill: true },
           },
         },
       });
@@ -1046,12 +1450,14 @@ describe("resume lib", () => {
           },
         ],
         name: "Base Resume",
+        patents: [],
         sections: [
           {
             title: "Experience",
             type: "EXPERIENCE",
           },
         ],
+        skills: [],
         summary: "Strong summary",
       });
       mockDb.resume.create.mockResolvedValue({
@@ -1087,7 +1493,9 @@ describe("resume lib", () => {
               },
             },
           },
+          patents: true,
           sections: true,
+          skills: true,
         },
         where: {
           id: 10,
@@ -1137,6 +1545,9 @@ describe("resume lib", () => {
             ],
           },
           name: "Base Resume - Copy 123",
+          patents: {
+            create: [],
+          },
           sections: {
             create: [
               {
@@ -1144,6 +1555,9 @@ describe("resume lib", () => {
                 type: "EXPERIENCE",
               },
             ],
+          },
+          skills: {
+            create: [],
           },
           summary: "Strong summary",
           user: {
@@ -1162,7 +1576,9 @@ describe("resume lib", () => {
         experience: [],
         jobId: null,
         name: "Base Resume",
+        patents: [],
         sections: [],
+        skills: [],
         summary: "Strong summary",
       });
       mockDb.resume.create.mockResolvedValue({
@@ -1190,7 +1606,13 @@ describe("resume lib", () => {
             create: [],
           },
           name: "Custom Resume Name",
+          patents: {
+            create: [],
+          },
           sections: {
+            create: [],
+          },
+          skills: {
             create: [],
           },
           summary: "Strong summary",
@@ -1208,7 +1630,9 @@ describe("resume lib", () => {
         experience: [],
         jobId: "job-123",
         name: "Job Resume",
+        patents: [],
         sections: [],
+        skills: [],
         summary: "Summary",
       });
       mockDb.resume.create.mockResolvedValue({
@@ -1233,7 +1657,13 @@ describe("resume lib", () => {
             connect: { id: "job-123" },
           },
           name: "Job Resume - Copy 456",
+          patents: {
+            create: [],
+          },
           sections: {
+            create: [],
+          },
+          skills: {
             create: [],
           },
           summary: "Summary",

@@ -21,17 +21,17 @@ interface PositionItemProps {
   companyName: string;
   link?: string | null;
   position: Position;
-  onEditAccomplishments?: (position: Position) => void;
+  onEditPosition?: (position: Position, companyName: string) => void;
 }
 
 interface JobExperienceItemProps {
   job: JobExperienceItem;
-  onEditAccomplishments?: (position: Position) => void;
+  onEditPosition?: (position: Position, companyName: string) => void;
 }
 
 interface JobExperienceProps {
   jobs: JobExperienceItem[];
-  onEditAccomplishments?: (position: Position) => void;
+  onEditPosition?: (position: Position, companyName: string) => void;
 }
 
 const Accomplishments: React.FC<AccomplishmentsProps> = ({ markdown }) => {
@@ -43,14 +43,15 @@ const Accomplishments: React.FC<AccomplishmentsProps> = ({ markdown }) => {
 };
 
 const PositionItem: React.FC<PositionItemProps> = ({
+  companyName,
   position,
-  onEditAccomplishments,
+  onEditPosition,
 }) => {
   const { startDate, endDate, title, location, accomplishments } = position;
   const { formattedFrom, formattedTo } = formatFromTo(startDate, endDate);
 
   return (
-    <div className="">
+    <div className="group/item relative">
       <div className="flex items-center justify-between">
         <div className="mb-2 flex w-max flex-col">
           <span className="font-bold">{title}</span>
@@ -61,31 +62,28 @@ const PositionItem: React.FC<PositionItemProps> = ({
           {formattedTo}
         </span>
       </div>
-      <div
-        className="group/accomplishments relative rounded-sm outline-none focus-within:ring-2 focus-within:ring-ring/50"
-        onDoubleClick={() => onEditAccomplishments?.(position)}
-      >
+      <div>
         <Accomplishments markdown={accomplishments} />
-        {onEditAccomplishments ? (
-          <Button
-            type="button"
-            size="icon-xs"
-            variant="ghost"
-            aria-label={`Edit accomplishments for ${title}`}
-            className="absolute -top-1 -right-7 opacity-0 transition-opacity group-hover/accomplishments:opacity-100 focus:opacity-100 print:hidden"
-            onClick={() => onEditAccomplishments(position)}
-          >
-            <PencilSquareIcon />
-          </Button>
-        ) : null}
       </div>
+      {onEditPosition ? (
+        <Button
+          type="button"
+          size="icon-xs"
+          variant="ghost"
+          aria-label={`Edit experience ${title} at ${companyName}`}
+          className="absolute -top-1 -right-7 opacity-0 transition-opacity group-hover/item:opacity-100 focus:opacity-100 print:hidden"
+          onClick={() => onEditPosition(position, companyName)}
+        >
+          <PencilSquareIcon />
+        </Button>
+      ) : null}
     </div>
   );
 };
 
 const JobExperienceItem: React.FC<JobExperienceItemProps> = ({
   job,
-  onEditAccomplishments,
+  onEditPosition,
 }) => {
   const { companyName, link, positions } = job;
   const hasMultiplePositions = positions.length > 1;
@@ -104,7 +102,7 @@ const JobExperienceItem: React.FC<JobExperienceItemProps> = ({
             companyName={companyName}
             link={link}
             position={position}
-            onEditAccomplishments={onEditAccomplishments}
+            onEditPosition={onEditPosition}
           />
         ))}
       </div>
@@ -114,7 +112,7 @@ const JobExperienceItem: React.FC<JobExperienceItemProps> = ({
 
 const JobExperience: React.FC<JobExperienceProps> = ({
   jobs,
-  onEditAccomplishments,
+  onEditPosition,
 }) => {
   return (
     <>
@@ -122,7 +120,7 @@ const JobExperience: React.FC<JobExperienceProps> = ({
         <JobExperienceItem
           key={job.id}
           job={job}
-          onEditAccomplishments={onEditAccomplishments}
+          onEditPosition={onEditPosition}
         />
       ))}
     </>

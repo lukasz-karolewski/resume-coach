@@ -4,6 +4,7 @@ import {
   CheckIcon,
   ClipboardDocumentIcon,
   EyeIcon,
+  PlusIcon,
   PrinterIcon,
   Squares2X2Icon,
   TrashIcon,
@@ -16,12 +17,16 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { AddResumeSectionDropdown } from "~/components/resume/add-resume-section-dropdown";
 import ContactInfo from "~/components/resume/contact-info";
 import EducationExperience from "~/components/resume/education-experience";
 import JobExperience from "~/components/resume/job-experience";
 import { MarkdownEditorDialog } from "~/components/resume/markdown-editor-dialog";
+import { PatentList } from "~/components/resume/patent-list";
 import { ProfessionalSummary } from "~/components/resume/professional-summary";
+import { ResumeSectionItemDialog } from "~/components/resume/resume-section-item-dialog";
 import Section from "~/components/resume/section";
+import { Skill } from "~/components/resume/skill";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,6 +47,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
+import {
+  type ResumeSectionType,
+  resumeSectionOptions,
+} from "~/lib/resume-sections";
+import type { ResumeSectionItem } from "~/lib/schemas/resume-section-item";
 import { useTRPC } from "~/trpc/react";
 import type { RouterOutputs } from "~/trpc/shared";
 import { partitionResumeEducation } from "./resume-content";
@@ -50,8 +60,125 @@ import { resumeDetailQuery } from "./resume-queries";
 const TITLE_AUTOSAVE_DELAY_MS = 800;
 const SAVED_INDICATOR_DURATION_MS = 2000;
 
-type ResumePosition =
-  RouterOutputs["resume"]["getById"]["experience"][number]["positions"][number];
+type Resume = RouterOutputs["resume"]["getById"];
+
+type EditableSectionItem = {
+  id: number;
+  item: ResumeSectionItem;
+};
+
+function toMonthInput(date: Date) {
+  return date.toISOString().slice(0, 7);
+}
+
+function getResumeSkillNames(resume: Resume) {
+  const names = new Set<string>();
+
+  for (const resumeSkill of resume.skills) {
+    names.add(resumeSkill.skill.name);
+  }
+
+  for (const experience of resume.experience) {
+    for (const position of experience.positions) {
+      for (const positionSkill of position.skillPosition) {
+        names.add(positionSkill.skill.name);
+      }
+    }
+  }
+
+  return [...names].sort((left, right) => left.localeCompare(right));
+}
+
+function getActiveSectionTypes(
+  resume: Resume,
+  educationCount: number,
+  certificateCount: number,
+  skillCount: number,
+) {
+  const activeTypes = new Set<ResumeSectionType>(
+    resume.sections.map((section) => section.type),
+  );
+
+  if (resume.experience.length > 0) activeTypes.add("EXPERIENCE");
+  if (educationCount > 0) activeTypes.add("EDUCATION");
+  if (certificateCount > 0) activeTypes.add("CERTIFICATION");
+  if (skillCount > 0) activeTypes.add("SKILLS_SUMMARY");
+  if (resume.patents.length > 0) activeTypes.add("PATENTS");
+
+  return activeTypes;
+}
+
+function SectionAddButton({
+  itemLabel,
+  onClick,
+}: {
+  itemLabel: string;
+  onClick: () => void;
+}) {
+  return (
+    <Button
+      aria-label={`Add ${itemLabel}`}
+      className="print:hidden"
+      size="xs"
+      type="button"
+      variant="ghost"
+      onClick={onClick}
+    >
+      <PlusIcon data-icon="inline-start" />
+      Add
+    </Button>
+  );
+}
+
+function SectionActions({
+  isPending,
+  itemLabel,
+  label,
+  onAdd,
+  onRemove,
+}: {
+  isPending: boolean;
+  itemLabel: string;
+  label: string;
+  onAdd: () => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-1 print:hidden">
+      <SectionAddButton itemLabel={itemLabel} onClick={onAdd} />
+      <AlertDialog>
+        <AlertDialogTrigger
+          render={
+            <Button
+              aria-label={`Remove ${label} section`}
+              disabled={isPending}
+              size="icon-xs"
+              type="button"
+              variant="ghost"
+            />
+          }
+        >
+          <TrashIcon />
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove {label} section?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes the section and all of its items from
+              this resume.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={onRemove}>
+              Remove section
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
 
 export default function ResumeDetailClient({ resumeId }: { resumeId: number }) {
   const router = useRouter();
@@ -64,10 +191,11 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: number }) {
   const [draftName, setDraftName] = useState(initialResume.name);
   const [isCopyingMarkdown, setIsCopyingMarkdown] = useState(false);
   const [showSavedIndicator, setShowSavedIndicator] = useState(false);
-  const [editingPosition, setEditingPosition] = useState<ResumePosition | null>(
-    null,
-  );
   const [isEditingSummary, setIsEditingSummary] = useState(false);
+  const [addingSectionType, setAddingSectionType] =
+    useState<ResumeSectionType | null>(null);
+  const [editingSectionItem, setEditingSectionItem] =
+    useState<EditableSectionItem | null>(null);
   const lastSyncedNameRef = useRef(initialResume.name);
   const pendingSaveNameRef = useRef<string | null>(null);
   const savedIndicatorTimeoutRef = useRef<number | null>(null);
@@ -105,6 +233,65 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: number }) {
       },
     }),
   );
+  const addSectionItemMutation = useMutation(
+    trpc.resume.addSectionItem.mutationOptions({
+      onError: () => {
+        toast.add({ title: "Failed to add item", type: "error" });
+      },
+      onSettled: async () => {
+        await queryClient.invalidateQueries(trpc.resume.pathFilter());
+      },
+      onSuccess: (updatedResume) => {
+        setResume(updatedResume);
+        setAddingSectionType(null);
+        toast.add({ title: "Resume item added", type: "success" });
+      },
+    }),
+  );
+  const updateSectionItemMutation = useMutation(
+    trpc.resume.updateSectionItem.mutationOptions({
+      onError: () => {
+        toast.add({ title: "Failed to update item", type: "error" });
+      },
+      onSettled: async () => {
+        await queryClient.invalidateQueries(trpc.resume.pathFilter());
+      },
+      onSuccess: (updatedResume) => {
+        setResume(updatedResume);
+        setEditingSectionItem(null);
+        toast.add({ title: "Resume item updated", type: "success" });
+      },
+    }),
+  );
+  const deleteSectionItemMutation = useMutation(
+    trpc.resume.deleteSectionItem.mutationOptions({
+      onError: () => {
+        toast.add({ title: "Failed to delete item", type: "error" });
+      },
+      onSettled: async () => {
+        await queryClient.invalidateQueries(trpc.resume.pathFilter());
+      },
+      onSuccess: (updatedResume) => {
+        setResume(updatedResume);
+        setEditingSectionItem(null);
+        toast.add({ title: "Resume item deleted", type: "success" });
+      },
+    }),
+  );
+  const removeSectionMutation = useMutation(
+    trpc.resume.removeSection.mutationOptions({
+      onError: () => {
+        toast.add({ title: "Failed to remove section", type: "error" });
+      },
+      onSettled: async () => {
+        await queryClient.invalidateQueries(trpc.resume.pathFilter());
+      },
+      onSuccess: (updatedResume) => {
+        setResume(updatedResume);
+        toast.add({ title: "Resume section removed", type: "success" });
+      },
+    }),
+  );
   const duplicateMutation = useMutation(
     trpc.resume.duplicate.mutationOptions({
       onSettled: async () => {
@@ -122,34 +309,6 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: number }) {
       },
       onSuccess: async () => {
         router.push("/resume");
-      },
-    }),
-  );
-  const updateAccomplishmentsMutation = useMutation(
-    trpc.resume.updateAccomplishments.mutationOptions({
-      onError: () => {
-        toast.add({
-          title: "Failed to update accomplishments",
-          type: "error",
-        });
-      },
-      onSettled: async () => {
-        await queryClient.invalidateQueries(trpc.resume.pathFilter());
-      },
-      onSuccess: (_result, variables) => {
-        setResume((currentResume) => ({
-          ...currentResume,
-          experience: currentResume.experience.map((experience) => ({
-            ...experience,
-            positions: experience.positions.map((position) =>
-              position.id === variables.positionId
-                ? { ...position, accomplishments: variables.accomplishments }
-                : position,
-            ),
-          })),
-        }));
-        setEditingPosition(null);
-        toast.add({ title: "Accomplishments updated", type: "success" });
       },
     }),
   );
@@ -218,6 +377,13 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: number }) {
   const { certificates, education } = partitionResumeEducation(
     resume.education,
   );
+  const skillNames = getResumeSkillNames(resume);
+  const activeSectionTypes = getActiveSectionTypes(
+    resume,
+    education.length,
+    certificates.length,
+    skillNames.length,
+  );
 
   const copyMarkdownToClipboard = async () => {
     setIsCopyingMarkdown(true);
@@ -271,6 +437,13 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: number }) {
                 </div>
               </div>
               <div className="flex items-center gap-1 self-end md:self-auto">
+                <AddResumeSectionDropdown
+                  addedSectionTypes={activeSectionTypes}
+                  isPending={addSectionItemMutation.isPending}
+                  onAdd={(type) => {
+                    setAddingSectionType(type);
+                  }}
+                />
                 <Tooltip>
                   <TooltipTrigger
                     render={
@@ -402,51 +575,237 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: number }) {
             <ProfessionalSummary
               info={resume.summary}
               onEdit={() => {
-                setEditingPosition(null);
                 setIsEditingSummary(true);
               }}
             />
           </Section>
 
-          <Section title="Experience">
-            <JobExperience
-              jobs={resume.experience}
-              onEditAccomplishments={(position) => {
-                setIsEditingSummary(false);
-                setEditingPosition(position);
-              }}
-            />
-          </Section>
+          {resumeSectionOptions.map((option) => {
+            if (!activeSectionTypes.has(option.type)) return null;
 
-          <Section title="Education" layout="compact">
-            <EducationExperience educationList={education} />
-          </Section>
+            if (option.type === "EXPERIENCE") {
+              return (
+                <Section
+                  action={
+                    <SectionActions
+                      isPending={removeSectionMutation.isPending}
+                      itemLabel={option.itemLabel}
+                      label={option.label}
+                      onAdd={() => setAddingSectionType(option.type)}
+                      onRemove={() =>
+                        removeSectionMutation.mutate({
+                          resumeId: resume.id,
+                          type: option.type,
+                        })
+                      }
+                    />
+                  }
+                  key={option.type}
+                  title={option.label}
+                >
+                  <JobExperience
+                    jobs={resume.experience}
+                    onEditPosition={(position, companyName) => {
+                      setIsEditingSummary(false);
+                      setEditingSectionItem({
+                        id: position.id,
+                        item: {
+                          accomplishments: position.accomplishments,
+                          companyName,
+                          endDate: position.endDate
+                            ? toMonthInput(position.endDate)
+                            : undefined,
+                          location: position.location,
+                          roleTitle: position.title,
+                          startDate: toMonthInput(position.startDate),
+                          type: "EXPERIENCE",
+                        },
+                      });
+                    }}
+                  />
+                </Section>
+              );
+            }
 
-          <Section title="Certificates" layout="compact">
-            <EducationExperience educationList={certificates} />
-          </Section>
+            if (option.type === "EDUCATION") {
+              return (
+                <Section
+                  action={
+                    <SectionActions
+                      isPending={removeSectionMutation.isPending}
+                      itemLabel={option.itemLabel}
+                      label={option.label}
+                      onAdd={() => setAddingSectionType(option.type)}
+                      onRemove={() =>
+                        removeSectionMutation.mutate({
+                          resumeId: resume.id,
+                          type: option.type,
+                        })
+                      }
+                    />
+                  }
+                  key={option.type}
+                  layout="compact"
+                  title={option.label}
+                >
+                  <EducationExperience
+                    educationList={education}
+                    onEdit={(item) =>
+                      setEditingSectionItem({
+                        id: item.id,
+                        item: {
+                          distinction: item.distinction,
+                          endDate: toMonthInput(item.endDate),
+                          institution: item.institution,
+                          link: item.link || undefined,
+                          location: item.location,
+                          notes: item.notes ?? undefined,
+                          startDate: toMonthInput(item.startDate),
+                          type: "EDUCATION",
+                        },
+                      })
+                    }
+                  />
+                </Section>
+              );
+            }
+
+            if (option.type === "CERTIFICATION") {
+              return (
+                <Section
+                  action={
+                    <SectionActions
+                      isPending={removeSectionMutation.isPending}
+                      itemLabel={option.itemLabel}
+                      label={option.label}
+                      onAdd={() => setAddingSectionType(option.type)}
+                      onRemove={() =>
+                        removeSectionMutation.mutate({
+                          resumeId: resume.id,
+                          type: option.type,
+                        })
+                      }
+                    />
+                  }
+                  key={option.type}
+                  layout="compact"
+                  title={option.label}
+                >
+                  <EducationExperience
+                    educationList={certificates}
+                    onEdit={(item) =>
+                      setEditingSectionItem({
+                        id: item.id,
+                        item: {
+                          distinction: item.distinction,
+                          endDate: toMonthInput(item.endDate),
+                          institution: item.institution,
+                          link: item.link || undefined,
+                          location: item.location,
+                          notes: item.notes ?? undefined,
+                          type: "CERTIFICATION",
+                        },
+                      })
+                    }
+                  />
+                </Section>
+              );
+            }
+
+            if (option.type === "SKILLS_SUMMARY") {
+              return (
+                <Section
+                  action={
+                    <SectionActions
+                      isPending={removeSectionMutation.isPending}
+                      itemLabel={option.itemLabel}
+                      label={option.label}
+                      onAdd={() => setAddingSectionType(option.type)}
+                      onRemove={() =>
+                        removeSectionMutation.mutate({
+                          resumeId: resume.id,
+                          type: option.type,
+                        })
+                      }
+                    />
+                  }
+                  key={option.type}
+                  layout="compact"
+                  title={option.label}
+                >
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    {resume.skills.map((resumeSkill) => (
+                      <Skill
+                        key={resumeSkill.id}
+                        onEdit={() =>
+                          setEditingSectionItem({
+                            id: resumeSkill.id,
+                            item: {
+                              name: resumeSkill.skill.name,
+                              type: "SKILLS_SUMMARY",
+                            },
+                          })
+                        }
+                      >
+                        {resumeSkill.skill.name}
+                      </Skill>
+                    ))}
+                    {skillNames
+                      .filter(
+                        (skillName) =>
+                          !resume.skills.some(
+                            (resumeSkill) =>
+                              resumeSkill.skill.name === skillName,
+                          ),
+                      )
+                      .map((skillName) => (
+                        <Skill key={skillName}>{skillName}</Skill>
+                      ))}
+                  </div>
+                </Section>
+              );
+            }
+
+            return (
+              <Section
+                action={
+                  <SectionActions
+                    isPending={removeSectionMutation.isPending}
+                    itemLabel={option.itemLabel}
+                    label={option.label}
+                    onAdd={() => setAddingSectionType(option.type)}
+                    onRemove={() =>
+                      removeSectionMutation.mutate({
+                        resumeId: resume.id,
+                        type: option.type,
+                      })
+                    }
+                  />
+                }
+                key={option.type}
+                layout="compact"
+                title={option.label}
+              >
+                <PatentList
+                  patents={resume.patents}
+                  onEdit={(patent) =>
+                    setEditingSectionItem({
+                      id: patent.id,
+                      item: {
+                        date: toMonthInput(patent.date),
+                        description: patent.description,
+                        link: patent.link ?? undefined,
+                        title: patent.title,
+                        type: "PATENTS",
+                      },
+                    })
+                  }
+                />
+              </Section>
+            );
+          })}
         </div>
       </div>
-
-      {editingPosition ? (
-        <MarkdownEditorDialog
-          description={editingPosition.title}
-          fieldLabel="Accomplishments"
-          isPending={updateAccomplishmentsMutation.isPending}
-          open
-          title="Edit accomplishments"
-          value={editingPosition.accomplishments}
-          onOpenChange={(open) => {
-            if (!open) setEditingPosition(null);
-          }}
-          onSave={(accomplishments) => {
-            updateAccomplishmentsMutation.mutate({
-              accomplishments,
-              positionId: editingPosition.id,
-            });
-          }}
-        />
-      ) : null}
 
       <MarkdownEditorDialog
         description="Update the resume-level professional summary."
@@ -458,6 +817,47 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: number }) {
         onOpenChange={setIsEditingSummary}
         onSave={(summary) => {
           updateSummaryMutation.mutate({ resumeId: resume.id, summary });
+        }}
+      />
+
+      <ResumeSectionItemDialog
+        isPending={addSectionItemMutation.isPending}
+        open={addingSectionType !== null}
+        type={addingSectionType}
+        onOpenChange={(open) => {
+          if (!open) setAddingSectionType(null);
+        }}
+        onSave={(item) => {
+          addSectionItemMutation.mutate({ ...item, resumeId: resume.id });
+        }}
+      />
+
+      <ResumeSectionItemDialog
+        initialItem={editingSectionItem?.item}
+        isPending={
+          updateSectionItemMutation.isPending ||
+          deleteSectionItemMutation.isPending
+        }
+        open={editingSectionItem !== null}
+        type={editingSectionItem?.item.type ?? null}
+        onDelete={() => {
+          if (!editingSectionItem) return;
+          deleteSectionItemMutation.mutate({
+            itemId: editingSectionItem.id,
+            resumeId: resume.id,
+            type: editingSectionItem.item.type,
+          });
+        }}
+        onOpenChange={(open) => {
+          if (!open) setEditingSectionItem(null);
+        }}
+        onSave={(item) => {
+          if (!editingSectionItem) return;
+          updateSectionItemMutation.mutate({
+            ...item,
+            itemId: editingSectionItem.id,
+            resumeId: resume.id,
+          });
         }}
       />
     </div>
