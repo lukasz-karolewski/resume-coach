@@ -3,18 +3,21 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 import type { PrismaClient } from "~/generated/prisma/client";
+import {
+  addJobSchema,
+  updateJobSchema,
+  updateJobStatusSchema,
+} from "~/lib/schemas/job";
 
 // ============================================================================
 // Zod Schemas
 // ============================================================================
 
-export const addJobSchema = z.object({
-  url: z.url(),
-});
-
 export const fetchJobDescriptionSchema = z.object({
   url: z.url(),
 });
+
+export { addJobSchema, updateJobSchema, updateJobStatusSchema };
 
 // ============================================================================
 // Business Logic Functions
@@ -28,31 +31,89 @@ export async function addJob(
   userId: string,
   input: z.infer<typeof addJobSchema>,
 ) {
-  await db.job.create({
-    data: {
-      url: input.url,
-      userId: userId,
-    },
+  return db.$transaction(async (transaction) => {
+    if (input.resumeId) {
+      await requireOwnedResume(transaction, userId, input.resumeId);
+    }
+
+    const job = await transaction.job.create({
+      data: {
+        company: input.company,
+        location: optionalText(input.location),
+        nextActionAt: input.nextActionAt,
+        notes: optionalText(input.notes),
+        status: input.status,
+        title: input.title,
+        url: input.url,
+        userId,
+      },
+    });
+
+    if (input.resumeId) {
+      await transaction.resume.update({
+        data: { jobId: job.id },
+        where: { id: input.resumeId },
+      });
+    }
+
+    return job;
   });
+}
 
-  // TODO
-  // scrape the job details
-  // sent push notification it's done
+export async function updateJob(
+  db: PrismaClient,
+  userId: string,
+  input: z.infer<typeof updateJobSchema>,
+) {
+  return db.$transaction(async (transaction) => {
+    await requireOwnedJob(transaction, userId, input.id);
 
-  // const details = await extractJobDetails(input.url);
+    if (input.resumeId) {
+      await requireOwnedResume(transaction, userId, input.resumeId);
+    }
 
-  // await db.job.update({
-  //   where: {
-  //     id: job.id,
-  //   },
-  //   data: {
-  //     title: details.title,
-  //     description: details.description,
-  //     company: details.companyName,
-  //   },
-  // });
+    const job = await transaction.job.update({
+      data: {
+        company: input.company,
+        location: optionalText(input.location),
+        nextActionAt: input.nextActionAt,
+        notes: optionalText(input.notes),
+        status: input.status,
+        title: input.title,
+        url: input.url,
+      },
+      where: { id: input.id },
+    });
 
-  return "job added";
+    if (input.resumeId !== undefined) {
+      await transaction.resume.updateMany({
+        data: { jobId: null },
+        where: { jobId: input.id, userId },
+      });
+
+      if (input.resumeId) {
+        await transaction.resume.update({
+          data: { jobId: input.id },
+          where: { id: input.resumeId },
+        });
+      }
+    }
+
+    return job;
+  });
+}
+
+export async function updateJobStatus(
+  db: PrismaClient,
+  userId: string,
+  input: z.infer<typeof updateJobStatusSchema>,
+) {
+  await requireOwnedJob(db, userId, input.id);
+
+  return db.job.update({
+    data: { status: input.status },
+    where: { id: input.id },
+  });
 }
 
 /**
@@ -60,10 +121,59 @@ export async function addJob(
  */
 export async function getJobs(db: PrismaClient, userId: string) {
   const jobs = await db.job.findMany({
+    include: {
+      resume: {
+        orderBy: { updatedAt: "desc" },
+        select: { id: true, name: true },
+      },
+    },
+    orderBy: [
+      { nextActionAt: { nulls: "last", sort: "asc" } },
+      { createdAt: "desc" },
+    ],
     where: { userId },
   });
 
   return jobs;
+}
+
+function optionalText(value: string | undefined) {
+  const normalized = value?.trim();
+  return normalized ? normalized : null;
+}
+
+async function requireOwnedJob(
+  db: Pick<PrismaClient, "job">,
+  userId: string,
+  jobId: string,
+) {
+  const job = await db.job.findFirst({
+    select: { id: true },
+    where: { id: jobId, userId },
+  });
+
+  if (!job) {
+    throw new Error("Job not found or does not belong to user");
+  }
+
+  return job;
+}
+
+async function requireOwnedResume(
+  db: Pick<PrismaClient, "resume">,
+  userId: string,
+  resumeId: number,
+) {
+  const resume = await db.resume.findFirst({
+    select: { id: true },
+    where: { id: resumeId, userId },
+  });
+
+  if (!resume) {
+    throw new Error("Resume not found or does not belong to user");
+  }
+
+  return resume;
 }
 
 /**

@@ -57,7 +57,7 @@ describe("SignUpPage", () => {
         }),
         expect.any(Object),
       );
-      expect(mockPush).toHaveBeenCalledWith("/resume");
+      expect(mockPush).toHaveBeenCalledWith("/jobs");
     });
   });
 
@@ -128,7 +128,7 @@ describe("SignUpPage", () => {
 
     await waitFor(() => {
       expect(mockSocialSignIn).toHaveBeenCalledWith({
-        callbackURL: "/resume",
+        callbackURL: "/jobs",
         provider: "google",
       });
     });

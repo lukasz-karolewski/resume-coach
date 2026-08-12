@@ -143,7 +143,7 @@ export default async function HomePage() {
   });
 
   if (session?.user) {
-    redirect("/resume");
+    redirect("/jobs");
   }
 
   return (

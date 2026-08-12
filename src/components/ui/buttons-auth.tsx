@@ -12,10 +12,10 @@ export function SignIn({
     <Button
       onClick={async () => {
         await signIn.social({
-          callbackURL: "/resume",
+          callbackURL: "/jobs",
           disableRedirect: false,
           errorCallbackURL: "/error",
-          newUserCallbackURL: "/resume",
+          newUserCallbackURL: "/jobs",
           provider,
         });
       }}

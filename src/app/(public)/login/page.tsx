@@ -49,7 +49,7 @@ export default function LoginPage() {
           setIsLoading(true);
         },
         onSuccess: () => {
-          router.push("/resume");
+          router.push("/jobs");
         },
       },
     );
@@ -57,7 +57,7 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     await signIn.social({
-      callbackURL: "/resume",
+      callbackURL: "/jobs",
       provider: "google",
     });
   };
