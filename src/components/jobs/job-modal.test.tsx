@@ -82,6 +82,55 @@ describe("JobModal", () => {
     expect(mockHide).toHaveBeenCalled();
   });
 
+  test("shows readable labels in the closed select triggers", () => {
+    render(
+      <JobModal
+        id="job-modal-test"
+        defaultValues={{ resumeId: 7, status: "INTERVIEW" }}
+        resumes={[{ id: 7, name: "Platform resume" }]}
+      />,
+    );
+
+    expect(document.getElementById("job-status")).toHaveTextContent(
+      "Interviewing",
+    );
+    expect(document.getElementById("job-resume")).toHaveTextContent(
+      "Platform resume",
+    );
+  });
+
+  test("round-trips the next action date at UTC midnight", async () => {
+    render(
+      <JobModal
+        id="job-modal-test"
+        defaultValues={{
+          company: "Acme",
+          nextActionAt: new Date("2026-08-20T00:00:00.000Z"),
+          status: "SAVED",
+          title: "Staff Engineer",
+          url: "https://example.com/job",
+        }}
+        resumes={[]}
+      />,
+    );
+
+    const nextAction = document.getElementById(
+      "job-next-action",
+    ) as HTMLInputElement;
+    expect(nextAction.value).toBe("2026-08-20");
+
+    fireEvent.change(nextAction, { target: { value: "2026-09-01" } });
+    fireEvent.click(screen.getByRole("button", { name: "Add application" }));
+
+    await waitFor(() => {
+      expect(mockResolve).toHaveBeenCalledWith(
+        expect.objectContaining({
+          nextActionAt: new Date("2026-09-01T00:00:00.000Z"),
+        }),
+      );
+    });
+  });
+
   test("keeps invalid application details in the dialog", async () => {
     render(<JobModal id="job-modal-test" resumes={[]} />);
 

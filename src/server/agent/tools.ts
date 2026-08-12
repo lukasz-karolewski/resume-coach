@@ -2,6 +2,13 @@
 
 import { type ToolRuntime, tool } from "@langchain/core/tools";
 import { z } from "zod";
+import {
+  addExperienceSchema,
+  createResumeCopySchema,
+  updateAccomplishmentsSchema,
+  updateSkillsSchema,
+  updateSummarySchema,
+} from "~/lib/schemas/resume";
 import { db } from "~/server/db";
 import {
   fetchJobDescription,
@@ -9,17 +16,12 @@ import {
 } from "~/server/lib/job";
 import {
   addExperience,
-  addExperienceSchema,
   createResumeCopy,
-  createResumeCopySchema,
   getResume,
   listResumes,
   updateAccomplishments,
-  updateAccomplishmentsSchema,
   updateSkills,
-  updateSkillsSchema,
   updateSummary,
-  updateSummarySchema,
 } from "~/server/lib/resume";
 import type { contextSchema, stateSchema } from "./graph";
 

@@ -50,9 +50,19 @@ type StatusFilter = "ALL" | JobStatus;
 
 const terminalStatuses = new Set<JobStatus>(["OFFER", "REJECTED", "WITHDRAWN"]);
 
+const allStatusesLabel = "All statuses";
+const statusFilterItems: Record<StatusFilter, string> = {
+  ALL: allStatusesLabel,
+  ...jobStatusLabels,
+};
+
+// Pinned to UTC so the server-rendered table and the hydrated client agree.
+// `nextActionAt` is normalized to UTC midnight on write, so it renders the day
+// that was picked; `createdAt` is a real instant and therefore shows its UTC day.
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   day: "numeric",
   month: "short",
+  timeZone: "UTC",
   year: "numeric",
 });
 
@@ -146,7 +156,7 @@ export function JobPageClient() {
       </header>
 
       <section
-        aria-label="Search metrics"
+        aria-label="Pipeline summary"
         className="grid overflow-hidden rounded-2xl bg-card ring-1 ring-foreground/10 sm:grid-cols-3"
       >
         <Metric label="Active applications" value={activeCount} />
@@ -176,6 +186,7 @@ export function JobPageClient() {
               />
             </div>
             <Select
+              items={statusFilterItems}
               value={statusFilter}
               onValueChange={(value) =>
                 startFiltering(() => setStatusFilter(value as StatusFilter))
@@ -188,7 +199,7 @@ export function JobPageClient() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">All statuses</SelectItem>
+                <SelectItem value="ALL">{allStatusesLabel}</SelectItem>
                 {jobStatuses.map((status) => (
                   <SelectItem key={status} value={status}>
                     {jobStatusLabels[status]}
@@ -266,7 +277,10 @@ export function JobPageClient() {
                     </TableCell>
                     <TableCell>
                       <StatusSelect
-                        disabled={changeStatus.isPending}
+                        disabled={
+                          changeStatus.isPending &&
+                          changeStatus.variables?.id === job.id
+                        }
                         job={job}
                         onChange={(status) =>
                           changeStatus.mutate({ id: job.id, status })

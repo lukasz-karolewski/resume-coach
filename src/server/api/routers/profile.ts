@@ -1,11 +1,11 @@
 "server-only";
 
+import { saveAccomplishmentProfileSchema } from "~/lib/schemas/profile";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import {
   getAccomplishmentProfile,
   getUserInfo,
   saveAccomplishmentProfile,
-  saveAccomplishmentProfileSchema,
 } from "~/server/lib/profile";
 import { withErrorHandling } from "~/server/utils";
 

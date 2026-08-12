@@ -1,6 +1,18 @@
 "server-only";
 
 import {
+  createResumeSchema,
+  createTailoredResumeFromProfileSchema,
+  deleteResumeSchema,
+  duplicateResumeSchema,
+  getResumeSchema,
+  listResumesSchema,
+  updateAccomplishmentsSchema,
+  updateResumeSchema,
+  updateResumeTitleSchema,
+  updateSummarySchema,
+} from "~/lib/schemas/resume";
+import {
   addResumeSectionItemSchema,
   deleteResumeSectionItemSchema,
   removeResumeSectionSchema,
@@ -10,28 +22,18 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import {
   addResumeSectionItem,
   createResume,
-  createResumeSchema,
   createTailoredResumeFromProfile,
-  createTailoredResumeFromProfileSchema,
   deleteResume,
-  deleteResumeSchema,
   deleteResumeSectionItem,
   duplicateResume,
-  duplicateResumeSchema,
   getResume,
-  getResumeSchema,
   listResumes,
-  listResumesSchema,
   removeResumeSection,
   updateAccomplishments,
-  updateAccomplishmentsSchema,
   updateResume,
-  updateResumeSchema,
   updateResumeSectionItem,
   updateResumeTitle,
-  updateResumeTitleSchema,
   updateSummary,
-  updateSummarySchema,
 } from "~/server/lib/resume";
 import { withErrorHandling } from "~/server/utils";
 

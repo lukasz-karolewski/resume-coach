@@ -14,7 +14,6 @@ const createMockDb = () => ({
   resume: {
     findFirst: vi.fn(),
     update: vi.fn(),
-    updateMany: vi.fn(),
   },
 });
 
@@ -61,6 +60,24 @@ describe("Job Business Logic", () => {
         where: { id: 42 },
       });
     });
+
+    it("stores the next action date as its UTC calendar day", async () => {
+      mockDb.job.create.mockResolvedValue({ id: "job-1" });
+
+      await addJob(mockDb as unknown as PrismaClient, "user-123", {
+        company: "Acme",
+        nextActionAt: new Date("2026-08-20T19:30:00.000Z"),
+        status: "SAVED",
+        title: "Staff Engineer",
+        url: "https://example.com/job",
+      });
+
+      expect(mockDb.job.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          nextActionAt: new Date("2026-08-20T00:00:00.000Z"),
+        }),
+      });
+    });
   });
 
   describe("getJobs", () => {
@@ -102,35 +119,78 @@ describe("Job Business Logic", () => {
   });
 
   describe("updateJob", () => {
-    it("updates only an owned application and replaces its linked resume", async () => {
+    const editInput = {
+      company: "Acme",
+      id: "job-1",
+      location: "Hybrid",
+      nextActionAt: null,
+      notes: "Panel next week",
+      status: "INTERVIEW" as const,
+      title: "Staff Engineer",
+      url: "https://example.com/job",
+    };
+
+    /** `resume.findFirst` serves both the ownership check and the primary lookup. */
+    const mockResumes = (primary: { id: number } | null) => {
+      mockDb.resume.findFirst.mockImplementation(
+        async ({ where }: { where: { id?: number; jobId?: string } }) =>
+          where.jobId ? primary : { id: where.id },
+      );
+    };
+
+    it("swaps only the primary resume so unlisted duplicates keep their link", async () => {
       mockDb.job.findFirst.mockResolvedValue({ id: "job-1" });
-      mockDb.resume.findFirst.mockResolvedValue({ id: 12 });
       mockDb.job.update.mockResolvedValue({ id: "job-1" });
+      mockResumes({ id: 8 });
 
       await updateJob(mockDb as unknown as PrismaClient, "user-123", {
-        company: "Acme",
-        id: "job-1",
-        location: "Hybrid",
-        nextActionAt: null,
-        notes: "Panel next week",
+        ...editInput,
         resumeId: 12,
-        status: "INTERVIEW",
-        title: "Staff Engineer",
-        url: "https://example.com/job",
       });
 
       expect(mockDb.job.findFirst).toHaveBeenCalledWith({
         select: { id: true },
         where: { id: "job-1", userId: "user-123" },
       });
-      expect(mockDb.resume.updateMany).toHaveBeenCalledWith({
+      expect(mockDb.resume.update).toHaveBeenCalledWith({
         data: { jobId: null },
-        where: { jobId: "job-1", userId: "user-123" },
+        where: { id: 8 },
       });
       expect(mockDb.resume.update).toHaveBeenCalledWith({
         data: { jobId: "job-1" },
         where: { id: 12 },
       });
+      expect(mockDb.resume.update).toHaveBeenCalledTimes(2);
+    });
+
+    it("leaves every link alone when the primary resume is unchanged", async () => {
+      mockDb.job.findFirst.mockResolvedValue({ id: "job-1" });
+      mockDb.job.update.mockResolvedValue({ id: "job-1" });
+      mockResumes({ id: 12 });
+
+      await updateJob(mockDb as unknown as PrismaClient, "user-123", {
+        ...editInput,
+        resumeId: 12,
+      });
+
+      expect(mockDb.resume.update).not.toHaveBeenCalled();
+    });
+
+    it("detaches the primary resume when the link is cleared", async () => {
+      mockDb.job.findFirst.mockResolvedValue({ id: "job-1" });
+      mockDb.job.update.mockResolvedValue({ id: "job-1" });
+      mockResumes({ id: 12 });
+
+      await updateJob(mockDb as unknown as PrismaClient, "user-123", {
+        ...editInput,
+        resumeId: null,
+      });
+
+      expect(mockDb.resume.update).toHaveBeenCalledWith({
+        data: { jobId: null },
+        where: { id: 12 },
+      });
+      expect(mockDb.resume.update).toHaveBeenCalledTimes(1);
     });
 
     it("does not reveal or update another user's application", async () => {

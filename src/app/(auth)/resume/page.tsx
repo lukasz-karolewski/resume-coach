@@ -1,8 +1,8 @@
 import { Suspense } from "react";
+import { jobListQuery } from "~/components/jobs/job-queries";
 import { ResumePageClient } from "~/components/resume/resume-page-client";
 import {
   accomplishmentProfileForResumeQuery,
-  jobsForResumeQuery,
   resumeListQuery,
 } from "~/components/resume/resume-queries";
 import { normalizeResumeSort } from "~/components/resume/resume-sort";
@@ -18,7 +18,7 @@ export default async function ResumePage({ searchParams }: ResumePageProps) {
   const sort = normalizeResumeSort(resolvedSearchParams?.sort);
 
   prefetch(resumeListQuery(trpc, sort));
-  prefetch(jobsForResumeQuery(trpc));
+  prefetch(jobListQuery(trpc));
   prefetch(accomplishmentProfileForResumeQuery(trpc));
 
   return (

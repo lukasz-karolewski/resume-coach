@@ -10,10 +10,6 @@ export function accomplishmentProfileForResumeQuery(trpc: TRPC) {
   return trpc.profile.getAccomplishmentProfile.queryOptions();
 }
 
-export function jobsForResumeQuery(trpc: TRPC) {
-  return trpc.job.getJobs.queryOptions();
-}
-
 export function resumeDetailQuery(trpc: TRPC, id: number) {
   return trpc.resume.getById.queryOptions({ id });
 }

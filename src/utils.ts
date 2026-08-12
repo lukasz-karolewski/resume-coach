@@ -1,5 +1,4 @@
 import type { ReadonlyURLSearchParams } from "next/navigation";
-import { z } from "zod";
 
 export const createUrl = (
   pathname: string,
@@ -38,12 +37,6 @@ export function zodErrorsToString(error: unknown) {
   const formErrors = getStringArray(zodError.formErrors);
 
   return [...fieldErrors, ...formErrors].join(", ");
-}
-
-const emptyStringToNull = z.literal("").transform(() => null);
-
-export function emptyToNull<T extends z.ZodTypeAny>(schema: T) {
-  return schema.nullable().or(emptyStringToNull);
 }
 
 export function normalizeWhitespace(text: string): string {

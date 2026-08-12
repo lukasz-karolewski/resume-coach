@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useController } from "react-hook-form";
 
 import { createModal } from "~/components/modals/modal";
@@ -27,6 +28,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
+import { formatDateInput, parseDateInput } from "~/lib/date-time";
 import { addJobSchema, jobStatuses, jobStatusLabels } from "~/lib/schemas/job";
 import type { RouterInputs } from "~/trpc/shared";
 
@@ -36,6 +38,8 @@ type ResumeOption = {
   id: number;
   name: string;
 };
+
+const noLinkedResumeLabel = "No linked resume";
 
 type JobModalProps = ModalFormProps<JobFormResult> & {
   defaultValues?: Partial<JobFormResult>;
@@ -74,6 +78,19 @@ export const JobModal = createModal<JobFormResult, JobModalProps>(
     const nextActionAt = useController({ control, name: "nextActionAt" });
     const resumeId = useController({ control, name: "resumeId" });
     const status = useController({ control, name: "status" });
+    // Base UI resolves the trigger label from `items`, not from the rendered
+    // `SelectItem` children, so the map has to mirror the options below.
+    const resumeItems = useMemo(
+      () =>
+        resumes.reduce<Record<string, string>>(
+          (items, resume) => {
+            items[resume.id.toString()] = resume.name;
+            return items;
+          },
+          { none: noLinkedResumeLabel },
+        ),
+      [resumes],
+    );
     const { dialogProps, error, isPending, submit } =
       useModalForm<JobFormResult>(onSubmit);
 
@@ -149,6 +166,7 @@ export const JobModal = createModal<JobFormResult, JobModalProps>(
 
               <JobTextField id="job-status" label="Status">
                 <Select
+                  items={jobStatusLabels}
                   value={status.field.value}
                   onValueChange={(value) => status.field.onChange(value)}
                 >
@@ -175,9 +193,7 @@ export const JobModal = createModal<JobFormResult, JobModalProps>(
                   onBlur={nextActionAt.field.onBlur}
                   onChange={(event) =>
                     nextActionAt.field.onChange(
-                      event.target.value
-                        ? new Date(`${event.target.value}T00:00:00`)
-                        : null,
+                      parseDateInput(event.target.value),
                     )
                   }
                 />
@@ -185,6 +201,7 @@ export const JobModal = createModal<JobFormResult, JobModalProps>(
 
               <JobTextField id="job-resume" label="Linked resume">
                 <Select
+                  items={resumeItems}
                   value={resumeId.field.value?.toString() ?? "none"}
                   onValueChange={(value) =>
                     resumeId.field.onChange(
@@ -196,7 +213,7 @@ export const JobModal = createModal<JobFormResult, JobModalProps>(
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">No linked resume</SelectItem>
+                    <SelectItem value="none">{noLinkedResumeLabel}</SelectItem>
                     {resumes.map((resume) => (
                       <SelectItem key={resume.id} value={resume.id.toString()}>
                         {resume.name}
@@ -261,13 +278,4 @@ function JobTextField({
       ) : null}
     </div>
   );
-}
-
-function formatDateInput(value: Date | null | undefined) {
-  if (!value) return "";
-
-  const year = value.getFullYear();
-  const month = String(value.getMonth() + 1).padStart(2, "0");
-  const day = String(value.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
 }

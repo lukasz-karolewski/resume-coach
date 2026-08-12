@@ -40,7 +40,7 @@ export async function addJob(
       data: {
         company: input.company,
         location: optionalText(input.location),
-        nextActionAt: input.nextActionAt,
+        nextActionAt: dateOnly(input.nextActionAt),
         notes: optionalText(input.notes),
         status: input.status,
         title: input.title,
@@ -76,7 +76,7 @@ export async function updateJob(
       data: {
         company: input.company,
         location: optionalText(input.location),
-        nextActionAt: input.nextActionAt,
+        nextActionAt: dateOnly(input.nextActionAt),
         notes: optionalText(input.notes),
         status: input.status,
         title: input.title,
@@ -86,16 +86,29 @@ export async function updateJob(
     });
 
     if (input.resumeId !== undefined) {
-      await transaction.resume.updateMany({
-        data: { jobId: null },
+      // A job can hold several resumes (duplicates keep their jobId), but the
+      // form only ever exposes the primary one. Swap that single link so an
+      // unrelated edit cannot detach resumes the user never saw.
+      const primary = await transaction.resume.findFirst({
+        orderBy: { updatedAt: "desc" },
+        select: { id: true },
         where: { jobId: input.id, userId },
       });
 
-      if (input.resumeId) {
-        await transaction.resume.update({
-          data: { jobId: input.id },
-          where: { id: input.resumeId },
-        });
+      if (primary?.id !== input.resumeId) {
+        if (primary) {
+          await transaction.resume.update({
+            data: { jobId: null },
+            where: { id: primary.id },
+          });
+        }
+
+        if (input.resumeId) {
+          await transaction.resume.update({
+            data: { jobId: input.id },
+            where: { id: input.resumeId },
+          });
+        }
       }
     }
 
@@ -137,8 +150,27 @@ export async function getJobs(db: PrismaClient, userId: string) {
   return jobs;
 }
 
+/**
+ * `nextActionAt` is a calendar day, not an instant. Reduce whatever a caller
+ * sends to UTC midnight so the stored value is canonical and the UTC-pinned
+ * formatter in the tracker table always renders the day that was picked.
+ */
+function dateOnly(value: Date | null | undefined) {
+  if (!value) return value;
+
+  return new Date(
+    Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate()),
+  );
+}
+
+/**
+ * Blank text clears the column, but an omitted field is left untouched so a
+ * partial update matches how Prisma already treats the other optionals.
+ */
 function optionalText(value: string | undefined) {
-  const normalized = value?.trim();
+  if (value === undefined) return undefined;
+
+  const normalized = value.trim();
   return normalized ? normalized : null;
 }
 

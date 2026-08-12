@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import type { PrismaClient } from "~/generated/prisma/client";
+import { saveAccomplishmentProfileSchema } from "~/lib/schemas/profile";
 
 /**
  * Get user info
@@ -12,23 +13,6 @@ export async function getUserInfo(db: PrismaClient, userId: string) {
   });
   return user;
 }
-
-const accomplishmentEntrySchema = z.object({
-  content: z.string().trim().min(1),
-});
-
-const accomplishmentRoleSchema = z.object({
-  companyName: z.string().trim().min(1),
-  endMonth: z.string().trim().optional(),
-  entries: z.array(accomplishmentEntrySchema).default([]),
-  location: z.string().trim().optional(),
-  startMonth: z.string().trim().optional(),
-  title: z.string().trim().min(1),
-});
-
-export const saveAccomplishmentProfileSchema = z.object({
-  roles: z.array(accomplishmentRoleSchema).default([]),
-});
 
 export function parseMonthInput(value?: string | null) {
   if (!value) {

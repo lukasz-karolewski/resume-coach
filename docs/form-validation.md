@@ -107,12 +107,35 @@ useAppForm<AddExpenseResult>({
   either, export a transform-free form variant alongside it in
   `src/lib/schemas/` and keep the wire schema authoritative on the server.
 
+  The `schema` prop is typed `z.ZodType<TValues, TValues>` — **both** of zod's
+  generics, so a split schema is caught at compile time rather than surfacing as
+  a validation error that never clears. Pinning only the output
+  (`z.ZodType<TValues>`) leaves the input as `unknown`, which is what once forced
+  a cast in `useAppForm`.
+
+  Which side you name `TValues` decides whether a split schema compiles, so type
+  form values from the **input** side — `RouterInputs[…]` or `z.input<…>`, as
+  `JobModal` does. `z.infer<…>` is the *output* type: pass it a defaulted schema
+  and you get `_zod.input.<field>` is not assignable, because a `.default()`
+  field is optional on input and required on output.
+
 ### The boundary
 
 A scoped `noRestrictedImports` rule in `biome.json` fails if any schema module
 imports `"server-only"`, `~/server/*`, generated Prisma, or `~/auth`. A schema
 that reaches for the database stops being importable from a client component,
 and the sharing quietly reverts to duplication.
+
+The rule can only police files that are already in `src/lib/schemas/` — it
+cannot reach a schema declared somewhere else. A new procedure input therefore
+belongs here from the start; a schema left in its `"server-only"` module is
+invisible to both the rule and any form that would want to share it.
+
+An enum a schema needs is declared as a plain `as const` array in client-safe
+code and imported from there — `jobStatuses` in `schemas/job.ts`,
+`EDUCATION_TYPES` in `schemas/resume.ts`, `RESUME_SECTION_TYPES` in
+`lib/resume-sections.ts`. Reaching into `~/generated/prisma` for the same values
+is what the rule blocks, so the array is the copy that keeps the schema portable.
 
 ### Choosing a strategy
 

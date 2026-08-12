@@ -39,6 +39,36 @@
       }
     }
   },
+  "overrides": [
+    {
+      "includes": ["src/lib/schemas/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "server-only": "Schema modules are imported by client components, so they must stay server-free."
+                },
+                "patterns": [
+                  {
+                    "group": [
+                      "~/server/**",
+                      "~/generated/**",
+                      "~/auth",
+                      "~/auth/**"
+                    ],
+                    "message": "Schema modules are imported by client components, so they must stay server-free."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
   "root": true,
   "vcs": {
     "clientKind": "git",

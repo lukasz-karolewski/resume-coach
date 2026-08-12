@@ -6,16 +6,14 @@ import {
   useSuspenseQuery,
 } from "@tanstack/react-query";
 import { useState } from "react";
+import { jobListQuery } from "~/components/jobs/job-queries";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import Modal from "~/components/ui/modal";
 import { useTRPC } from "~/trpc/react";
 
-import {
-  accomplishmentProfileForResumeQuery,
-  jobsForResumeQuery,
-} from "./resume-queries";
+import { accomplishmentProfileForResumeQuery } from "./resume-queries";
 
 type CreateResumeButtonProps = {
   buttonLabel?: string;
@@ -32,7 +30,7 @@ export default function CreateResumeButton({
   const [newResumeName, setNewResumeName] = useState("");
   const [selectedJobId, setSelectedJobId] = useState<string | undefined>();
 
-  const { data: jobs } = useSuspenseQuery(jobsForResumeQuery(trpc));
+  const { data: jobs } = useSuspenseQuery(jobListQuery(trpc));
   const { data: accomplishmentProfile } = useSuspenseQuery(
     accomplishmentProfileForResumeQuery(trpc),
   );
