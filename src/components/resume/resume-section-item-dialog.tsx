@@ -378,7 +378,7 @@ export function ResumeSectionItemDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[calc(100svh-2rem)] max-w-xl overflow-y-auto">
+      <DialogContent className="max-h-[calc(100svh-2rem)] overflow-y-auto sm:max-w-xl">
         <form
           className="grid gap-6"
           key={`${type}-${initialItem ? "edit" : "add"}-${open}`}

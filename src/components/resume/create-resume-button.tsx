@@ -5,12 +5,28 @@ import {
   useQueryClient,
   useSuspenseQuery,
 } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { jobListQuery } from "~/components/jobs/job-queries";
 import { Button } from "~/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import Modal from "~/components/ui/modal";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import { useTRPC } from "~/trpc/react";
 
 import { accomplishmentProfileForResumeQuery } from "./resume-queries";
@@ -19,6 +35,19 @@ type CreateResumeButtonProps = {
   buttonLabel?: string;
   buttonProps?: React.ComponentProps<typeof Button>;
 };
+
+type JobOption = {
+  company?: string | null;
+  id: string;
+  title?: string | null;
+  url: string;
+};
+
+const noLinkedJobLabel = "None - Base Resume";
+
+function jobLabel(job: JobOption) {
+  return job.title || job.company || job.url;
+}
 
 export default function CreateResumeButton({
   buttonLabel = "Create new resume",
@@ -84,20 +113,37 @@ export default function CreateResumeButton({
   const canGenerateFromProfile =
     Boolean(selectedJobId) && (accomplishmentProfile?.roles.length ?? 0) > 0;
 
-  return (
-    <>
-      <Button onClick={() => setIsCreateModalOpen(true)} {...buttonProps}>
-        {buttonLabel}
-      </Button>
+  // Base UI resolves the trigger label from `items`, not from the rendered
+  // `SelectItem` children, so the map has to mirror the options below.
+  const jobItems = useMemo(
+    () =>
+      (jobs ?? []).reduce<Record<string, string>>(
+        (items, job) => {
+          items[job.id] = jobLabel(job);
+          return items;
+        },
+        { none: noLinkedJobLabel },
+      ),
+    [jobs],
+  );
 
-      <Modal
-        open={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        title="Create New Resume"
-        className="max-w-lg"
-      >
-        <div className="space-y-4 p-6">
-          <div className="space-y-2">
+  return (
+    <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+      <DialogTrigger render={<Button {...buttonProps} />}>
+        {buttonLabel}
+      </DialogTrigger>
+
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create New Resume</DialogTitle>
+          <DialogDescription>
+            Start from a blank resume, or generate one tailored to a job you are
+            tracking.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid gap-4">
+          <div className="grid gap-2">
             <Label htmlFor="resume-name">Resume Name</Label>
             <Input
               id="resume-name"
@@ -107,50 +153,55 @@ export default function CreateResumeButton({
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="grid gap-2">
             <Label htmlFor="resume-job">Link to Job (Optional)</Label>
-            <select
-              id="resume-job"
-              value={selectedJobId || ""}
-              onChange={(e) => setSelectedJobId(e.target.value || undefined)}
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            <Select
+              items={jobItems}
+              value={selectedJobId ?? "none"}
+              onValueChange={(value) =>
+                setSelectedJobId(
+                  !value || value === "none" ? undefined : String(value),
+                )
+              }
             >
-              <option value="">None - Base Resume</option>
-              {jobs?.map((job) => (
-                <option key={job.id} value={job.id}>
-                  {job.title || job.company || job.url}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-4">
-            {canGenerateFromProfile ? (
-              <Button
-                variant="secondary"
-                onClick={handleGenerateFromProfile}
-                disabled={createTailoredMutation.isPending}
-              >
-                {createTailoredMutation.isPending
-                  ? "Generating..."
-                  : "Generate from profile"}
-              </Button>
-            ) : null}
-            <Button
-              variant="outline"
-              onClick={() => setIsCreateModalOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleCreateResume}
-              disabled={createMutation.isPending}
-            >
-              {createMutation.isPending ? "Creating..." : "Create Resume"}
-            </Button>
+              <SelectTrigger id="resume-job" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">{noLinkedJobLabel}</SelectItem>
+                {jobs?.map((job) => (
+                  <SelectItem key={job.id} value={job.id}>
+                    {jobLabel(job)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
-      </Modal>
-    </>
+
+        <DialogFooter>
+          {canGenerateFromProfile ? (
+            <Button
+              variant="secondary"
+              onClick={handleGenerateFromProfile}
+              disabled={createTailoredMutation.isPending}
+            >
+              {createTailoredMutation.isPending
+                ? "Generating..."
+                : "Generate from profile"}
+            </Button>
+          ) : null}
+          <DialogClose render={<Button variant="outline" />}>
+            Cancel
+          </DialogClose>
+          <Button
+            onClick={handleCreateResume}
+            disabled={createMutation.isPending}
+          >
+            {createMutation.isPending ? "Creating..." : "Create Resume"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

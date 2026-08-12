@@ -146,16 +146,23 @@ describe("CreateResumeButton", () => {
     });
   });
 
-  test("shows grounded generation when a job is selected and the profile has accomplishments", () => {
+  test("shows grounded generation when a job is selected and the profile has accomplishments", async () => {
     render(<CreateResumeButton />);
 
     fireEvent.click(screen.getByRole("button", { name: "Create new resume" }));
-    fireEvent.change(screen.getByLabelText("Link to Job (Optional)"), {
-      target: { value: "job-123" },
-    });
+    fireEvent.click(screen.getByLabelText("Link to Job (Optional)"));
 
-    expect(
-      screen.getByRole("button", { name: "Generate from profile" }),
-    ).toBeInTheDocument();
+    const option = await screen.findByRole("option", {
+      name: "Senior Data Scientist",
+    });
+    // Base UI only commits a mouse click that started on the item itself.
+    fireEvent.pointerDown(option, { pointerType: "mouse" });
+    fireEvent.click(option);
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: "Generate from profile" }),
+      ).toBeInTheDocument();
+    });
   });
 });
