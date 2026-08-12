@@ -20,15 +20,13 @@ export default async function AuthLayout({
   if (!session?.user) redirect("/");
 
   return (
-    <>
+    <div className="grid min-h-dvh grid-rows-[auto_1fr_auto]">
       <TopNav />
-      <main className="relative min-h-screen bg-muted/30">
-        <div className="mx-auto flex min-h-[calc(100vh-73px)] w-full max-w-6xl px-6 py-8">
-          <div className="w-full">{children}</div>
-        </div>
+      <main className="relative bg-muted/30">
+        <div className="mx-auto w-full max-w-6xl px-6 py-8">{children}</div>
       </main>
       <Footer />
       <Assistant />
-    </>
+    </div>
   );
 }

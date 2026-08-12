@@ -7,7 +7,7 @@ export default async function AuthLayout({
 }) {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <main className="relative min-h-screen bg-background">{children}</main>
+      <main className="relative min-h-dvh bg-background">{children}</main>
     </Suspense>
   );
 }

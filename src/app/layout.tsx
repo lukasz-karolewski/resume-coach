@@ -68,7 +68,7 @@ interface RootLayoutProps {
 export default async function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" className={cn("font-serif", playfairDisplay.variable)}>
-      <body className={clsx(font.className, "min-w-96 grid min-h-screen")}>
+      <body className={clsx(font.className, "min-w-96 grid min-h-dvh")}>
         <TRPCReactProvider>
           <NiceModalProviderWrapper>
             {children}

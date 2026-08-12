@@ -147,7 +147,7 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="grid min-h-dvh grid-rows-[auto_1fr_auto] bg-background text-foreground">
       {/* Nav */}
       <nav className="border-b border-border/40">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
