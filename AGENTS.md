@@ -22,6 +22,16 @@ Before any Next.js work, find and read the relevant doc in `node_modules/next/di
  
 <!-- END:nextjs-agent-rules -->
 
+# Local architecture patters: 
+
+## Tech Docs
+- Modals, dialogs  `./docs/modals.md`
+- Testing approach (assert behavior, not copy)  `./docs/testing.md`
+- Form validation: eager react-hook-form timing and schemas shared with tRPC `./docs/form-validation.md`
+- Shared UI patterns `./docs/ui-patterns.md`
+- Server error classification and user-facing message rules `./docs/errors.md`
+- Data refresh mechanics `./docs/data-refresh.md`
+
 # General
 - always apply general coding best practices for the framework you're working with 
 - have a bias towards DRY (don't repeat yourself) principle
