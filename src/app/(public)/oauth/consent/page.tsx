@@ -3,26 +3,9 @@ import { auth } from "~/auth";
 import { AuthScreen } from "~/components/auth/auth-screen";
 import { Alert, AlertDescription } from "~/components/ui/alert";
 import { Badge } from "~/components/ui/badge";
-import { Button } from "~/components/ui/button";
-import { respondToOAuthConsent } from "./actions";
+import { ConsentForm } from "./consent-form";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
-
-function serializeSearchParams(values: Awaited<SearchParams>) {
-  const params = new URLSearchParams();
-
-  for (const [key, value] of Object.entries(values)) {
-    if (Array.isArray(value)) {
-      for (const item of value) {
-        params.append(key, item);
-      }
-    } else if (value !== undefined) {
-      params.set(key, value);
-    }
-  }
-
-  return params.toString();
-}
 
 export default async function OAuthConsentPage({
   searchParams,
@@ -82,19 +65,7 @@ export default async function OAuthConsentPage({
         </p>
       </div>
 
-      <form action={respondToOAuthConsent} className="grid grid-cols-2 gap-3">
-        <input
-          type="hidden"
-          name="oauthQuery"
-          value={serializeSearchParams(values)}
-        />
-        <Button type="submit" name="decision" value="deny" variant="outline">
-          Deny
-        </Button>
-        <Button type="submit" name="decision" value="allow">
-          Allow
-        </Button>
-      </form>
+      <ConsentForm />
     </AuthScreen>
   );
 }

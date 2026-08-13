@@ -35,4 +35,7 @@ test("shows the requesting OAuth client and scopes", async () => {
   expect(screen.getByText("mcp:tools")).toBeVisible();
   expect(screen.getByRole("button", { name: "Allow" })).toBeVisible();
   expect(screen.getByRole("button", { name: "Deny" })).toBeVisible();
+  expect(
+    document.querySelector('input[name="oauthQuery"]'),
+  ).not.toBeInTheDocument();
 });
