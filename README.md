@@ -16,6 +16,31 @@ pnpm lint:fix
 pnpm build
 ```
 
+### Local PostgreSQL
+
+Start the local database:
+
+```bash
+docker compose up -d postgres
+```
+
+Use this connection for both `DATABASE_URL` and `DATABASE_URL_UNPOOLED` in
+`.env.local`:
+
+```text
+postgresql://postgres:postgres@localhost:5432/resume_coach
+```
+
+Then apply migrations and optionally seed development data:
+
+```bash
+pnpm exec prisma migrate deploy
+pnpm seed
+```
+
+Database backup and restore commands are documented in
+`.agents/skills/db-backup-restore/SKILL.md`.
+
 ### Playwright
 
 ```bash
