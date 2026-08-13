@@ -1039,11 +1039,14 @@ export async function deleteResume(
   userId: string,
   input: z.infer<typeof deleteResumeSchema>,
 ) {
-  // Verify ownership
   const existing = await db.resume.findFirst({
+    select: {
+      contactInfoId: true,
+      id: true,
+    },
     where: {
       id: input.id,
-      userId: userId,
+      userId,
     },
   });
 
@@ -1054,8 +1057,31 @@ export async function deleteResume(
     });
   }
 
-  await db.resume.delete({
-    where: { id: input.id },
+  await db.$transaction(async (transaction) => {
+    await transaction.positionSkill.deleteMany({
+      where: {
+        position: {
+          experience: {
+            resumeId: existing.id,
+          },
+        },
+      },
+    });
+    await transaction.section.deleteMany({
+      where: { resumeId: existing.id },
+    });
+    await transaction.resume.delete({
+      where: { id: existing.id },
+    });
+
+    if (existing.contactInfoId) {
+      await transaction.contactInfo.deleteMany({
+        where: {
+          id: existing.contactInfoId,
+          resumes: { none: {} },
+        },
+      });
+    }
   });
 
   return { success: true };

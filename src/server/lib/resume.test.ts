@@ -30,6 +30,7 @@ const createMockDb = () => {
     },
     contactInfo: {
       create: vi.fn(),
+      deleteMany: vi.fn(),
       update: vi.fn(),
     },
     education: {
@@ -727,16 +728,39 @@ describe("resume lib", () => {
   });
 
   describe("deleteResume", () => {
-    it("deletes an owned resume", async () => {
-      mockDb.resume.findFirst.mockResolvedValue({ id: 10, userId });
+    it("deletes an owned resume and its non-cascading dependencies", async () => {
+      mockDb.resume.findFirst.mockResolvedValue({
+        contactInfoId: 20,
+        id: 10,
+        userId,
+      });
 
       await expect(
         deleteResume(mockDb as unknown as PrismaClient, userId, { id: 10 }),
       ).resolves.toEqual({ success: true });
 
+      expect(mockDb.positionSkill.deleteMany).toHaveBeenCalledWith({
+        where: {
+          position: {
+            experience: {
+              resumeId: 10,
+            },
+          },
+        },
+      });
+      expect(mockDb.section.deleteMany).toHaveBeenCalledWith({
+        where: { resumeId: 10 },
+      });
       expect(mockDb.resume.delete).toHaveBeenCalledWith({
         where: { id: 10 },
       });
+      expect(mockDb.contactInfo.deleteMany).toHaveBeenCalledWith({
+        where: {
+          id: 20,
+          resumes: { none: {} },
+        },
+      });
+      expect(mockDb.$transaction).toHaveBeenCalledOnce();
     });
 
     it("throws when the resume is not owned by the user", async () => {

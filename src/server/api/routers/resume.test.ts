@@ -10,6 +10,7 @@ const createMockDb = () => {
   const db = {
     contactInfo: {
       create: vi.fn(),
+      deleteMany: vi.fn(),
       update: vi.fn(),
     },
     education: {
@@ -40,6 +41,9 @@ const createMockDb = () => {
       createMany: vi.fn(),
       findFirst: vi.fn(),
       update: vi.fn(),
+    },
+    positionSkill: {
+      deleteMany: vi.fn(),
     },
     resume: {
       create: vi.fn(),
