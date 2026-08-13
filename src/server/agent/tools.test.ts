@@ -4,6 +4,7 @@ import { z } from "zod";
 const {
   addExperience,
   createResumeCopy,
+  deleteResume,
   getResume,
   listResumes,
   updateAccomplishments,
@@ -12,6 +13,7 @@ const {
 } = vi.hoisted(() => ({
   addExperience: vi.fn(),
   createResumeCopy: vi.fn(),
+  deleteResume: vi.fn(),
   getResume: vi.fn(),
   listResumes: vi.fn(),
   updateAccomplishments: vi.fn(),
@@ -64,6 +66,7 @@ vi.mock("~/server/lib/resume", () => ({
     name: z.string().trim().min(1).optional(),
     sourceResumeId: z.number(),
   }),
+  deleteResume,
   getResume,
   getResumeSchema: z.object({
     id: z.number(),
@@ -94,6 +97,7 @@ vi.mock("~/server/lib/resume", () => ({
 import {
   addExperienceTool,
   cloneResumeTool,
+  deleteResumeTool,
   getResumeTool,
   listResumesTool,
   openResumeTool,
@@ -101,6 +105,46 @@ import {
   updateSkillsTool,
   updateSummaryTool,
 } from "./tools";
+
+describe("deleteResumeTool", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test("deletes only a resume owned by the runtime user", async () => {
+    deleteResume.mockResolvedValue({ success: true });
+
+    await expect(
+      deleteResumeTool.invoke(
+        { resumeId: 77 },
+        {
+          context: {
+            currentResumeId: null,
+            userId: "user-123",
+          },
+        },
+      ),
+    ).resolves.toEqual({ resumeId: 77, success: true });
+
+    expect(deleteResume).toHaveBeenCalledWith({}, "user-123", { id: 77 });
+  });
+
+  test("reports ownership and missing-resume failures", async () => {
+    deleteResume.mockRejectedValue(new Error("Resume not found"));
+
+    await expect(
+      deleteResumeTool.invoke(
+        { resumeId: 77 },
+        {
+          context: {
+            currentResumeId: null,
+            userId: "user-123",
+          },
+        },
+      ),
+    ).resolves.toEqual({ error: "Resume not found" });
+  });
+});
 
 describe("openResumeTool", () => {
   beforeEach(() => {

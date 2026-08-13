@@ -89,31 +89,77 @@ export const deleteResumeSchema = z.object({ id: z.number() });
 
 // Agent-specific schemas
 export const createResumeCopySchema = z.object({
-  name: z.string().trim().min(1).optional(),
-  sourceResumeId: z.number(),
+  name: z
+    .string()
+    .trim()
+    .min(1)
+    .optional()
+    .describe("Name for the new resume copy; the source resume is unchanged"),
+  sourceResumeId: z
+    .number()
+    .int()
+    .positive()
+    .describe("ID of the owned resume to copy; obtain it from listResumes"),
 });
 
 export const updateAccomplishmentsSchema = z.object({
-  accomplishments: z.string(), // Markdown string
-  positionId: z.number(),
+  accomplishments: z
+    .string()
+    .describe("Complete replacement accomplishments in Markdown list format"),
+  positionId: z
+    .number()
+    .int()
+    .positive()
+    .describe("Position ID from getResume, not an experience or resume ID"),
 });
 
 export const updateSummarySchema = z.object({
-  resumeId: z.number(),
-  summary: z.string(),
+  resumeId: z
+    .number()
+    .int()
+    .positive()
+    .describe("Owned resume ID from listResumes"),
+  summary: z
+    .string()
+    .describe("Complete replacement professional summary in Markdown"),
 });
 
 export const addExperienceSchema = z.object({
-  accomplishments: z.string(), // Markdown string
-  companyName: z.string(),
-  endDate: z.string().optional(),
-  location: z.string(),
-  resumeId: z.number(),
-  startDate: z.string(),
-  title: z.string(),
+  accomplishments: z
+    .string()
+    .describe("Accomplishments for the new position in Markdown list format"),
+  companyName: z.string().trim().min(1).describe("Employer name"),
+  endDate: z
+    .string()
+    .optional()
+    .describe("Optional ISO 8601 date; omit for a current position"),
+  location: z.string().trim().describe("Position location, such as Remote"),
+  resumeId: z
+    .number()
+    .int()
+    .positive()
+    .describe("Owned resume ID from listResumes"),
+  startDate: z.string().describe("Required ISO 8601 start date"),
+  title: z.string().trim().min(1).describe("Job title"),
 });
 
 export const updateSkillsSchema = z.object({
-  positionId: z.number(),
-  skills: z.array(z.string()),
+  positionId: z
+    .number()
+    .int()
+    .positive()
+    .describe("Position ID from getResume, not an experience or resume ID"),
+  skills: z
+    .array(z.string().trim().min(1))
+    .describe("Complete replacement list of skills for the position"),
+});
+
+export const deleteResumeToolSchema = z.object({
+  resumeId: z
+    .number()
+    .int()
+    .positive()
+    .describe(
+      "Owned resume ID to permanently delete; verify with getResume first",
+    ),
 });

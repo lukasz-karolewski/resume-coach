@@ -5,6 +5,7 @@ import { z } from "zod";
 import {
   addExperienceSchema,
   createResumeCopySchema,
+  deleteResumeToolSchema,
   updateAccomplishmentsSchema,
   updateSkillsSchema,
   updateSummarySchema,
@@ -17,6 +18,7 @@ import {
 import {
   addExperience,
   createResumeCopy,
+  deleteResume,
   getResume,
   listResumes,
   updateAccomplishments,
@@ -50,9 +52,35 @@ export const cloneResumeTool = tool(
   },
   {
     description:
-      "Create a working copy of a resume for editing with the requested resume name. Returns the new resume ID.",
+      "Clone an owned resume into a new independently editable resume. Read the source with getResume first, choose an explicit name, and use the returned new resume ID for later edits. The source resume is never changed.",
     name: "cloneResume",
     schema: createResumeCopySchema,
+  },
+);
+
+/**
+ * Tool: Permanently delete an owned resume
+ */
+export const deleteResumeTool = tool(
+  async (
+    { resumeId },
+    runtime: ToolRuntime<typeof stateSchema, typeof contextSchema>,
+  ) => {
+    try {
+      await deleteResume(db, runtime.context.userId, { id: resumeId });
+      return { resumeId, success: true };
+    } catch (error) {
+      return {
+        error:
+          error instanceof Error ? error.message : "Failed to delete resume",
+      };
+    }
+  },
+  {
+    description:
+      "Permanently delete one resume owned by the authenticated user. This is irreversible. Call getResume immediately beforehand to verify the exact ID and never delete a source resume when cleaning up a clone.",
+    name: "deleteResume",
+    schema: deleteResumeToolSchema,
   },
 );
 
@@ -112,7 +140,7 @@ export const updateAccomplishmentsTool = tool(
   },
   {
     description:
-      "Update the accomplishments list for a specific position in the resume.",
+      "Replace the complete Markdown accomplishments list for one position. Obtain the positionId from getResume, preserve accomplishments that should remain, and read the resume afterward to verify the replacement.",
     name: "updateAccomplishments",
     schema: updateAccomplishmentsSchema,
   },
@@ -147,7 +175,7 @@ export const updateSummaryTool = tool(
   },
   {
     description:
-      "Update the professional summary section of the currently edited resume.",
+      "Replace the complete professional summary of one resume. Preserve any text that should remain and call getResume afterward to verify the replacement.",
     name: "updateSummary",
     schema: updateSummarySchema.omit({ resumeId: true }), // resumeId comes from context
   },
@@ -172,7 +200,7 @@ export const getResumeTool = tool(
   },
   {
     description:
-      "Fetch complete resume details including all sections, experience, and education.",
+      "Read one owned resume in full, including position IDs needed by updateAccomplishments and updateSkills. Use this before every mutation and again afterward to verify the result.",
     name: "getResume",
     schema: z.object({
       resumeId: z.number(),
@@ -215,7 +243,8 @@ export const addExperienceTool = tool(
     }
   },
   {
-    description: "Add a new work experience/position to the resume.",
+    description:
+      "Add a new employer and position to one owned resume. Dates must be ISO 8601 strings; omit endDate for a current role. Call getResume afterward to discover the new IDs and verify all fields.",
     name: "addExperience",
     schema: addExperienceSchema,
   },
@@ -243,7 +272,8 @@ export const updateSkillsTool = tool(
     }
   },
   {
-    description: "Update the skills associated with a specific position.",
+    description:
+      "Replace the complete skills list for one position. Obtain positionId and current skills from getResume, preserve skills that should remain, and verify afterward with getResume.",
     name: "updateSkills",
     schema: updateSkillsSchema,
   },
@@ -254,9 +284,8 @@ export const updateSkillsTool = tool(
  * Uses LLM to extract structured information from HTML
  */
 export const fetchJobDescriptionTool = tool(
-  async ({ url }, config) => {
+  async ({ url }) => {
     try {
-      console.log(config.context.userId);
       const result = await fetchJobDescription({ url });
       return result;
     } catch (error) {
@@ -270,7 +299,7 @@ export const fetchJobDescriptionTool = tool(
   },
   {
     description:
-      "Fetch and parse a job description from a URL. Extracts company, title, requirements, and responsibilities.",
+      "Fetch a public job-posting URL and parse its company, title, requirements, and responsibilities. This performs external network and model work but does not modify resumes.",
     name: "fetchJobDescription",
     schema: fetchJobDescriptionSchema,
   },
@@ -295,7 +324,7 @@ export const listResumesTool = tool(
   },
   {
     description:
-      "List all available resumes for the user. Returns resume IDs and names.",
+      "List resumes owned by the authenticated user, including IDs and metadata. Start here before getResume, cloneResume, or any mutation; never guess a resume ID.",
     name: "listResumes",
     schema: z.object({}),
   },
@@ -307,6 +336,7 @@ export const listResumesTool = tool(
 export const allTools = [
   cloneResumeTool,
   openResumeTool,
+  deleteResumeTool,
   updateAccomplishmentsTool,
   updateSummaryTool,
   getResumeTool,
@@ -315,3 +345,11 @@ export const allTools = [
   fetchJobDescriptionTool,
   listResumesTool,
 ];
+
+/** Tools whose result only means something to the first-party chat UI. */
+const UI_ONLY_TOOL_NAMES = new Set<string>([openResumeTool.name]);
+
+/** Tools suitable for remote clients that cannot receive app navigation events. */
+export const headlessTools = allTools.filter(
+  (agentTool) => !UI_ONLY_TOOL_NAMES.has(agentTool.name),
+);

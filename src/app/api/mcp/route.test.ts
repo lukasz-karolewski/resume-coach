@@ -2,11 +2,29 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { z } from "zod";
 import { GET, POST } from "./route";
 
-const { getSession, invoke, verifyOptions } = vi.hoisted(() => ({
-  getSession: vi.fn(),
-  invoke: vi.fn(),
-  verifyOptions: vi.fn(),
-}));
+const { agentTool, getSession, invoke, verifyOptions } = vi.hoisted(() => {
+  const invoke = vi.fn(function (this: { defaultConfig?: unknown }) {
+    if (!this.defaultConfig) {
+      throw new TypeError(
+        "Cannot read properties of undefined (reading 'defaultConfig')",
+      );
+    }
+
+    return [{ id: 7, name: "Platform resume" }];
+  });
+
+  return {
+    agentTool: {
+      defaultConfig: {},
+      description: "List resumes",
+      invoke,
+      name: "listResumes",
+    },
+    getSession: vi.fn(),
+    invoke,
+    verifyOptions: vi.fn(),
+  };
+});
 
 async function readMcpResponse(response: Response) {
   const body = await response.text();
@@ -41,14 +59,7 @@ vi.mock("~/auth", () => ({
 }));
 
 vi.mock("~/server/agent/tools", () => ({
-  allTools: [
-    {
-      description: "List resumes",
-      invoke,
-      name: "listResumes",
-      schema: z.object({}),
-    },
-  ],
+  headlessTools: [{ ...agentTool, schema: z.object({}) }],
 }));
 
 describe("MCP route", () => {
@@ -92,13 +103,46 @@ describe("MCP route", () => {
 
     expect(response.status).toBe(200);
     expect(payload.result.tools).toEqual([
-      expect.objectContaining({ name: "listResumes" }),
+      expect.objectContaining({
+        annotations: expect.objectContaining({ readOnlyHint: true }),
+        name: "listResumes",
+      }),
     ]);
   });
 
-  test("uses the OAuth subject as the tool user", async () => {
-    invoke.mockResolvedValue([{ id: 7, name: "Platform resume" }]);
+  test("offers safe resume editing workflow guidance", async () => {
+    getSession.mockResolvedValue({ user: { id: "user-1" } });
 
+    const response = await POST(
+      new Request("http://localhost/api/mcp", {
+        body: JSON.stringify({
+          id: 3,
+          jsonrpc: "2.0",
+          method: "prompts/get",
+          params: {
+            arguments: { objective: "Tailor a disposable copy" },
+            name: "edit-resume-safely",
+          },
+        }),
+        headers: {
+          accept: "application/json, text/event-stream",
+          "content-type": "application/json",
+        },
+        method: "POST",
+      }),
+    );
+    const payload = await readMcpResponse(response);
+
+    expect(response.status).toBe(200);
+    expect(payload.result.messages[0].content.text).toContain(
+      "Objective: Tailor a disposable copy",
+    );
+    expect(payload.result.messages[0].content.text).toContain(
+      "Use listResumes first",
+    );
+  });
+
+  test("uses the OAuth subject as the tool user", async () => {
     const response = await POST(
       new Request("http://localhost/api/mcp", {
         body: JSON.stringify({
@@ -122,6 +166,9 @@ describe("MCP route", () => {
       expect.objectContaining({
         context: { currentResumeId: null, userId: "oauth-user-1" },
       }),
+    );
+    expect(invoke.mock.contexts[0]).toEqual(
+      expect.objectContaining({ defaultConfig: {} }),
     );
     expect(verifyOptions).toHaveBeenCalledWith(
       expect.objectContaining({

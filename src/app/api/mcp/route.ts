@@ -2,7 +2,7 @@ import { mcpHandler } from "@better-auth/oauth-provider";
 import { createMcpHandler } from "mcp-handler";
 import { z } from "zod";
 import { auth } from "~/auth";
-import { allTools } from "~/server/agent/tools";
+import { headlessTools } from "~/server/agent/tools";
 import {
   MCP_OAUTH_SCOPE,
   MCP_RESOURCE,
@@ -14,7 +14,27 @@ const MCP_SERVER_INFO = {
   version: "0.1.0",
 };
 
-type AgentTool = (typeof allTools)[number];
+type AgentTool = (typeof headlessTools)[number];
+
+const READ_ONLY_TOOLS = new Set([
+  "fetchJobDescription",
+  "getResume",
+  "listResumes",
+]);
+const IDEMPOTENT_TOOLS = new Set([
+  "updateAccomplishments",
+  "updateSkills",
+  "updateSummary",
+]);
+
+function getToolAnnotations(tool: AgentTool) {
+  return {
+    destructiveHint: tool.name === "deleteResume",
+    idempotentHint: IDEMPOTENT_TOOLS.has(tool.name),
+    openWorldHint: tool.name === "fetchJobDescription",
+    readOnlyHint: READ_ONLY_TOOLS.has(tool.name),
+  };
+}
 
 function isUpdateSummaryTool(tool: AgentTool) {
   return tool.name === "updateSummary";
@@ -49,10 +69,11 @@ function formatToolResult(result: unknown) {
 function createHandler(userId: string) {
   return createMcpHandler(
     (server) => {
-      for (const agentTool of allTools) {
+      for (const agentTool of headlessTools) {
         server.registerTool(
           agentTool.name,
           {
+            annotations: getToolAnnotations(agentTool),
             description: agentTool.description,
             inputSchema: getInputSchema(agentTool),
           },
@@ -60,7 +81,7 @@ function createHandler(userId: string) {
             const toolInput = isUpdateSummaryTool(agentTool)
               ? { summary: input.summary }
               : input;
-            const invokeTool = agentTool.invoke as unknown as (
+            const invokeTool = agentTool.invoke.bind(agentTool) as unknown as (
               input: unknown,
               config: {
                 context: {
@@ -82,8 +103,48 @@ function createHandler(userId: string) {
           },
         );
       }
+
+      server.registerPrompt(
+        "edit-resume-safely",
+        {
+          argsSchema: z.object({
+            objective: z
+              .string()
+              .optional()
+              .describe("What the user wants to change in the resume"),
+          }),
+          description:
+            "Plan a safe, verifiable resume editing workflow using Resume Coach tools.",
+          title: "Edit a resume safely",
+        },
+        ({ objective }) => ({
+          messages: [
+            {
+              content: {
+                text: [
+                  objective
+                    ? `Objective: ${objective}`
+                    : "Objective: Help the user inspect or edit a resume.",
+                  "Use listResumes first and never guess IDs.",
+                  "Read the selected resume with getResume before changing it.",
+                  "Clone before experimental or broad edits, and never modify the source clone accidentally.",
+                  "Treat updateSummary, updateAccomplishments, and updateSkills as complete replacements, preserving content that should remain.",
+                  "Read the resume after each mutation to verify the result.",
+                  "Use deleteResume only for an exact, verified disposable copy and never for its source.",
+                ].join("\n"),
+                type: "text" as const,
+              },
+              role: "user" as const,
+            },
+          ],
+        }),
+      );
     },
-    { serverInfo: MCP_SERVER_INFO },
+    {
+      instructions:
+        "Resume Coach manages resumes owned by the authenticated user. Discover IDs with listResumes/getResume, preserve source data, treat update tools as replacements, and verify every mutation by reading it back.",
+      serverInfo: MCP_SERVER_INFO,
+    },
   );
 }
 
