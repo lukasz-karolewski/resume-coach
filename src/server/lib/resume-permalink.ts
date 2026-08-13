@@ -3,6 +3,7 @@
 import { TRPCError } from "@trpc/server";
 import type { z } from "zod";
 import type { PrismaClient } from "~/generated/prisma/client";
+import { resumePdfSelect } from "~/lib/resume-pdf-select";
 import {
   type createResumePermalinkSchema,
   DEFAULT_PERMALINK_SLUG_LENGTH,
@@ -109,60 +110,7 @@ export async function getPublicResumeBySlug(
   if (!parsedSlug.success) return null;
 
   const permalink = await db.resumePermalink.findUnique({
-    select: {
-      resume: {
-        select: {
-          contactInfo: {
-            select: { email: true, name: true, phone: true },
-          },
-          education: {
-            select: {
-              distinction: true,
-              endDate: true,
-              institution: true,
-              link: true,
-              location: true,
-              notes: true,
-              startDate: true,
-              type: true,
-            },
-          },
-          experience: {
-            select: {
-              companyName: true,
-              link: true,
-              positions: {
-                orderBy: { startDate: "desc" },
-                select: {
-                  accomplishments: true,
-                  endDate: true,
-                  location: true,
-                  skillPosition: {
-                    select: { skill: { select: { name: true } } },
-                  },
-                  startDate: true,
-                  title: true,
-                },
-              },
-            },
-          },
-          name: true,
-          patents: {
-            orderBy: { date: "desc" },
-            select: {
-              date: true,
-              description: true,
-              link: true,
-              title: true,
-            },
-          },
-          skills: {
-            select: { skill: { select: { name: true } } },
-          },
-          summary: true,
-        },
-      },
-    },
+    select: { resume: { select: resumePdfSelect } },
     where: { slug: parsedSlug.data },
   });
 
