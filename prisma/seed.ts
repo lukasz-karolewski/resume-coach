@@ -36,6 +36,7 @@ const seededContactInfo = {
 };
 
 const seededResumeName = "Resume";
+const seededResumeId = "Seed01";
 
 const seededSummary = `
 Accomplished engineering leader with over a decade of experience driving product innovation, strategic vision, and substantial revenue growth through high-performing teams.
@@ -285,9 +286,12 @@ async function seedResume() {
     where: { email: seedUser.email },
   });
 
+  // Match on the fixed ID as well as the name: the resume is created with a
+  // hardcoded ID, so a seed resume that was renamed in the UI would otherwise
+  // survive this delete and collide on the primary key below.
   await prisma.resume.deleteMany({
     where: {
-      name: seededResumeName,
+      OR: [{ id: seededResumeId }, { name: seededResumeName }],
       userId: user.id,
     },
   });
@@ -317,7 +321,7 @@ async function seedResume() {
           },
         })),
       },
-      id: "Seed01",
+      id: seededResumeId,
       name: seededResumeName,
       sections: {
         create: [
