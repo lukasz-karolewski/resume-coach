@@ -11,11 +11,12 @@ import {
 } from "~/components/ui/card";
 
 interface AuthScreenProps {
-  badge: string;
+  badge?: string;
   children: ReactNode;
   description: string;
-  footer: ReactNode;
-  secondaryAction: ReactNode;
+  footer?: ReactNode;
+  layout?: "focused" | "split";
+  secondaryAction?: ReactNode;
   title: string;
 }
 
@@ -24,18 +25,65 @@ export function AuthScreen({
   children,
   description,
   footer,
+  layout = "split",
   secondaryAction,
   title,
 }: AuthScreenProps) {
+  const card = (
+    <Card className="w-full max-w-md border-border/70 shadow-lg">
+      <CardHeader className="space-y-3">
+        {badge ? (
+          <Badge variant="outline" className="w-fit rounded-full">
+            {badge}
+          </Badge>
+        ) : null}
+        <div className="space-y-1">
+          <CardTitle>{title}</CardTitle>
+          <CardDescription>{description}</CardDescription>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {children}
+        {secondaryAction}
+        {footer ? (
+          <div className="text-center text-sm text-muted-foreground">
+            {footer}
+          </div>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+
+  if (layout === "focused") {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-background px-6 py-10">
+        <div className="w-full max-w-md space-y-6">
+          <Link
+            href="/"
+            className="block text-center text-sm font-semibold tracking-[0.2em] uppercase"
+          >
+            Resume Coach
+          </Link>
+          {card}
+        </div>
+      </main>
+    );
+  }
+
   return (
     <div className="grid min-h-screen lg:grid-cols-[1.1fr_0.9fr]">
-      <section className="relative hidden overflow-hidden border-r bg-muted/40 lg:flex">
+      <section
+        aria-label="About Resume Coach"
+        className="relative hidden overflow-hidden border-r bg-muted/40 lg:flex"
+      >
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.18),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.12),transparent_30%)]" />
         <div className="relative flex max-w-xl flex-col justify-between px-12 py-16">
           <div className="space-y-6">
-            <Badge variant="secondary" className="w-fit rounded-full">
-              {badge}
-            </Badge>
+            {badge ? (
+              <Badge variant="secondary" className="w-fit rounded-full">
+                {badge}
+              </Badge>
+            ) : null}
             <div className="space-y-4">
               <Link
                 href="/"
@@ -66,24 +114,7 @@ export function AuthScreen({
       </section>
 
       <section className="flex min-h-screen items-center justify-center bg-background px-6 py-10 lg:px-10">
-        <Card className="w-full max-w-md border-border/70 shadow-lg">
-          <CardHeader className="space-y-3">
-            <Badge variant="outline" className="w-fit rounded-full">
-              {badge}
-            </Badge>
-            <div className="space-y-1">
-              <CardTitle>{title}</CardTitle>
-              <CardDescription>{description}</CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {children}
-            {secondaryAction}
-            <div className="text-center text-sm text-muted-foreground">
-              {footer}
-            </div>
-          </CardContent>
-        </Card>
+        {card}
       </section>
     </div>
   );

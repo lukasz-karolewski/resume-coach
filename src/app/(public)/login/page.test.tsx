@@ -84,6 +84,23 @@ describe("LoginPage", () => {
     });
   });
 
+  it("shows the account link directly below the form without badges", () => {
+    render(<LoginPage />);
+
+    const form = screen
+      .getByRole("button", { name: /sign in$/i })
+      .closest("form");
+    const signupPrompt = screen
+      .getByText(/Don't have an account/i)
+      .closest("p");
+
+    expect(screen.queryByText("Welcome back")).not.toBeInTheDocument();
+    expect(
+      document.querySelector('[data-slot="badge"]'),
+    ).not.toBeInTheDocument();
+    expect(form?.nextElementSibling).toBe(signupPrompt);
+  });
+
   it("displays error message on failed login", async () => {
     const mockEmailSignIn = signIn.email as ReturnType<typeof vi.fn>;
     mockEmailSignIn.mockImplementation((_credentials, { onError }) => {

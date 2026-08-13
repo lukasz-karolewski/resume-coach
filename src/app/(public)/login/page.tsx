@@ -70,7 +70,6 @@ export default function LoginPage() {
 
   return (
     <AuthScreen
-      badge="Welcome back"
       title="Pick up where you left off"
       description="Check your accomplishment log, refine tailored resumes, and keep your career story current."
       secondaryAction={
@@ -90,17 +89,6 @@ export default function LoginPage() {
             <GoogleIcon className="size-4" />
             Continue with Google
           </Button>
-        </>
-      }
-      footer={
-        <>
-          Don&apos;t have an account?{" "}
-          <Link
-            href="/signup"
-            className="font-medium text-foreground underline-offset-4 hover:underline"
-          >
-            Sign up
-          </Link>
         </>
       }
     >
@@ -144,6 +132,16 @@ export default function LoginPage() {
           {isLoading ? "Signing in..." : "Sign In"}
         </Button>
       </form>
+
+      <p className="text-center text-sm text-muted-foreground">
+        Don&apos;t have an account?{" "}
+        <Link
+          href="/signup"
+          className="font-medium text-foreground underline-offset-4 hover:underline"
+        >
+          Sign up
+        </Link>
+      </p>
     </AuthScreen>
   );
 }

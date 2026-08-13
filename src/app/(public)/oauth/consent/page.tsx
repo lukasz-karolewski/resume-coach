@@ -2,7 +2,6 @@ import { headers } from "next/headers";
 import { auth } from "~/auth";
 import { AuthScreen } from "~/components/auth/auth-screen";
 import { Alert, AlertDescription } from "~/components/ui/alert";
-import { Badge } from "~/components/ui/badge";
 import { ConsentForm } from "./consent-form";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -23,10 +22,9 @@ export default async function OAuthConsentPage({
   if (!clientId) {
     return (
       <AuthScreen
-        badge="Authorization"
         description="This authorization request is incomplete or has expired."
         footer="You can close this window and reconnect from your MCP client."
-        secondaryAction={null}
+        layout="focused"
         title="Invalid authorization request"
       >
         <Alert variant="destructive">
@@ -44,21 +42,20 @@ export default async function OAuthConsentPage({
 
   return (
     <AuthScreen
-      badge="Authorization"
       description={`${client.client_name ?? "An external application"} wants to connect to your Resume Coach account.`}
       footer="You can revoke access later by revoking the OAuth session."
-      secondaryAction={null}
+      layout="focused"
       title="Allow access?"
     >
       <div className="space-y-3">
         <p className="text-sm font-medium">Requested access</p>
-        <div className="flex flex-wrap gap-2">
+        <ul className="divide-y rounded-lg border">
           {scopes.map((scope) => (
-            <Badge key={scope} variant="secondary">
+            <li className="px-3 py-2 text-sm" key={scope}>
               {scope}
-            </Badge>
+            </li>
           ))}
-        </div>
+        </ul>
         <p className="text-sm text-muted-foreground">
           The client can use Resume Coach tools on your behalf. It only sees
           data owned by your account.
