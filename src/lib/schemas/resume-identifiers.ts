@@ -5,7 +5,8 @@ export const DEFAULT_PERMALINK_SLUG_LENGTH = 16;
 
 export const resumeIdSchema = z
   .string()
-  .regex(/^[A-Za-z0-9]{6}$/, "Resume ID must be six letters or numbers");
+  .length(RESUME_ID_LENGTH, "Resume ID must be six letters or numbers")
+  .regex(/^[A-Za-z0-9]+$/, "Resume ID must be six letters or numbers");
 
 export const permalinkSlugSchema = z
   .string()

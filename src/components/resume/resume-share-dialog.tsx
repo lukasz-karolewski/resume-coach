@@ -34,11 +34,9 @@ import { Form, useAppForm } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { toast } from "~/components/ui/toast";
-import {
-  permalinkFormSchema,
-  type resumeIdSchema,
-} from "~/lib/schemas/resume-identifiers";
+import { permalinkFormSchema } from "~/lib/schemas/resume-identifiers";
 import { useTRPC } from "~/trpc/react";
+import type { RouterOutputs } from "~/trpc/shared";
 
 type FormValues = z.infer<typeof permalinkFormSchema>;
 
@@ -47,13 +45,11 @@ export function ResumeShareDialog({
   resumeId,
 }: {
   permalink: { slug: string } | null;
-  resumeId: z.infer<typeof resumeIdSchema>;
+  resumeId: string;
 }) {
   const queryClient = useQueryClient();
   const trpc = useTRPC();
-  const [isOpen, setIsOpen] = useState(false);
   const [origin, setOrigin] = useState("");
-  const [activeSlug, setActiveSlug] = useState(permalink?.slug ?? null);
   const {
     formState: { errors },
     handleSubmit,
@@ -65,15 +61,22 @@ export function ResumeShareDialog({
   });
 
   useEffect(() => setOrigin(window.location.origin), []);
-  useEffect(() => setActiveSlug(permalink?.slug ?? null), [permalink?.slug]);
+
+  // These mutations change exactly one field of the resume, so patch it in
+  // place rather than refetching the whole resume tree.
+  const setCachedPermalink = (
+    next: RouterOutputs["resume"]["createPermalink"] | null,
+  ) => {
+    queryClient.setQueryData(
+      trpc.resume.getById.queryKey({ id: resumeId }),
+      (previous) => (previous ? { ...previous, permalink: next } : previous),
+    );
+  };
 
   const createMutation = useMutation(
     trpc.resume.createPermalink.mutationOptions({
-      onSettled: async () => {
-        await queryClient.invalidateQueries(trpc.resume.pathFilter());
-      },
       onSuccess: (created) => {
-        setActiveSlug(created.slug);
+        setCachedPermalink(created);
         reset({ slug: "" });
         toast.add({ title: "Public link created", type: "success" });
       },
@@ -84,18 +87,16 @@ export function ResumeShareDialog({
       onError: () => {
         toast.add({ title: "Failed to delete public link", type: "error" });
       },
-      onSettled: async () => {
-        await queryClient.invalidateQueries(trpc.resume.pathFilter());
-      },
       onSuccess: () => {
-        setActiveSlug(null);
+        setCachedPermalink(null);
         toast.add({ title: "Public link deleted", type: "success" });
       },
     }),
   );
 
-  const publicPath = activeSlug ? `/r/${activeSlug}` : null;
-  const publicUrl = publicPath ? `${origin}${publicPath}` : null;
+  const publicLink = permalink
+    ? { path: `/r/${permalink.slug}`, url: `${origin}/r/${permalink.slug}` }
+    : null;
 
   const submit = handleSubmit(({ slug }) => {
     createMutation.mutate({
@@ -105,7 +106,7 @@ export function ResumeShareDialog({
   });
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog>
       <DialogTrigger
         render={
           <Button
@@ -127,20 +128,29 @@ export function ResumeShareDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {publicUrl && publicPath ? (
+        {publicLink ? (
           <div className="flex flex-col gap-4">
             <div className="space-y-2">
               <Label htmlFor="public-resume-url">Public URL</Label>
-              <Input id="public-resume-url" readOnly value={publicUrl} />
+              <Input id="public-resume-url" readOnly value={publicLink.url} />
             </div>
             <div className="flex flex-wrap gap-2">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => {
-                  void navigator.clipboard.writeText(publicUrl).then(() => {
-                    toast.add({ title: "Public link copied", type: "success" });
-                  });
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(publicLink.url);
+                    toast.add({
+                      title: "Public link copied",
+                      type: "success",
+                    });
+                  } catch {
+                    toast.add({
+                      title: "Failed to copy public link",
+                      type: "error",
+                    });
+                  }
                 }}
               >
                 <ClipboardDocumentIcon data-icon="inline-start" />
@@ -148,7 +158,7 @@ export function ResumeShareDialog({
               </Button>
               <Button
                 render={
-                  <a href={publicPath} rel="noreferrer" target="_blank" />
+                  <a href={publicLink.path} rel="noreferrer" target="_blank" />
                 }
                 type="button"
                 variant="outline"

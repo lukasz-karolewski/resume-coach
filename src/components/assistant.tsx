@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { ChatIcon } from "~/components/icons";
 import { Button } from "~/components/ui/button";
+import { resumeIdSchema } from "~/lib/schemas/resume-identifiers";
 import { ChatWindow } from "./chat/chat-window";
 import { useChatStream } from "./chat/use-chat-stream";
 
@@ -23,8 +24,9 @@ const Assistant: React.FC = () => {
   const [threadId, setThreadId] = useState<string | undefined>();
   const pathname = usePathname();
   const router = useRouter();
-  const resumePathMatch = pathname?.match(/^\/resume\/([A-Za-z0-9]{6})$/);
-  const resumeId = resumePathMatch?.[1];
+  const resumePathMatch = pathname?.match(/^\/resume\/([^/]+)$/);
+  const parsedResumeId = resumeIdSchema.safeParse(resumePathMatch?.[1]);
+  const resumeId = parsedResumeId.success ? parsedResumeId.data : undefined;
 
   const loadConversations = useCallback(async () => {
     try {

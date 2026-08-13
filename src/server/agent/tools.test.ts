@@ -27,7 +27,7 @@ vi.mock("@langchain/core/tools", () => ({
       input: unknown,
       runtime?: {
         context?: {
-          currentResumeId?: number | null;
+          currentResumeId?: string | null;
           userId?: string;
         };
       },
@@ -50,61 +50,56 @@ vi.mock("~/server/lib/job", () => ({
   }),
 }));
 
-vi.mock("~/server/lib/resume", () => ({
-  addExperience,
-  addExperienceSchema: z.object({
-    accomplishments: z.string(),
-    companyName: z.string(),
-    endDate: z.string().optional(),
-    location: z.string(),
-    resumeId: z
-      .string()
-      .length(6)
-      .regex(/^[0-9A-Za-z]+$/),
-    startDate: z.string(),
-    title: z.string(),
-  }),
-  createResumeCopy,
-  createResumeCopySchema: z.object({
-    name: z.string().trim().min(1).optional(),
-    sourceResumeId: z
-      .string()
-      .length(6)
-      .regex(/^[0-9A-Za-z]+$/),
-  }),
-  deleteResume,
-  getResume,
-  getResumeSchema: z.object({
-    id: z
-      .string()
-      .length(6)
-      .regex(/^[0-9A-Za-z]+$/),
-  }),
-  listResumes,
-  listResumesSchema: z
-    .object({
-      jobId: z.string().optional(),
-    })
-    .optional(),
-  updateAccomplishments,
-  updateAccomplishmentsSchema: z.object({
-    accomplishments: z.string(),
-    positionId: z.number(),
-  }),
-  updateSkills,
-  updateSkillsSchema: z.object({
-    positionId: z.number(),
-    skills: z.array(z.string()),
-  }),
-  updateSummary,
-  updateSummarySchema: z.object({
-    resumeId: z
-      .string()
-      .length(6)
-      .regex(/^[0-9A-Za-z]+$/),
-    summary: z.string(),
-  }),
-}));
+vi.mock("~/server/lib/resume", () => {
+  const resumeId = z
+    .string()
+    .length(6)
+    .regex(/^[0-9A-Za-z]+$/);
+
+  return {
+    addExperience,
+    addExperienceSchema: z.object({
+      accomplishments: z.string(),
+      companyName: z.string(),
+      endDate: z.string().optional(),
+      location: z.string(),
+      resumeId,
+      startDate: z.string(),
+      title: z.string(),
+    }),
+    createResumeCopy,
+    createResumeCopySchema: z.object({
+      name: z.string().trim().min(1).optional(),
+      sourceResumeId: resumeId,
+    }),
+    deleteResume,
+    getResume,
+    getResumeSchema: z.object({
+      id: resumeId,
+    }),
+    listResumes,
+    listResumesSchema: z
+      .object({
+        jobId: z.string().optional(),
+      })
+      .optional(),
+    updateAccomplishments,
+    updateAccomplishmentsSchema: z.object({
+      accomplishments: z.string(),
+      positionId: z.number(),
+    }),
+    updateSkills,
+    updateSkillsSchema: z.object({
+      positionId: z.number(),
+      skills: z.array(z.string()),
+    }),
+    updateSummary,
+    updateSummarySchema: z.object({
+      resumeId,
+      summary: z.string(),
+    }),
+  };
+});
 
 import {
   addExperienceTool,

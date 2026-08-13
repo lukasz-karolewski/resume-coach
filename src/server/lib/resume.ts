@@ -34,19 +34,11 @@ import type {
 } from "~/lib/schemas/resume-section-item";
 import { generateBase62Id } from "~/server/lib/base62";
 import { getAccomplishmentProfile } from "~/server/lib/profile";
+import { isUniqueConstraintError } from "~/server/utils";
 
 type ResumeWithMarkdownRelations = Awaited<ReturnType<typeof getResume>>;
 
 const RESUME_ID_CREATE_ATTEMPTS = 5;
-
-function isUniqueConstraintError(error: unknown) {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    error.code === "P2002"
-  );
-}
 
 export async function createResumeWithGeneratedId<T>(
   create: (id: string) => Promise<T>,
@@ -96,7 +88,7 @@ type TailoredEntryMatch = {
   score: number;
 };
 
-async function requireOwnedResume(
+export async function requireOwnedResume(
   db: PrismaClient,
   userId: string,
   resumeId: string,
