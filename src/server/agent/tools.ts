@@ -191,7 +191,16 @@ export const getResumeTool = tool(
     runtime: ToolRuntime<typeof stateSchema, typeof contextSchema>,
   ) => {
     try {
-      return await getResume(db, runtime.context.userId, { id: resumeId });
+      // The permalink rides along on getResume for the share dialog, but it is
+      // not resume content the model edits, and echoing it would put a live
+      // public URL into the conversation transcript.
+      const { permalink: _permalink, ...resume } = await getResume(
+        db,
+        runtime.context.userId,
+        { id: resumeId },
+      );
+
+      return resume;
     } catch (error) {
       return {
         error:
