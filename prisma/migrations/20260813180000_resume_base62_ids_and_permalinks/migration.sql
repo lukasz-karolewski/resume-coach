@@ -131,11 +131,12 @@ ALTER TABLE "chat_threads" ADD CONSTRAINT "chat_threads_resumeId_fkey"
   FOREIGN KEY ("resumeId") REFERENCES "Resume"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 CREATE TABLE "ResumePermalink" (
+  "id" TEXT NOT NULL,
   "slug" VARCHAR(64) NOT NULL,
   "resumeId" VARCHAR(6) NOT NULL,
   "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-  CONSTRAINT "ResumePermalink_pkey" PRIMARY KEY ("slug"),
+  CONSTRAINT "ResumePermalink_pkey" PRIMARY KEY ("id"),
   CONSTRAINT "ResumePermalink_slug_check"
     CHECK (
       char_length("slug") BETWEEN 3 AND 64
@@ -144,6 +145,8 @@ CREATE TABLE "ResumePermalink" (
   CONSTRAINT "ResumePermalink_resumeId_fkey"
     FOREIGN KEY ("resumeId") REFERENCES "Resume"("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+CREATE UNIQUE INDEX "ResumePermalink_slug_key" ON "ResumePermalink"("slug");
 
 CREATE UNIQUE INDEX "ResumePermalink_resumeId_key" ON "ResumePermalink"("resumeId");
 

@@ -402,7 +402,8 @@ model Resume {
 }
 
 model ResumePermalink {
-  slug      String   @id @db.VarChar(64)
+  id        String   @id @default(cuid())
+  slug      String   @unique @db.VarChar(64)
   resumeId  String   @unique @db.VarChar(6)
   resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
