@@ -1,5 +1,3 @@
-"server-only";
-
 import { type ToolRuntime, tool } from "@langchain/core/tools";
 import { z } from "zod";
 import {
@@ -53,6 +51,37 @@ export const cloneResumeTool = tool(
       "Create a working copy of a resume for editing with the requested resume name. Returns the new resume ID.",
     name: "cloneResume",
     schema: createResumeCopySchema,
+  },
+);
+
+/**
+ * Tool: Ask the UI to open a resume page.
+ * The chat stream turns a successful call into a `navigate` SSE event, so the
+ * conversation keeps running while the user lands on the resume.
+ */
+export const openResumeTool = tool(
+  async (
+    { resumeId },
+    runtime: ToolRuntime<typeof stateSchema, typeof contextSchema>,
+  ) => {
+    try {
+      const resume = await getResume(db, runtime.context.userId, {
+        id: resumeId,
+      });
+      return { name: resume.name, opened: true, resumeId };
+    } catch (error) {
+      return {
+        error: error instanceof Error ? error.message : "Failed to open resume",
+      };
+    }
+  },
+  {
+    description:
+      "Open a resume page in the UI for the user. Use this after creating a resume copy, or whenever the user should look at a different resume. The chat stays open, so keep talking to the user in the same reply.",
+    name: "openResume",
+    schema: z.object({
+      resumeId: z.number(),
+    }),
   },
 );
 
@@ -275,6 +304,7 @@ export const listResumesTool = tool(
  */
 export const allTools = [
   cloneResumeTool,
+  openResumeTool,
   updateAccomplishmentsTool,
   updateSummaryTool,
   getResumeTool,

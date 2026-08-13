@@ -13,22 +13,9 @@ interface ConversationSummary {
   summary: string;
 }
 
-function getChatThreadStorageKey(resumeId?: number) {
-  return resumeId === undefined
-    ? "chatThreadId"
-    : `chatThreadId:resume:${resumeId}`;
-}
-
-function getChatThreadsUrl(resumeId?: number) {
-  if (resumeId === undefined) {
-    return "/api/chat/threads";
-  }
-
-  const searchParams = new URLSearchParams({
-    resumeId: String(resumeId),
-  });
-  return `/api/chat/threads?${searchParams.toString()}`;
-}
+// One active conversation for the whole app: the assistant follows the user
+// from page to page instead of restarting on every resume.
+const CHAT_THREAD_STORAGE_KEY = "chatThreadId";
 
 const Assistant: React.FC = () => {
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
@@ -38,11 +25,10 @@ const Assistant: React.FC = () => {
   const router = useRouter();
   const resumePathMatch = pathname?.match(/^\/resume\/(-?\d+)$/);
   const resumeId = resumePathMatch ? Number(resumePathMatch[1]) : undefined;
-  const chatThreadStorageKey = getChatThreadStorageKey(resumeId);
 
   const loadConversations = useCallback(async () => {
     try {
-      const response = await fetch(getChatThreadsUrl(resumeId));
+      const response = await fetch("/api/chat/threads");
 
       if (!response.ok) {
         throw new Error(`Failed to load conversations: ${response.status}`);
@@ -59,7 +45,7 @@ const Assistant: React.FC = () => {
             (conversation) => conversation.id === currentThreadId,
           )
         ) {
-          sessionStorage.removeItem(chatThreadStorageKey);
+          sessionStorage.removeItem(CHAT_THREAD_STORAGE_KEY);
           return undefined;
         }
 
@@ -68,13 +54,13 @@ const Assistant: React.FC = () => {
     } catch (error) {
       console.error("Failed to load conversations", error);
     }
-  }, [chatThreadStorageKey, resumeId]);
+  }, []);
 
   useEffect(() => {
-    const savedThreadId = sessionStorage.getItem(chatThreadStorageKey);
+    const savedThreadId = sessionStorage.getItem(CHAT_THREAD_STORAGE_KEY);
     setThreadId(savedThreadId ?? undefined);
     void loadConversations();
-  }, [chatThreadStorageKey, loadConversations]);
+  }, [loadConversations]);
 
   const {
     cancelRequest,
@@ -86,15 +72,19 @@ const Assistant: React.FC = () => {
     toolExecutions,
     resetChat,
   } = useChatStream({
+    onOpenResume: (nextResumeId) => {
+      // Keep the thread and its messages: the assistant carries on talking
+      // about the resume the user just landed on.
+      if (nextResumeId === resumeId) {
+        return;
+      }
+
+      router.push(`/resume/${nextResumeId}`);
+    },
     onThreadCreated: (newThreadId) => {
       setThreadId(newThreadId);
-      sessionStorage.setItem(chatThreadStorageKey, newThreadId);
+      sessionStorage.setItem(CHAT_THREAD_STORAGE_KEY, newThreadId);
       void loadConversations();
-    },
-    onViewResume: (nextResumeId) => {
-      setThreadId(undefined);
-      resetChat();
-      router.push(`/resume/${nextResumeId}`);
     },
     resumeId,
     threadId,
@@ -102,7 +92,7 @@ const Assistant: React.FC = () => {
 
   const handleNewThread = () => {
     setThreadId(undefined);
-    sessionStorage.removeItem(chatThreadStorageKey);
+    sessionStorage.removeItem(CHAT_THREAD_STORAGE_KEY);
     resetChat();
   };
 
@@ -113,7 +103,7 @@ const Assistant: React.FC = () => {
     }
 
     setThreadId(nextThreadId);
-    sessionStorage.setItem(chatThreadStorageKey, nextThreadId);
+    sessionStorage.setItem(CHAT_THREAD_STORAGE_KEY, nextThreadId);
   };
 
   return (

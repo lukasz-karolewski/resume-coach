@@ -36,6 +36,7 @@ vi.mock("../db", () => ({
     chatThread: {
       create: vi.fn(),
       findFirst: vi.fn(),
+      update: vi.fn(),
     },
   },
 }));
@@ -179,6 +180,116 @@ describe("executeChatStream", () => {
       status: "finished",
       tool: "viewResume",
     });
+  });
+
+  it("asks the UI to navigate when the agent opens a resume", async () => {
+    const { createAgent } = await import("langchain");
+    vi.mocked(createAgent).mockReturnValueOnce({
+      streamEvents: vi.fn(async () =>
+        createRun(
+          ["Cloned it, here is what changed."],
+          [
+            {
+              callId: "call-open",
+              error: Promise.resolve(undefined),
+              input: { resumeId: 42 },
+              name: "openResume",
+              output: Promise.resolve({ opened: true, resumeId: 42 }),
+              status: Promise.resolve("finished"),
+            },
+          ],
+        ),
+      ),
+    } as never);
+
+    vi.mocked(db.chatThread.create).mockResolvedValue({
+      id: "thread-open",
+    } as never);
+
+    await executeChatStream({
+      message,
+      resumeId: 1,
+      sendEvent: mockSendEvent,
+      threadId: undefined,
+      userId,
+    });
+
+    expect(mockSendEvent).toHaveBeenCalledWith("navigate", { resumeId: 42 });
+  });
+
+  it("does not ask the UI to navigate when opening the resume failed", async () => {
+    const { createAgent } = await import("langchain");
+    vi.mocked(createAgent).mockReturnValueOnce({
+      streamEvents: vi.fn(async () =>
+        createRun(
+          [],
+          [
+            {
+              callId: "call-open",
+              error: Promise.resolve(undefined),
+              input: { resumeId: 42 },
+              name: "openResume",
+              output: Promise.resolve({ error: "Resume not found" }),
+              status: Promise.resolve("finished"),
+            },
+          ],
+        ),
+      ),
+    } as never);
+
+    vi.mocked(db.chatThread.create).mockResolvedValue({
+      id: "thread-open-failed",
+    } as never);
+
+    await executeChatStream({
+      message,
+      resumeId: 1,
+      sendEvent: mockSendEvent,
+      threadId: undefined,
+      userId,
+    });
+
+    expect(mockSendEvent).not.toHaveBeenCalledWith(
+      "navigate",
+      expect.anything(),
+    );
+  });
+
+  it("moves an existing thread onto the resume the user is now editing", async () => {
+    vi.mocked(db.chatThread.findFirst).mockResolvedValue({
+      id: "thread-roaming",
+      resumeId: 1,
+    } as never);
+
+    await executeChatStream({
+      message,
+      resumeId: 42,
+      sendEvent: mockSendEvent,
+      threadId: "thread-roaming",
+      userId,
+    });
+
+    expect(db.chatThread.update).toHaveBeenCalledWith({
+      data: { resumeId: 42 },
+      where: { id: "thread-roaming" },
+    });
+  });
+
+  it("keeps the thread resume when the user leaves resume pages", async () => {
+    vi.mocked(db.chatThread.findFirst).mockResolvedValue({
+      id: "thread-roaming",
+      resumeId: 1,
+    } as never);
+
+    await executeChatStream({
+      message,
+      resumeId: undefined,
+      sendEvent: mockSendEvent,
+      threadId: "thread-roaming",
+      userId,
+    });
+
+    expect(db.chatThread.update).not.toHaveBeenCalled();
   });
 
   it("uses v3 projections and forwards the abort signal", async () => {

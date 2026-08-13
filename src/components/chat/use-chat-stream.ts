@@ -26,18 +26,7 @@ interface UseChatStreamOptions {
   threadId?: string;
   resumeId?: number;
   onThreadCreated?: (threadId: string) => void;
-  onViewResume?: (resumeId: number) => void;
-}
-
-export function parseViewResumeCommand(content: string): number | null {
-  const match = /^view resume (\d+)$/i.exec(content.trim());
-
-  if (!match) {
-    return null;
-  }
-
-  const resumeId = Number(match[1]);
-  return Number.isNaN(resumeId) ? null : resumeId;
+  onOpenResume?: (resumeId: number) => void;
 }
 
 export function useChatStream(options: UseChatStreamOptions = {}) {
@@ -49,7 +38,7 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
   const abortControllerRef = useRef<AbortController | null>(null);
   const skipThreadLoadRef = useRef<string | null>(null);
 
-  const { threadId, resumeId, onThreadCreated, onViewResume } = options;
+  const { threadId, resumeId, onThreadCreated, onOpenResume } = options;
 
   useEffect(() => {
     return () => {
@@ -209,6 +198,14 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
               );
               break;
             }
+            case "navigate": {
+              // The agent keeps streaming while the app routes to the resume,
+              // so the conversation survives the navigation.
+              if (typeof data.resumeId === "number") {
+                onOpenResume?.(data.resumeId);
+              }
+              break;
+            }
             case "done": {
               if (typeof data.threadId === "string") {
                 if (data.threadId !== threadId) {
@@ -227,11 +224,7 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
           }
         }
 
-        const viewResumeId = parseViewResumeCommand(assistantContent);
-
-        if (viewResumeId !== null) {
-          onViewResume?.(viewResumeId);
-        } else if (assistantContent) {
+        if (assistantContent) {
           setMessages((prev) => [
             ...prev,
             {
@@ -260,7 +253,7 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
         }
       }
     },
-    [isLoading, threadId, resumeId, onThreadCreated, onViewResume],
+    [isLoading, threadId, resumeId, onThreadCreated, onOpenResume],
   );
 
   const cancelRequest = useCallback(() => {

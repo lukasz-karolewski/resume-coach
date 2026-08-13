@@ -1,0 +1,100 @@
+import { headers } from "next/headers";
+import { auth } from "~/auth";
+import { AuthScreen } from "~/components/auth/auth-screen";
+import { Alert, AlertDescription } from "~/components/ui/alert";
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
+import { respondToOAuthConsent } from "./actions";
+
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+function serializeSearchParams(values: Awaited<SearchParams>) {
+  const params = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(values)) {
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        params.append(key, item);
+      }
+    } else if (value !== undefined) {
+      params.set(key, value);
+    }
+  }
+
+  return params.toString();
+}
+
+export default async function OAuthConsentPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const values = await searchParams;
+  const clientId = Array.isArray(values.client_id)
+    ? values.client_id[0]
+    : values.client_id;
+  const requestedScope = Array.isArray(values.scope)
+    ? values.scope[0]
+    : values.scope;
+
+  if (!clientId) {
+    return (
+      <AuthScreen
+        badge="Authorization"
+        description="This authorization request is incomplete or has expired."
+        footer="You can close this window and reconnect from your MCP client."
+        secondaryAction={null}
+        title="Invalid authorization request"
+      >
+        <Alert variant="destructive">
+          <AlertDescription>A client identifier is required.</AlertDescription>
+        </Alert>
+      </AuthScreen>
+    );
+  }
+
+  const client = await auth.api.getOAuthClientPublic({
+    headers: await headers(),
+    query: { client_id: clientId },
+  });
+  const scopes = (requestedScope ?? "mcp:tools").split(" ").filter(Boolean);
+
+  return (
+    <AuthScreen
+      badge="Authorization"
+      description={`${client.client_name ?? "An external application"} wants to connect to your Resume Coach account.`}
+      footer="You can revoke access later by revoking the OAuth session."
+      secondaryAction={null}
+      title="Allow access?"
+    >
+      <div className="space-y-3">
+        <p className="text-sm font-medium">Requested access</p>
+        <div className="flex flex-wrap gap-2">
+          {scopes.map((scope) => (
+            <Badge key={scope} variant="secondary">
+              {scope}
+            </Badge>
+          ))}
+        </div>
+        <p className="text-sm text-muted-foreground">
+          The client can use Resume Coach tools on your behalf. It only sees
+          data owned by your account.
+        </p>
+      </div>
+
+      <form action={respondToOAuthConsent} className="grid grid-cols-2 gap-3">
+        <input
+          type="hidden"
+          name="oauthQuery"
+          value={serializeSearchParams(values)}
+        />
+        <Button type="submit" name="decision" value="deny" variant="outline">
+          Deny
+        </Button>
+        <Button type="submit" name="decision" value="allow">
+          Allow
+        </Button>
+      </form>
+    </AuthScreen>
+  );
+}

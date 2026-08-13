@@ -37,9 +37,10 @@ export const env = createEnv({
   server: {
     BETTER_AUTH_SECRET:
       process.env.NODE_ENV === "production"
-        ? z.string().min(1)
+        ? z.string().min(32)
         : z.string().min(1).optional(),
-    BETTER_AUTH_URL: z.url().optional(),
+    BETTER_AUTH_URL:
+      process.env.NODE_ENV === "production" ? z.url() : z.url().optional(),
     DATABASE_URL: z.string().min(1).optional(),
     GOOGLE_CLIENT_ID: z.string().min(1).optional(),
     GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),

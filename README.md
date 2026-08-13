@@ -27,6 +27,22 @@ pnpm exec playwright test --debug
 pnpm exec playwright codegen
 ```
 
+## Remote MCP clients
+
+Connect standards-compatible remote MCP clients to:
+
+```text
+https://your-resume-coach-host/api/mcp
+```
+
+The endpoint advertises its OAuth 2.1/OIDC authorization server through RFC
+9728 protected-resource metadata. Clients can register dynamically and use the
+authorization-code flow with PKCE. Users sign in through Resume Coach and must
+approve the `mcp:tools` scope before the client receives access.
+
+Production deployments must define `BETTER_AUTH_URL` as the public HTTPS origin
+and use a high-entropy `BETTER_AUTH_SECRET` of at least 32 characters.
+
 ## Notes
 
 TODO:

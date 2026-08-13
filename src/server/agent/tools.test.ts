@@ -96,10 +96,55 @@ import {
   cloneResumeTool,
   getResumeTool,
   listResumesTool,
+  openResumeTool,
   updateAccomplishmentsTool,
   updateSkillsTool,
   updateSummaryTool,
 } from "./tools";
+
+describe("openResumeTool", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test("confirms the resume the UI should open", async () => {
+    getResume.mockResolvedValue({ id: 42, name: "Targeted Resume" });
+
+    await expect(
+      openResumeTool.invoke(
+        { resumeId: 42 },
+        {
+          context: {
+            currentResumeId: 7,
+            userId: "user-123",
+          },
+        },
+      ),
+    ).resolves.toEqual({
+      name: "Targeted Resume",
+      opened: true,
+      resumeId: 42,
+    });
+
+    expect(getResume).toHaveBeenCalledWith({}, "user-123", { id: 42 });
+  });
+
+  test("reports an error when the resume does not belong to the user", async () => {
+    getResume.mockRejectedValue(new Error("Resume not found"));
+
+    await expect(
+      openResumeTool.invoke(
+        { resumeId: 42 },
+        {
+          context: {
+            currentResumeId: 7,
+            userId: "user-123",
+          },
+        },
+      ),
+    ).resolves.toEqual({ error: "Resume not found" });
+  });
+});
 
 describe("cloneResumeTool", () => {
   beforeEach(() => {

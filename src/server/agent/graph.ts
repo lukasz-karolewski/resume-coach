@@ -11,6 +11,26 @@ import { allTools } from "./tools";
 
 const redisUrl = process.env.REDIS_URL ?? "redis://redis:6379";
 
+const OPEN_RESUME_TOOL_NAME = "openResume";
+
+/**
+ * A successful `openResume` call resolves to `{ opened: true, resumeId }`.
+ * Failures are returned as `{ error }` by the tool, so the shape - not the
+ * tool-call status - decides whether the UI should navigate.
+ */
+function getOpenedResumeId(toolName: string, output: unknown) {
+  if (toolName !== OPEN_RESUME_TOOL_NAME || typeof output !== "object") {
+    return null;
+  }
+
+  const { opened, resumeId } = (output ?? {}) as {
+    opened?: unknown;
+    resumeId?: unknown;
+  };
+
+  return opened === true && typeof resumeId === "number" ? resumeId : null;
+}
+
 let checkpointerPromise: Promise<
   Awaited<ReturnType<typeof RedisSaver.fromUrl>>
 > | null = null;
@@ -107,6 +127,16 @@ export async function executeChatStream({
         userId,
       },
     });
+  } else if (
+    persistedResumeId !== null &&
+    thread.resumeId !== persistedResumeId
+  ) {
+    // A conversation follows the user across resumes, so keep the thread
+    // pointed at whatever they are editing now.
+    await db.chatThread.update({
+      data: { resumeId: persistedResumeId },
+      where: { id: thread.id },
+    });
   }
 
   const agent = await createCoachAgent();
@@ -168,6 +198,12 @@ export async function executeChatStream({
         status,
         tool: toolCall.name,
       });
+
+      const openedResumeId = getOpenedResumeId(toolCall.name, output);
+
+      if (openedResumeId !== null) {
+        await sendEvent("navigate", { resumeId: openedResumeId });
+      }
     }
   };
 

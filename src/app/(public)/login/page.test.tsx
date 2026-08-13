@@ -22,8 +22,36 @@ describe("LoginPage", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    window.history.replaceState({}, "", "/login");
     (useRouter as ReturnType<typeof vi.fn>).mockReturnValue({
       push: mockPush,
+    });
+  });
+
+  it("lets Better Auth continue an OAuth authorization after login", async () => {
+    window.history.replaceState(
+      {},
+      "",
+      "/login?client_id=mcp-client&sig=signed-request",
+    );
+    const mockEmailSignIn = signIn.email as ReturnType<typeof vi.fn>;
+    mockEmailSignIn.mockImplementation((_credentials, { onSuccess }) => {
+      onSuccess?.();
+      return Promise.resolve();
+    });
+
+    render(<LoginPage />);
+    fireEvent.change(screen.getByLabelText(/email/i), {
+      target: { value: "test@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText(/password/i), {
+      target: { value: "password123" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /sign in$/i }));
+
+    await waitFor(() => {
+      expect(mockEmailSignIn).toHaveBeenCalled();
+      expect(mockPush).not.toHaveBeenCalled();
     });
   });
 

@@ -67,21 +67,6 @@ describe("chat lib", () => {
     );
   });
 
-  test("filters chat threads by resume when a resume id is provided", async () => {
-    mockDb.chatThread.findMany.mockResolvedValue([]);
-
-    await listChatThreads(mockDb as unknown as PrismaClient, "user-123", 7);
-
-    expect(mockDb.chatThread.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: {
-          resumeId: 7,
-          userId: "user-123",
-        },
-      }),
-    );
-  });
-
   test("retrieves messages for an owned conversation", async () => {
     mockDb.chatThread.findFirst.mockResolvedValue({
       createdAt: new Date("2026-03-23T00:00:00.000Z"),

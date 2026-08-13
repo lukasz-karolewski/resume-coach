@@ -14,6 +14,10 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
 
+function isOAuthAuthorizationRequest() {
+  return new URLSearchParams(window.location.search).has("sig");
+}
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -49,7 +53,9 @@ export default function LoginPage() {
           setIsLoading(true);
         },
         onSuccess: () => {
-          router.push("/jobs");
+          if (!isOAuthAuthorizationRequest()) {
+            router.push("/jobs");
+          }
         },
       },
     );

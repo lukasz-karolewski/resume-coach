@@ -29,30 +29,18 @@ describe("Assistant", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async (input: RequestInfo | URL) => {
-        if (input === "/api/chat/threads?resumeId=1") {
+        if (input === "/api/chat/threads") {
           return {
             json: async () => ({
               threads: [
                 {
                   createdAt: "2026-03-23T00:00:00.000Z",
                   id: "thread-123",
-                  resumeId: 1,
                   summary: "First conversation",
                 },
-              ],
-            }),
-            ok: true,
-          } as Response;
-        }
-
-        if (input === "/api/chat/threads?resumeId=2") {
-          return {
-            json: async () => ({
-              threads: [
                 {
                   createdAt: "2026-03-24T00:00:00.000Z",
                   id: "thread-456",
-                  resumeId: 2,
                   summary: "Second conversation",
                 },
               ],
@@ -80,7 +68,7 @@ describe("Assistant", () => {
     });
   });
 
-  test("navigates to a resume when the chat stream requests it", () => {
+  test("navigates to a resume without discarding the conversation", () => {
     const resetChat = vi.fn();
     let capturedOptions: Parameters<typeof useChatStream>[0] | undefined;
 
@@ -99,15 +87,43 @@ describe("Assistant", () => {
       };
     });
 
-    sessionStorage.setItem("chatThreadId:resume:1", "thread-123");
+    sessionStorage.setItem("chatThreadId", "thread-123");
 
     render(<Assistant />);
 
-    capturedOptions?.onViewResume?.(42);
+    capturedOptions?.onOpenResume?.(42);
 
-    expect(resetChat).toHaveBeenCalled();
-    expect(sessionStorage.getItem("chatThreadId:resume:1")).toBe("thread-123");
+    expect(resetChat).not.toHaveBeenCalled();
+    expect(sessionStorage.getItem("chatThreadId")).toBe("thread-123");
     expect(push).toHaveBeenCalledWith("/resume/42");
+    expect(useChatStream).toHaveBeenLastCalledWith(
+      expect.objectContaining({ threadId: "thread-123" }),
+    );
+  });
+
+  test("does not navigate when the resume is already open", () => {
+    let capturedOptions: Parameters<typeof useChatStream>[0] | undefined;
+
+    useChatStream.mockImplementation((options) => {
+      capturedOptions = options;
+
+      return {
+        cancelRequest: vi.fn(),
+        currentChunk: "",
+        error: null,
+        isLoading: false,
+        messages: [],
+        resetChat: vi.fn(),
+        sendMessage: vi.fn(),
+        toolExecutions: [],
+      };
+    });
+
+    render(<Assistant />);
+
+    capturedOptions?.onOpenResume?.(1);
+
+    expect(push).not.toHaveBeenCalled();
   });
 
   test("passes the current resume id from the pathname into chat state", () => {
@@ -160,7 +176,7 @@ describe("Assistant", () => {
   });
 
   test("shows the conversation dropdown in the chat window", async () => {
-    sessionStorage.setItem("chatThreadId:resume:1", "thread-123");
+    sessionStorage.setItem("chatThreadId", "thread-123");
 
     render(<Assistant />);
 
@@ -171,13 +187,13 @@ describe("Assistant", () => {
     ).toBeInTheDocument();
   });
 
-  test("loads resume-scoped conversations and restores the scoped thread id", async () => {
-    sessionStorage.setItem("chatThreadId:resume:1", "thread-123");
+  test("loads every conversation and restores the active thread id", async () => {
+    sessionStorage.setItem("chatThreadId", "thread-123");
 
     render(<Assistant />);
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith("/api/chat/threads?resumeId=1");
+      expect(fetch).toHaveBeenCalledWith("/api/chat/threads");
       expect(useChatStream).toHaveBeenLastCalledWith(
         expect.objectContaining({
           resumeId: 1,
@@ -187,9 +203,8 @@ describe("Assistant", () => {
     });
   });
 
-  test("switches to the correct stored thread when the resume route changes", async () => {
-    sessionStorage.setItem("chatThreadId:resume:1", "thread-123");
-    sessionStorage.setItem("chatThreadId:resume:2", "thread-456");
+  test("keeps the active thread when the resume route changes", async () => {
+    sessionStorage.setItem("chatThreadId", "thread-123");
 
     const { rerender } = render(<Assistant />);
 
@@ -206,11 +221,10 @@ describe("Assistant", () => {
     rerender(<Assistant />);
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith("/api/chat/threads?resumeId=2");
       expect(useChatStream).toHaveBeenLastCalledWith(
         expect.objectContaining({
           resumeId: 2,
-          threadId: "thread-456",
+          threadId: "thread-123",
         }),
       );
     });

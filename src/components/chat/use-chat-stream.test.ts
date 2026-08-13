@@ -1,7 +1,7 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { parseSseStream } from "./parse-sse-stream";
-import { parseViewResumeCommand, useChatStream } from "./use-chat-stream";
+import { useChatStream } from "./use-chat-stream";
 
 function createByteStream(chunks: string[]) {
   const encoder = new TextEncoder();
@@ -36,19 +36,40 @@ describe("parseSseStream", () => {
   });
 });
 
-describe("parseViewResumeCommand", () => {
+describe("useChatStream", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  test("returns the resume id for a valid navigation command", () => {
-    expect(parseViewResumeCommand("view resume 42")).toBe(42);
-  });
+  test("opens a resume and keeps the assistant reply in the conversation", async () => {
+    const onOpenResume = vi.fn();
 
-  test("rejects assistant prose around the command", () => {
-    expect(parseViewResumeCommand("Here you go: view resume 42")).toBeNull();
-    expect(parseViewResumeCommand("view resume 42\nDone")).toBeNull();
-    expect(parseViewResumeCommand("view resume -1")).toBeNull();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        body: createByteStream([
+          'event: navigate\ndata: {"resumeId":42}\n\n',
+          'event: chunk\ndata: {"content":"Cloned it — want a punchier summary?"}\n\n',
+          'event: done\ndata: {"threadId":"thread-123"}\n\n',
+        ]),
+        ok: true,
+      })),
+    );
+
+    const { result } = renderHook(() => useChatStream({ onOpenResume }));
+
+    await act(async () => {
+      await result.current.sendMessage("clone my resume");
+    });
+
+    expect(onOpenResume).toHaveBeenCalledWith(42);
+    expect(result.current.messages).toEqual([
+      expect.objectContaining({ content: "clone my resume", role: "user" }),
+      expect.objectContaining({
+        content: "Cloned it — want a punchier summary?",
+        role: "assistant",
+      }),
+    ]);
   });
 
   test("loads stored messages when a thread id is provided", async () => {
