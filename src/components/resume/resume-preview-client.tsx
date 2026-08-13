@@ -2,26 +2,23 @@
 
 import { ArrowLeftIcon } from "@heroicons/react/20/solid";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { useTRPC } from "~/trpc/react";
 
+import { createResumePdfViewer } from "./resume-pdf-viewer-lazy";
 import { resumeDetailQuery } from "./resume-queries";
 
-const ResumePdfViewer = dynamic(() => import("./resume-pdf-viewer"), {
-  loading: () => (
-    <div
-      className="flex h-full min-h-[42rem] items-center justify-center bg-muted text-sm text-muted-foreground"
-      role="status"
-    >
-      Rendering paginated preview…
-    </div>
-  ),
-  ssr: false,
-});
+const ResumePdfViewer = createResumePdfViewer(() => (
+  <div
+    className="flex h-full min-h-[42rem] items-center justify-center bg-muted text-sm text-muted-foreground"
+    role="status"
+  >
+    Rendering paginated preview…
+  </div>
+));
 
 export default function ResumePreviewClient({
   resumeId,
