@@ -1,3 +1,5 @@
+"server-only";
+
 import { type ToolRuntime, tool } from "@langchain/core/tools";
 import { z } from "zod";
 import {
