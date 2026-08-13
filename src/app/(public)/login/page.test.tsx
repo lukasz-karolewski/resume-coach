@@ -84,12 +84,12 @@ describe("LoginPage", () => {
     });
   });
 
-  it("shows the account link directly below the form without badges", () => {
+  it("shows the account link below the card without badges", () => {
     render(<LoginPage />);
 
-    const form = screen
+    const card = screen
       .getByRole("button", { name: /sign in$/i })
-      .closest("form");
+      .closest('[data-slot="card"]');
     const signupPrompt = screen
       .getByText(/Don't have an account/i)
       .closest("p");
@@ -98,7 +98,7 @@ describe("LoginPage", () => {
     expect(
       document.querySelector('[data-slot="badge"]'),
     ).not.toBeInTheDocument();
-    expect(form?.nextElementSibling).toBe(signupPrompt);
+    expect(card?.nextElementSibling).toBe(signupPrompt);
   });
 
   it("displays error message on failed login", async () => {

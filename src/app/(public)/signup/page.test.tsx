@@ -61,6 +61,22 @@ describe("SignUpPage", () => {
     });
   });
 
+  it("shows the account link below the card without badges", () => {
+    render(<SignUpPage />);
+
+    const card = screen
+      .getByRole("button", { name: /sign up$/i })
+      .closest('[data-slot="card"]');
+    const loginPrompt = screen
+      .getByText(/Already have an account/i)
+      .closest("p");
+
+    expect(
+      document.querySelector('[data-slot="badge"]'),
+    ).not.toBeInTheDocument();
+    expect(card?.nextElementSibling).toBe(loginPrompt);
+  });
+
   it("displays error message on failed signup", async () => {
     const mockEmailSignUp = signUp.email as ReturnType<typeof vi.fn>;
     mockEmailSignUp.mockImplementation((_credentials, { onError }) => {

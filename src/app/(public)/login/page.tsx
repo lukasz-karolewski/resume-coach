@@ -91,6 +91,17 @@ export default function LoginPage() {
           </Button>
         </>
       }
+      footer={
+        <>
+          Don&apos;t have an account?{" "}
+          <Link
+            href="/signup"
+            className="font-medium text-foreground underline-offset-4 hover:underline"
+          >
+            Sign up
+          </Link>
+        </>
+      }
     >
       {error ? (
         <Alert>
@@ -132,16 +143,6 @@ export default function LoginPage() {
           {isLoading ? "Signing in..." : "Sign In"}
         </Button>
       </form>
-
-      <p className="text-center text-sm text-muted-foreground">
-        Don&apos;t have an account?{" "}
-        <Link
-          href="/signup"
-          className="font-medium text-foreground underline-offset-4 hover:underline"
-        >
-          Sign up
-        </Link>
-      </p>
     </AuthScreen>
   );
 }

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { Badge } from "~/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -11,7 +10,6 @@ import {
 } from "~/components/ui/card";
 
 interface AuthScreenProps {
-  badge?: string;
   children: ReactNode;
   description: string;
   footer?: ReactNode;
@@ -21,7 +19,6 @@ interface AuthScreenProps {
 }
 
 export function AuthScreen({
-  badge,
   children,
   description,
   footer,
@@ -31,12 +28,7 @@ export function AuthScreen({
 }: AuthScreenProps) {
   const card = (
     <Card className="w-full max-w-md border-border/70 shadow-lg">
-      <CardHeader className="space-y-3">
-        {badge ? (
-          <Badge variant="outline" className="w-fit rounded-full">
-            {badge}
-          </Badge>
-        ) : null}
+      <CardHeader>
         <div className="space-y-1">
           <CardTitle>{title}</CardTitle>
           <CardDescription>{description}</CardDescription>
@@ -45,13 +37,16 @@ export function AuthScreen({
       <CardContent className="space-y-6">
         {children}
         {secondaryAction}
-        {footer ? (
-          <div className="text-center text-sm text-muted-foreground">
-            {footer}
-          </div>
-        ) : null}
       </CardContent>
     </Card>
+  );
+  const cardWithFooter = (
+    <div className="w-full max-w-md space-y-4">
+      {card}
+      {footer ? (
+        <p className="text-center text-sm text-muted-foreground">{footer}</p>
+      ) : null}
+    </div>
   );
 
   if (layout === "focused") {
@@ -64,7 +59,7 @@ export function AuthScreen({
           >
             Resume Coach
           </Link>
-          {card}
+          {cardWithFooter}
         </div>
       </main>
     );
@@ -79,11 +74,6 @@ export function AuthScreen({
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.18),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.12),transparent_30%)]" />
         <div className="relative flex max-w-xl flex-col justify-between px-12 py-16">
           <div className="space-y-6">
-            {badge ? (
-              <Badge variant="secondary" className="w-fit rounded-full">
-                {badge}
-              </Badge>
-            ) : null}
             <div className="space-y-4">
               <Link
                 href="/"
@@ -114,7 +104,7 @@ export function AuthScreen({
       </section>
 
       <section className="flex min-h-screen items-center justify-center bg-background px-6 py-10 lg:px-10">
-        {card}
+        {cardWithFooter}
       </section>
     </div>
   );
