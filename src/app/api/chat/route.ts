@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     const body = (await req.json()) as {
       message: string;
       threadId?: string;
-      resumeId?: number;
+      resumeId?: string;
     };
 
     const { message, threadId, resumeId } = body;

@@ -26,7 +26,7 @@ const ResumePdfViewer = dynamic(() => import("./resume-pdf-viewer"), {
 export default function ResumePreviewClient({
   resumeId,
 }: {
-  resumeId: number;
+  resumeId: string;
 }) {
   const trpc = useTRPC();
   const { data: resume } = useSuspenseQuery(resumeDetailQuery(trpc, resumeId));

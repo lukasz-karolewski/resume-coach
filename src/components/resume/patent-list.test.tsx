@@ -9,7 +9,7 @@ describe("PatentList", () => {
       description: "Reduced stale reads in distributed systems.",
       id: 52,
       link: "https://patents.example.com/cache",
-      resumeId: 7,
+      resumeId: "Res007",
       title: "Adaptive cache invalidation",
     };
     const onEdit = vi.fn();

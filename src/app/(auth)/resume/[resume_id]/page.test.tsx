@@ -28,7 +28,7 @@ vi.mock("~/trpc/server", () => ({
 }));
 
 vi.mock("~/components/resume/resume-detail-client", () => ({
-  default: ({ resumeId }: { resumeId: number }) => (
+  default: ({ resumeId }: { resumeId: string }) => (
     <div>{`Resume detail ${resumeId}`}</div>
   ),
 }));
@@ -40,15 +40,17 @@ describe("ResumeDetailPage", () => {
 
   test("prefetches the detail query inside the hydration boundary", async () => {
     render(
-      await ResumeDetailPage({ params: Promise.resolve({ resume_id: "7" }) }),
+      await ResumeDetailPage({
+        params: Promise.resolve({ resume_id: "Res007" }),
+      }),
     );
 
     expect(mockPrefetch).toHaveBeenCalledWith({
-      input: { id: 7 },
+      input: { id: "Res007" },
       queryKey: ["resume"],
     });
     expect(screen.getByTestId("hydrate-client")).toContainElement(
-      screen.getByText("Resume detail 7"),
+      screen.getByText("Resume detail Res007"),
     );
   });
 

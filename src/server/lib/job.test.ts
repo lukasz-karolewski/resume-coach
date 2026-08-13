@@ -32,7 +32,7 @@ describe("Job Business Logic", () => {
         location: "Remote",
         nextActionAt: new Date("2026-08-20T00:00:00.000Z"),
         notes: "Ask about the platform team.",
-        resumeId: 42,
+        resumeId: "Res042",
         status: "APPLIED" as const,
         title: "Staff Engineer",
         url: "https://example.com/job",
@@ -57,7 +57,7 @@ describe("Job Business Logic", () => {
       });
       expect(mockDb.resume.update).toHaveBeenCalledWith({
         data: { jobId: "job-1" },
-        where: { id: 42 },
+        where: { id: "Res042" },
       });
     });
 
@@ -131,9 +131,9 @@ describe("Job Business Logic", () => {
     };
 
     /** `resume.findFirst` serves both the ownership check and the primary lookup. */
-    const mockResumes = (primary: { id: number } | null) => {
+    const mockResumes = (primary: { id: string } | null) => {
       mockDb.resume.findFirst.mockImplementation(
-        async ({ where }: { where: { id?: number; jobId?: string } }) =>
+        async ({ where }: { where: { id?: string; jobId?: string } }) =>
           where.jobId ? primary : { id: where.id },
       );
     };
@@ -141,11 +141,11 @@ describe("Job Business Logic", () => {
     it("swaps only the primary resume so unlisted duplicates keep their link", async () => {
       mockDb.job.findFirst.mockResolvedValue({ id: "job-1" });
       mockDb.job.update.mockResolvedValue({ id: "job-1" });
-      mockResumes({ id: 8 });
+      mockResumes({ id: "Res008" });
 
       await updateJob(mockDb as unknown as PrismaClient, "user-123", {
         ...editInput,
-        resumeId: 12,
+        resumeId: "Res012",
       });
 
       expect(mockDb.job.findFirst).toHaveBeenCalledWith({
@@ -154,11 +154,11 @@ describe("Job Business Logic", () => {
       });
       expect(mockDb.resume.update).toHaveBeenCalledWith({
         data: { jobId: null },
-        where: { id: 8 },
+        where: { id: "Res008" },
       });
       expect(mockDb.resume.update).toHaveBeenCalledWith({
         data: { jobId: "job-1" },
-        where: { id: 12 },
+        where: { id: "Res012" },
       });
       expect(mockDb.resume.update).toHaveBeenCalledTimes(2);
     });
@@ -166,11 +166,11 @@ describe("Job Business Logic", () => {
     it("leaves every link alone when the primary resume is unchanged", async () => {
       mockDb.job.findFirst.mockResolvedValue({ id: "job-1" });
       mockDb.job.update.mockResolvedValue({ id: "job-1" });
-      mockResumes({ id: 12 });
+      mockResumes({ id: "Res012" });
 
       await updateJob(mockDb as unknown as PrismaClient, "user-123", {
         ...editInput,
-        resumeId: 12,
+        resumeId: "Res012",
       });
 
       expect(mockDb.resume.update).not.toHaveBeenCalled();
@@ -179,7 +179,7 @@ describe("Job Business Logic", () => {
     it("detaches the primary resume when the link is cleared", async () => {
       mockDb.job.findFirst.mockResolvedValue({ id: "job-1" });
       mockDb.job.update.mockResolvedValue({ id: "job-1" });
-      mockResumes({ id: 12 });
+      mockResumes({ id: "Res012" });
 
       await updateJob(mockDb as unknown as PrismaClient, "user-123", {
         ...editInput,
@@ -188,7 +188,7 @@ describe("Job Business Logic", () => {
 
       expect(mockDb.resume.update).toHaveBeenCalledWith({
         data: { jobId: null },
-        where: { id: 12 },
+        where: { id: "Res012" },
       });
       expect(mockDb.resume.update).toHaveBeenCalledTimes(1);
     });

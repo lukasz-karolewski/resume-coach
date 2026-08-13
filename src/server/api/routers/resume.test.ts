@@ -107,29 +107,29 @@ describe("Resume Router", () => {
 
   describe("addSectionItem", () => {
     test("adds initial content to a section on the authenticated user's resume", async () => {
-      mockDb.resume.findFirst.mockResolvedValue({ id: 1 });
+      mockDb.resume.findFirst.mockResolvedValue({ id: "Res001" });
       mockDb.section.findFirst.mockResolvedValue(null);
       mockDb.patent.create.mockResolvedValue({ id: 4 });
 
       const result = await createCaller().addSectionItem({
         date: "2021-06",
         description: "A distributed systems patent.",
-        resumeId: 1,
+        resumeId: "Res001",
         title: "Adaptive cache invalidation",
         type: "PATENTS",
       });
 
-      expect(result).toMatchObject({ id: 1 });
+      expect(result).toMatchObject({ id: "Res001" });
       expect(mockDb.resume.findFirst).toHaveBeenCalledWith({
         select: { id: true },
-        where: { id: 1, userId: "user-123" },
+        where: { id: "Res001", userId: "user-123" },
       });
     });
   });
 
   describe("section item mutations", () => {
     test("updates, deletes, and removes owned patent content", async () => {
-      mockDb.resume.findFirst.mockResolvedValue({ id: 1 });
+      mockDb.resume.findFirst.mockResolvedValue({ id: "Res001" });
       mockDb.patent.findFirst.mockResolvedValue({ id: 4 });
       const caller = createCaller();
 
@@ -137,24 +137,24 @@ describe("Resume Router", () => {
         date: "2024-03",
         description: "Updated description.",
         itemId: 4,
-        resumeId: 1,
+        resumeId: "Res001",
         title: "Updated patent",
         type: "PATENTS",
       });
       await caller.deleteSectionItem({
         itemId: 4,
-        resumeId: 1,
+        resumeId: "Res001",
         type: "PATENTS",
       });
-      await caller.removeSection({ resumeId: 1, type: "PATENTS" });
+      await caller.removeSection({ resumeId: "Res001", type: "PATENTS" });
 
       expect(mockDb.patent.update).toHaveBeenCalled();
       expect(mockDb.patent.delete).toHaveBeenCalledWith({ where: { id: 4 } });
       expect(mockDb.patent.deleteMany).toHaveBeenCalledWith({
-        where: { resumeId: 1 },
+        where: { resumeId: "Res001" },
       });
       expect(mockDb.section.deleteMany).toHaveBeenCalledWith({
-        where: { resumeId: 1, type: "PATENTS" },
+        where: { resumeId: "Res001", type: "PATENTS" },
       });
     });
   });
@@ -163,7 +163,7 @@ describe("Resume Router", () => {
     test("should create a resume with all fields", async () => {
       const mockContactInfo = {
         email: "john@example.com",
-        id: 1,
+        id: "Res001",
         name: "John Doe",
         phone: "123-456-7890",
       };
@@ -180,7 +180,7 @@ describe("Resume Router", () => {
             link: "https://stanford.edu",
             location: "Stanford, CA",
             notes: null,
-            resumeId: 1,
+            resumeId: "Res001",
             startDate: new Date("2010-09-01"),
             type: EducationType.EDUCATION,
           },
@@ -204,7 +204,7 @@ describe("Resume Router", () => {
                 title: "Senior Engineer",
               },
             ],
-            resumeId: 1,
+            resumeId: "Res001",
           },
         ],
         id: 1,
@@ -413,7 +413,7 @@ describe("Resume Router", () => {
                 title: "Engineer",
               },
             ],
-            resumeId: 1,
+            resumeId: "Res001",
           },
         ],
         id: 1,
@@ -428,7 +428,7 @@ describe("Resume Router", () => {
       mockDb.resume.findFirst.mockResolvedValue(mockResume);
 
       const caller = createCaller();
-      const result = await caller.getById({ id: 1 });
+      const result = await caller.getById({ id: "Res001" });
 
       expect(result.summary).toBe(JSON.stringify(["Summary 1", "Summary 2"]));
       expect(result.experience[0]?.positions[0]?.accomplishments).toBe(
@@ -436,7 +436,7 @@ describe("Resume Router", () => {
       );
       expect(mockDb.resume.findFirst).toHaveBeenCalledWith({
         include: expect.any(Object),
-        where: { id: 1, userId: "user-123" },
+        where: { id: "Res001", userId: "user-123" },
       });
     });
 
@@ -445,7 +445,7 @@ describe("Resume Router", () => {
 
       const caller = createCaller();
 
-      await expect(caller.getById({ id: 999 })).rejects.toThrow(
+      await expect(caller.getById({ id: "Res999" })).rejects.toThrow(
         "Resume not found",
       );
     });
@@ -455,12 +455,12 @@ describe("Resume Router", () => {
 
       const caller = createCaller();
 
-      await expect(caller.getById({ id: 1 })).rejects.toThrow(
+      await expect(caller.getById({ id: "Res001" })).rejects.toThrow(
         "Resume not found",
       );
       expect(mockDb.resume.findFirst).toHaveBeenCalledWith({
         include: expect.any(Object),
-        where: { id: 1, userId: "user-123" },
+        where: { id: "Res001", userId: "user-123" },
       });
     });
   });
@@ -577,7 +577,7 @@ describe("Resume Router", () => {
 
       const caller = createCaller();
       const result = await caller.update({
-        id: 1,
+        id: "Res001",
         name: "New Name",
         professionalSummary: "New summary",
       });
@@ -591,16 +591,16 @@ describe("Resume Router", () => {
 
       const caller = createCaller();
 
-      await expect(caller.update({ id: 999, name: "Test" })).rejects.toThrow(
-        "Resume not found",
-      );
+      await expect(
+        caller.update({ id: "Res999", name: "Test" }),
+      ).rejects.toThrow("Resume not found");
     });
 
     test("should update contact info if provided", async () => {
       const existingResume = {
         contactInfoId: 1,
         createdAt: new Date(),
-        id: 1,
+        id: "Res001",
         jobId: null,
         name: "Resume",
         summary: "[]",
@@ -630,7 +630,7 @@ describe("Resume Router", () => {
       const caller = createCaller();
       await caller.update({
         contactInfo: { email: "new@test.com", name: "Updated", phone: "456" },
-        id: 1,
+        id: "Res001",
       });
 
       expect(mockDb.contactInfo.update).toHaveBeenCalled();
@@ -641,7 +641,7 @@ describe("Resume Router", () => {
     test("should update only the resume title", async () => {
       const existingResume = {
         createdAt: new Date(),
-        id: 1,
+        id: "Res001",
         name: "Old Name",
         updatedAt: new Date(),
         userId: "user-123",
@@ -655,7 +655,7 @@ describe("Resume Router", () => {
 
       const caller = createCaller();
       const result = await caller.updateTitle({
-        id: 1,
+        id: "Res001",
         name: "New Name",
       });
 
@@ -665,7 +665,7 @@ describe("Resume Router", () => {
           name: "New Name",
         },
         where: {
-          id: 1,
+          id: "Res001",
         },
       });
       expect(mockDb.contactInfo.update).not.toHaveBeenCalled();
@@ -677,7 +677,7 @@ describe("Resume Router", () => {
       const caller = createCaller();
 
       await expect(
-        caller.updateTitle({ id: 999, name: "Test" }),
+        caller.updateTitle({ id: "Res999", name: "Test" }),
       ).rejects.toThrow("Resume not found");
     });
   });
@@ -713,19 +713,19 @@ describe("Resume Router", () => {
 
   describe("updateSummary", () => {
     test("should update the summary for an owned resume", async () => {
-      mockDb.resume.findFirst.mockResolvedValue({ id: 1 });
-      mockDb.resume.update.mockResolvedValue({ id: 1 });
+      mockDb.resume.findFirst.mockResolvedValue({ id: "Res001" });
+      mockDb.resume.update.mockResolvedValue({ id: "Res001" });
 
       const caller = createCaller();
       const result = await caller.updateSummary({
-        resumeId: 1,
+        resumeId: "Res001",
         summary: "Platform engineer focused on reliable delivery.",
       });
 
-      expect(result).toEqual({ resumeId: 1, success: true });
+      expect(result).toEqual({ resumeId: "Res001", success: true });
       expect(mockDb.resume.update).toHaveBeenCalledWith({
         data: { summary: "Platform engineer focused on reliable delivery." },
-        where: { id: 1 },
+        where: { id: "Res001" },
       });
     });
   });
@@ -735,7 +735,7 @@ describe("Resume Router", () => {
       const existingResume = {
         contactInfoId: 1,
         createdAt: new Date(),
-        id: 1,
+        id: "Res001",
         jobId: null,
         name: "Resume",
         summary: "[]",
@@ -747,10 +747,12 @@ describe("Resume Router", () => {
       mockDb.resume.delete.mockResolvedValue(existingResume);
 
       const caller = createCaller();
-      const result = await caller.delete({ id: 1 });
+      const result = await caller.delete({ id: "Res001" });
 
       expect(result.success).toBe(true);
-      expect(mockDb.resume.delete).toHaveBeenCalledWith({ where: { id: 1 } });
+      expect(mockDb.resume.delete).toHaveBeenCalledWith({
+        where: { id: "Res001" },
+      });
     });
 
     test("should throw NOT_FOUND when deleting non-existent resume", async () => {
@@ -758,7 +760,7 @@ describe("Resume Router", () => {
 
       const caller = createCaller();
 
-      await expect(caller.delete({ id: 999 })).rejects.toThrow(
+      await expect(caller.delete({ id: "Res999" })).rejects.toThrow(
         "Resume not found",
       );
     });
@@ -784,7 +786,7 @@ describe("Resume Router", () => {
             link: "https://uni.edu",
             location: "City",
             notes: null,
-            resumeId: 1,
+            resumeId: "Res001",
             startDate: new Date(),
             type: EducationType.EDUCATION,
           },
@@ -805,7 +807,7 @@ describe("Resume Router", () => {
                 title: "Engineer",
               },
             ],
-            resumeId: 1,
+            resumeId: "Res001",
           },
         ],
         id: 1,
@@ -836,7 +838,7 @@ describe("Resume Router", () => {
       mockDb.resume.create.mockResolvedValue(duplicatedResume);
 
       const caller = createCaller();
-      const result = await caller.duplicate({ id: 1 });
+      const result = await caller.duplicate({ id: "Res001" });
 
       expect(result.id).toBe(2);
       expect(result.name).toBe("Original (Copy)");
@@ -871,7 +873,10 @@ describe("Resume Router", () => {
       mockDb.resume.create.mockResolvedValue(duplicatedResume);
 
       const caller = createCaller();
-      const result = await caller.duplicate({ id: 1, name: "Custom Name" });
+      const result = await caller.duplicate({
+        id: "Res001",
+        name: "Custom Name",
+      });
 
       expect(result.name).toBe("Custom Name");
     });
@@ -881,7 +886,7 @@ describe("Resume Router", () => {
 
       const caller = createCaller();
 
-      await expect(caller.duplicate({ id: 999 })).rejects.toThrow(
+      await expect(caller.duplicate({ id: "Res999" })).rejects.toThrow(
         "Resume not found",
       );
     });

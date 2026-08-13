@@ -194,7 +194,7 @@ async function requireOwnedJob(
 async function requireOwnedResume(
   db: Pick<PrismaClient, "resume">,
   userId: string,
-  resumeId: number,
+  resumeId: string,
 ) {
   const resume = await db.resume.findFirst({
     select: { id: true },

@@ -57,19 +57,28 @@ vi.mock("~/server/lib/resume", () => ({
     companyName: z.string(),
     endDate: z.string().optional(),
     location: z.string(),
-    resumeId: z.number(),
+    resumeId: z
+      .string()
+      .length(6)
+      .regex(/^[0-9A-Za-z]+$/),
     startDate: z.string(),
     title: z.string(),
   }),
   createResumeCopy,
   createResumeCopySchema: z.object({
     name: z.string().trim().min(1).optional(),
-    sourceResumeId: z.number(),
+    sourceResumeId: z
+      .string()
+      .length(6)
+      .regex(/^[0-9A-Za-z]+$/),
   }),
   deleteResume,
   getResume,
   getResumeSchema: z.object({
-    id: z.number(),
+    id: z
+      .string()
+      .length(6)
+      .regex(/^[0-9A-Za-z]+$/),
   }),
   listResumes,
   listResumesSchema: z
@@ -89,7 +98,10 @@ vi.mock("~/server/lib/resume", () => ({
   }),
   updateSummary,
   updateSummarySchema: z.object({
-    resumeId: z.number(),
+    resumeId: z
+      .string()
+      .length(6)
+      .regex(/^[0-9A-Za-z]+$/),
     summary: z.string(),
   }),
 }));
@@ -116,7 +128,7 @@ describe("deleteResumeTool", () => {
 
     await expect(
       deleteResumeTool.invoke(
-        { resumeId: 77 },
+        { resumeId: "Res077" },
         {
           context: {
             currentResumeId: null,
@@ -124,9 +136,11 @@ describe("deleteResumeTool", () => {
           },
         },
       ),
-    ).resolves.toEqual({ resumeId: 77, success: true });
+    ).resolves.toEqual({ resumeId: "Res077", success: true });
 
-    expect(deleteResume).toHaveBeenCalledWith({}, "user-123", { id: 77 });
+    expect(deleteResume).toHaveBeenCalledWith({}, "user-123", {
+      id: "Res077",
+    });
   });
 
   test("reports ownership and missing-resume failures", async () => {
@@ -134,7 +148,7 @@ describe("deleteResumeTool", () => {
 
     await expect(
       deleteResumeTool.invoke(
-        { resumeId: 77 },
+        { resumeId: "Res077" },
         {
           context: {
             currentResumeId: null,
@@ -156,10 +170,10 @@ describe("openResumeTool", () => {
 
     await expect(
       openResumeTool.invoke(
-        { resumeId: 42 },
+        { resumeId: "Res042" },
         {
           context: {
-            currentResumeId: 7,
+            currentResumeId: "Res007",
             userId: "user-123",
           },
         },
@@ -167,10 +181,12 @@ describe("openResumeTool", () => {
     ).resolves.toEqual({
       name: "Targeted Resume",
       opened: true,
-      resumeId: 42,
+      resumeId: "Res042",
     });
 
-    expect(getResume).toHaveBeenCalledWith({}, "user-123", { id: 42 });
+    expect(getResume).toHaveBeenCalledWith({}, "user-123", {
+      id: "Res042",
+    });
   });
 
   test("reports an error when the resume does not belong to the user", async () => {
@@ -178,10 +194,10 @@ describe("openResumeTool", () => {
 
     await expect(
       openResumeTool.invoke(
-        { resumeId: 42 },
+        { resumeId: "Res042" },
         {
           context: {
-            currentResumeId: 7,
+            currentResumeId: "Res007",
             userId: "user-123",
           },
         },
@@ -198,17 +214,17 @@ describe("cloneResumeTool", () => {
   test("uses the runtime user context when cloning a resume", async () => {
     const result = {
       name: "Resume Copy",
-      resumeId: 7,
+      resumeId: "Res007",
       success: true,
     };
     createResumeCopy.mockResolvedValue(result);
 
     await expect(
       cloneResumeTool.invoke(
-        { name: "Targeted Resume Copy", sourceResumeId: 7 },
+        { name: "Targeted Resume Copy", sourceResumeId: "Res007" },
         {
           context: {
-            currentResumeId: 7,
+            currentResumeId: "Res007",
             userId: "user-123",
           },
         },
@@ -217,7 +233,7 @@ describe("cloneResumeTool", () => {
 
     expect(createResumeCopy).toHaveBeenCalledWith({}, "user-123", {
       name: "Targeted Resume Copy",
-      sourceResumeId: 7,
+      sourceResumeId: "Res007",
     });
   });
 });
@@ -236,17 +252,19 @@ describe("getResumeTool", () => {
 
     await expect(
       getResumeTool.invoke(
-        { resumeId: 42 },
+        { resumeId: "Res042" },
         {
           context: {
-            currentResumeId: 42,
+            currentResumeId: "Res042",
             userId: "user-123",
           },
         },
       ),
     ).resolves.toEqual(result);
 
-    expect(getResume).toHaveBeenCalledWith({}, "user-123", { id: 42 });
+    expect(getResume).toHaveBeenCalledWith({}, "user-123", {
+      id: "Res042",
+    });
   });
 });
 
@@ -269,7 +287,7 @@ describe("listResumesTool", () => {
         {},
         {
           context: {
-            currentResumeId: 42,
+            currentResumeId: "Res042",
             userId: "user-123",
           },
         },
@@ -286,22 +304,22 @@ describe("updateSummaryTool", () => {
   });
 
   test("passes the runtime user context to the shared summary updater", async () => {
-    updateSummary.mockResolvedValue({ resumeId: 42, success: true });
+    updateSummary.mockResolvedValue({ resumeId: "Res042", success: true });
 
     await expect(
       updateSummaryTool.invoke(
         { summary: "Sharper summary" },
         {
           context: {
-            currentResumeId: 42,
+            currentResumeId: "Res042",
             userId: "user-123",
           },
         },
       ),
-    ).resolves.toEqual({ resumeId: 42, success: true });
+    ).resolves.toEqual({ resumeId: "Res042", success: true });
 
     expect(updateSummary).toHaveBeenCalledWith({}, "user-123", {
-      resumeId: 42,
+      resumeId: "Res042",
       summary: "Sharper summary",
     });
   });
@@ -327,7 +345,7 @@ describe("updateAccomplishmentsTool", () => {
         },
         {
           context: {
-            currentResumeId: 42,
+            currentResumeId: "Res042",
             userId: "user-123",
           },
         },
@@ -363,13 +381,13 @@ describe("addExperienceTool", () => {
           companyName: "Tech Corp",
           endDate: "2024-01-01",
           location: "Remote",
-          resumeId: 42,
+          resumeId: "Res042",
           startDate: "2023-01-01",
           title: "Principal Engineer",
         },
         {
           context: {
-            currentResumeId: 42,
+            currentResumeId: "Res042",
             userId: "user-123",
           },
         },
@@ -384,7 +402,7 @@ describe("addExperienceTool", () => {
       companyName: "Tech Corp",
       endDate: "2024-01-01",
       location: "Remote",
-      resumeId: 42,
+      resumeId: "Res042",
       startDate: "2023-01-01",
       title: "Principal Engineer",
     });
@@ -411,7 +429,7 @@ describe("updateSkillsTool", () => {
         },
         {
           context: {
-            currentResumeId: 42,
+            currentResumeId: "Res042",
             userId: "user-123",
           },
         },

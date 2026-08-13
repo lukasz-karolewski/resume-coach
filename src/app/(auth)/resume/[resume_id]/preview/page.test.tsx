@@ -28,7 +28,7 @@ vi.mock("~/trpc/server", () => ({
 }));
 
 vi.mock("~/components/resume/resume-preview-client", () => ({
-  default: ({ resumeId }: { resumeId: number }) => (
+  default: ({ resumeId }: { resumeId: string }) => (
     <div>{`Resume preview ${resumeId}`}</div>
   ),
 }));
@@ -41,16 +41,16 @@ describe("ResumePreviewPage", () => {
   test("prefetches the resume and renders its preview", async () => {
     render(
       await ResumePreviewPage({
-        params: Promise.resolve({ resume_id: "7" }),
+        params: Promise.resolve({ resume_id: "Res007" }),
       }),
     );
 
     expect(mockPrefetch).toHaveBeenCalledWith({
-      input: { id: 7 },
+      input: { id: "Res007" },
       queryKey: ["resume"],
     });
     expect(screen.getByTestId("hydrate-client")).toContainElement(
-      screen.getByText("Resume preview 7"),
+      screen.getByText("Resume preview Res007"),
     );
   });
 

@@ -10,6 +10,7 @@ import {
   updateSkillsSchema,
   updateSummarySchema,
 } from "~/lib/schemas/resume";
+import { resumeIdSchema } from "~/lib/schemas/resume-identifiers";
 import { db } from "~/server/db";
 import {
   fetchJobDescription,
@@ -110,7 +111,7 @@ export const openResumeTool = tool(
       "Open a resume page in the UI for the user. Use this after creating a resume copy, or whenever the user should look at a different resume. The chat stays open, so keep talking to the user in the same reply.",
     name: "openResume",
     schema: z.object({
-      resumeId: z.number(),
+      resumeId: resumeIdSchema,
     }),
   },
 );
@@ -203,7 +204,7 @@ export const getResumeTool = tool(
       "Read one owned resume in full, including position IDs needed by updateAccomplishments and updateSkills. Use this before every mutation and again afterward to verify the result.",
     name: "getResume",
     schema: z.object({
-      resumeId: z.number(),
+      resumeId: resumeIdSchema,
     }),
   },
 );

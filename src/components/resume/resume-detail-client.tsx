@@ -25,6 +25,7 @@ import { MarkdownEditorDialog } from "~/components/resume/markdown-editor-dialog
 import { PatentList } from "~/components/resume/patent-list";
 import { ProfessionalSummary } from "~/components/resume/professional-summary";
 import { ResumeSectionItemDialog } from "~/components/resume/resume-section-item-dialog";
+import { ResumeShareDialog } from "~/components/resume/resume-share-dialog";
 import Section from "~/components/resume/section";
 import { Skill } from "~/components/resume/skill";
 import {
@@ -180,7 +181,7 @@ function SectionActions({
   );
 }
 
-export default function ResumeDetailClient({ resumeId }: { resumeId: number }) {
+export default function ResumeDetailClient({ resumeId }: { resumeId: string }) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const trpc = useTRPC();
@@ -443,6 +444,10 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: number }) {
                   onAdd={(type) => {
                     setAddingSectionType(type);
                   }}
+                />
+                <ResumeShareDialog
+                  permalink={resume.permalink}
+                  resumeId={resume.id}
                 />
                 <Tooltip>
                   <TooltipTrigger

@@ -4,7 +4,7 @@ import Assistant from "./assistant";
 
 const { navigationState, push, useChatStream } = vi.hoisted(() => ({
   navigationState: {
-    pathname: "/resume/1",
+    pathname: "/resume/Res001",
   },
   push: vi.fn(),
   useChatStream: vi.fn(),
@@ -25,7 +25,7 @@ describe("Assistant", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     sessionStorage.clear();
-    navigationState.pathname = "/resume/1";
+    navigationState.pathname = "/resume/Res001";
     vi.stubGlobal(
       "fetch",
       vi.fn(async (input: RequestInfo | URL) => {
@@ -91,11 +91,11 @@ describe("Assistant", () => {
 
     render(<Assistant />);
 
-    capturedOptions?.onOpenResume?.(42);
+    capturedOptions?.onOpenResume?.("Res042");
 
     expect(resetChat).not.toHaveBeenCalled();
     expect(sessionStorage.getItem("chatThreadId")).toBe("thread-123");
-    expect(push).toHaveBeenCalledWith("/resume/42");
+    expect(push).toHaveBeenCalledWith("/resume/Res042");
     expect(useChatStream).toHaveBeenLastCalledWith(
       expect.objectContaining({ threadId: "thread-123" }),
     );
@@ -121,7 +121,7 @@ describe("Assistant", () => {
 
     render(<Assistant />);
 
-    capturedOptions?.onOpenResume?.(1);
+    capturedOptions?.onOpenResume?.("Res001");
 
     expect(push).not.toHaveBeenCalled();
   });
@@ -131,7 +131,7 @@ describe("Assistant", () => {
 
     expect(useChatStream).toHaveBeenCalledWith(
       expect.objectContaining({
-        resumeId: 1,
+        resumeId: "Res001",
       }),
     );
   });
@@ -196,7 +196,7 @@ describe("Assistant", () => {
       expect(fetch).toHaveBeenCalledWith("/api/chat/threads");
       expect(useChatStream).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          resumeId: 1,
+          resumeId: "Res001",
           threadId: "thread-123",
         }),
       );
@@ -211,19 +211,19 @@ describe("Assistant", () => {
     await waitFor(() => {
       expect(useChatStream).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          resumeId: 1,
+          resumeId: "Res001",
           threadId: "thread-123",
         }),
       );
     });
 
-    navigationState.pathname = "/resume/2";
+    navigationState.pathname = "/resume/Res002";
     rerender(<Assistant />);
 
     await waitFor(() => {
       expect(useChatStream).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          resumeId: 2,
+          resumeId: "Res002",
           threadId: "thread-123",
         }),
       );

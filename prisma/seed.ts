@@ -317,6 +317,7 @@ async function seedResume() {
           },
         })),
       },
+      id: "Seed01",
       name: seededResumeName,
       sections: {
         create: [

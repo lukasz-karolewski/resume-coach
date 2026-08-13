@@ -13,6 +13,10 @@ import {
   updateSummarySchema,
 } from "~/lib/schemas/resume";
 import {
+  createResumePermalinkSchema,
+  deleteResumePermalinkSchema,
+} from "~/lib/schemas/resume-identifiers";
+import {
   addResumeSectionItemSchema,
   deleteResumeSectionItemSchema,
   removeResumeSectionSchema,
@@ -35,6 +39,10 @@ import {
   updateResumeTitle,
   updateSummary,
 } from "~/server/lib/resume";
+import {
+  createResumePermalink,
+  deleteResumePermalink,
+} from "~/server/lib/resume-permalink";
 import { withErrorHandling } from "~/server/utils";
 
 export const resumeRouter = createTRPCRouter({
@@ -58,6 +66,15 @@ export const resumeRouter = createTRPCRouter({
         "Failed to create resume",
       );
     }),
+  createPermalink: protectedProcedure
+    .input(createResumePermalinkSchema)
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.session.user.id!;
+      return withErrorHandling(
+        () => createResumePermalink(ctx.db, userId, input),
+        "Failed to create public link",
+      );
+    }),
 
   createTailoredFromProfile: protectedProcedure
     .input(createTailoredResumeFromProfileSchema)
@@ -77,6 +94,16 @@ export const resumeRouter = createTRPCRouter({
       return withErrorHandling(
         () => deleteResume(ctx.db, userId, input),
         "Failed to delete resume",
+      );
+    }),
+
+  deletePermalink: protectedProcedure
+    .input(deleteResumePermalinkSchema)
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.session.user.id!;
+      return withErrorHandling(
+        () => deleteResumePermalink(ctx.db, userId, input),
+        "Failed to delete public link",
       );
     }),
 

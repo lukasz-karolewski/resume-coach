@@ -9,7 +9,7 @@ describe("addJobSchema", () => {
       location: "Remote",
       nextActionAt: new Date("2026-08-20T00:00:00.000Z"),
       notes: "Follow up",
-      resumeId: 7,
+      resumeId: "Res007",
       status: "APPLIED",
       title: "Staff Engineer",
       url: "https://example.com/jobs/1",

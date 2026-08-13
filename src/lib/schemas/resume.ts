@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { resumeIdSchema } from "~/lib/schemas/resume-identifiers";
 
 // Mirrors Prisma's `EducationType`. Declared here rather than imported so this
 // module stays client-importable, the same way `job.ts` carries `jobStatuses`.
@@ -52,18 +53,18 @@ export const updateResumeSchema = z.object({
   contactInfo: contactInfoSchema.optional(),
   education: z.array(educationSchema).optional(),
   experience: z.array(experienceSchema).optional(),
-  id: z.number(),
+  id: resumeIdSchema,
   name: z.string().optional(),
   professionalSummary: z.string().optional(), // Markdown string
 });
 
 export const updateResumeTitleSchema = z.object({
-  id: z.number(),
+  id: resumeIdSchema,
   name: z.string().trim().min(1),
 });
 
 export const duplicateResumeSchema = z.object({
-  id: z.number(),
+  id: resumeIdSchema,
   jobId: z.string().optional(),
   name: z.string().optional(),
 });
@@ -73,7 +74,7 @@ export const createTailoredResumeFromProfileSchema = z.object({
   name: z.string().trim().min(1).optional(),
 });
 
-export const getResumeSchema = z.object({ id: z.number() });
+export const getResumeSchema = z.object({ id: resumeIdSchema });
 export const getResumeMarkdownSchema = getResumeSchema;
 
 const resumeSortSchema = z.enum(["created", "last-updated", "name"]);
@@ -85,7 +86,7 @@ export const listResumesSchema = z
   })
   .optional();
 
-export const deleteResumeSchema = z.object({ id: z.number() });
+export const deleteResumeSchema = z.object({ id: resumeIdSchema });
 
 // Agent-specific schemas
 export const createResumeCopySchema = z.object({
@@ -95,11 +96,9 @@ export const createResumeCopySchema = z.object({
     .min(1)
     .optional()
     .describe("Name for the new resume copy; the source resume is unchanged"),
-  sourceResumeId: z
-    .number()
-    .int()
-    .positive()
-    .describe("ID of the owned resume to copy; obtain it from listResumes"),
+  sourceResumeId: resumeIdSchema.describe(
+    "ID of the owned resume to copy; obtain it from listResumes",
+  ),
 });
 
 export const updateAccomplishmentsSchema = z.object({
@@ -114,11 +113,7 @@ export const updateAccomplishmentsSchema = z.object({
 });
 
 export const updateSummarySchema = z.object({
-  resumeId: z
-    .number()
-    .int()
-    .positive()
-    .describe("Owned resume ID from listResumes"),
+  resumeId: resumeIdSchema.describe("Owned resume ID from listResumes"),
   summary: z
     .string()
     .describe("Complete replacement professional summary in Markdown"),
@@ -134,11 +129,7 @@ export const addExperienceSchema = z.object({
     .optional()
     .describe("Optional ISO 8601 date; omit for a current position"),
   location: z.string().trim().describe("Position location, such as Remote"),
-  resumeId: z
-    .number()
-    .int()
-    .positive()
-    .describe("Owned resume ID from listResumes"),
+  resumeId: resumeIdSchema.describe("Owned resume ID from listResumes"),
   startDate: z.string().describe("Required ISO 8601 start date"),
   title: z.string().trim().min(1).describe("Job title"),
 });
@@ -155,11 +146,7 @@ export const updateSkillsSchema = z.object({
 });
 
 export const deleteResumeToolSchema = z.object({
-  resumeId: z
-    .number()
-    .int()
-    .positive()
-    .describe(
-      "Owned resume ID to permanently delete; verify with getResume first",
-    ),
+  resumeId: resumeIdSchema.describe(
+    "Owned resume ID to permanently delete; verify with getResume first",
+  ),
 });

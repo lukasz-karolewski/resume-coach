@@ -23,8 +23,8 @@ const Assistant: React.FC = () => {
   const [threadId, setThreadId] = useState<string | undefined>();
   const pathname = usePathname();
   const router = useRouter();
-  const resumePathMatch = pathname?.match(/^\/resume\/(-?\d+)$/);
-  const resumeId = resumePathMatch ? Number(resumePathMatch[1]) : undefined;
+  const resumePathMatch = pathname?.match(/^\/resume\/([A-Za-z0-9]{6})$/);
+  const resumeId = resumePathMatch?.[1];
 
   const loadConversations = useCallback(async () => {
     try {

@@ -16,11 +16,13 @@ describe("resume queries", () => {
       },
     } as unknown as TRPCOptionsProxy<AppRouter>;
 
-    expect(resumeDetailQuery(trpc, 7)).toEqual({ input: { id: 7 } });
+    expect(resumeDetailQuery(trpc, "Res007")).toEqual({
+      input: { id: "Res007" },
+    });
     expect(resumeListQuery(trpc, "name")).toEqual({
       input: { sort: "name" },
     });
-    expect(detailQueryOptions).toHaveBeenCalledWith({ id: 7 });
+    expect(detailQueryOptions).toHaveBeenCalledWith({ id: "Res007" });
     expect(listQueryOptions).toHaveBeenCalledWith({ sort: "name" });
   });
 });

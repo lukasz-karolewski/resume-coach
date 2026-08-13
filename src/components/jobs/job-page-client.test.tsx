@@ -17,7 +17,7 @@ const mockJobs = [
     location: "Remote",
     nextActionAt: new Date("2026-08-20T12:00:00.000Z"),
     notes: "Follow up with the hiring manager",
-    resume: [{ id: 7, name: "Platform resume" }],
+    resume: [{ id: "Res007", name: "Platform resume" }],
     status: "INTERVIEW",
     title: "Staff Engineer",
     updatedAt: new Date("2026-08-10T12:00:00.000Z"),
@@ -78,7 +78,7 @@ vi.mock("@tanstack/react-query", async (importOriginal) => {
       data:
         queryKey[0] === "jobs"
           ? mockJobs
-          : [{ id: 7, name: "Platform resume" }],
+          : [{ id: "Res007", name: "Platform resume" }],
     }),
   };
 });
@@ -95,7 +95,7 @@ describe("JobPageClient", () => {
     expect(screen.getByText("Staff Engineer")).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: "Platform resume" }),
-    ).toHaveAttribute("href", "/resume/7");
+    ).toHaveAttribute("href", "/resume/Res007");
     expect(screen.getByText("1", { selector: "p" })).toBeInTheDocument();
   });
 
@@ -121,7 +121,7 @@ describe("JobPageClient", () => {
     expect(mockShowModal).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
-        resumes: [{ id: 7, name: "Platform resume" }],
+        resumes: [{ id: "Res007", name: "Platform resume" }],
       }),
     );
   });

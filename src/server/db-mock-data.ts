@@ -17,7 +17,7 @@ export type ResumeWithRelations = {
     id: number;
     companyName: string;
     link: string | null;
-    resumeId: number | null;
+    resumeId: string | null;
     positions: {
       id: number;
       title: string;

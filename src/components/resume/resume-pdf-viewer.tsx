@@ -15,11 +15,47 @@ import {
 import type { ReactNode } from "react";
 
 import { formatFromTo, toYearMonthsDuration } from "~/app/utils";
-import type { RouterOutputs } from "~/trpc/shared";
 
 import { partitionResumeEducation, toResumeTextBlocks } from "./resume-content";
 
-export type ResumePdfData = RouterOutputs["resume"]["getById"];
+export type ResumePdfData = {
+  contactInfo: { email: string; name: string; phone: string } | null;
+  education: Array<{
+    distinction: string;
+    endDate: Date;
+    id?: number;
+    institution: string;
+    link: string;
+    location: string;
+    notes: string | null;
+    startDate: Date;
+    type: string;
+  }>;
+  experience: Array<{
+    companyName: string;
+    id?: number;
+    link: string | null;
+    positions: Array<{
+      accomplishments: string;
+      endDate: Date | null;
+      id?: number;
+      location: string;
+      skillPosition: Array<{ skill: { name: string } }>;
+      startDate: Date;
+      title: string;
+    }>;
+  }>;
+  name: string;
+  patents: Array<{
+    date: Date;
+    description: string;
+    id?: number;
+    link: string | null;
+    title: string;
+  }>;
+  skills: Array<{ skill: { name: string } }>;
+  summary: string;
+};
 type Resume = ResumePdfData;
 type Education = Resume["education"][number];
 type Experience = Resume["experience"][number];
@@ -295,8 +331,8 @@ function ExperienceItem({ experience }: { experience: Experience }) {
           experience.companyName
         )}
       </Text>
-      {experience.positions.map((position) => (
-        <PositionItem key={position.id} position={position} />
+      {experience.positions.map((position, index) => (
+        <PositionItem key={position.id ?? index} position={position} />
       ))}
     </View>
   );
@@ -420,24 +456,27 @@ export function ResumePdfDocument({ resume }: { resume: Resume }) {
 
         {resume.experience.length > 0 ? (
           <PdfSection title="Experience">
-            {resume.experience.map((experience) => (
-              <ExperienceItem key={experience.id} experience={experience} />
+            {resume.experience.map((experience, index) => (
+              <ExperienceItem
+                key={experience.id ?? index}
+                experience={experience}
+              />
             ))}
           </PdfSection>
         ) : null}
 
         {education.length > 0 ? (
           <PdfSection title="Education">
-            {education.map((entry) => (
-              <EducationItem education={entry} key={entry.id} />
+            {education.map((entry, index) => (
+              <EducationItem education={entry} key={entry.id ?? index} />
             ))}
           </PdfSection>
         ) : null}
 
         {certificates.length > 0 ? (
           <PdfSection title="Certificates">
-            {certificates.map((entry) => (
-              <EducationItem education={entry} key={entry.id} />
+            {certificates.map((entry, index) => (
+              <EducationItem education={entry} key={entry.id ?? index} />
             ))}
           </PdfSection>
         ) : null}
@@ -450,8 +489,8 @@ export function ResumePdfDocument({ resume }: { resume: Resume }) {
 
         {resume.patents.length > 0 ? (
           <PdfSection title="Patents">
-            {resume.patents.map((patent) => (
-              <PatentItem key={patent.id} patent={patent} />
+            {resume.patents.map((patent, index) => (
+              <PatentItem key={patent.id ?? index} patent={patent} />
             ))}
           </PdfSection>
         ) : null}

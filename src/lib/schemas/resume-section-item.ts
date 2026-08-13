@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { RESUME_SECTION_TYPES } from "~/lib/resume-sections";
+import { resumeIdSchema } from "~/lib/schemas/resume-identifiers";
 
 const requiredText = (label: string) =>
   z.string().trim().min(1, `${label} is required.`);
@@ -66,38 +67,44 @@ export const resumeSectionItemSchema = z.discriminatedUnion("type", [
 ]);
 
 export const addResumeSectionItemSchema = z.discriminatedUnion("type", [
-  experienceSectionItemSchema.extend({ resumeId: z.number() }),
-  educationSectionItemSchema.extend({ resumeId: z.number() }),
-  certificationSectionItemSchema.extend({ resumeId: z.number() }),
-  skillSectionItemSchema.extend({ resumeId: z.number() }),
-  patentSectionItemSchema.extend({ resumeId: z.number() }),
+  experienceSectionItemSchema.extend({ resumeId: resumeIdSchema }),
+  educationSectionItemSchema.extend({ resumeId: resumeIdSchema }),
+  certificationSectionItemSchema.extend({ resumeId: resumeIdSchema }),
+  skillSectionItemSchema.extend({ resumeId: resumeIdSchema }),
+  patentSectionItemSchema.extend({ resumeId: resumeIdSchema }),
 ]);
 
 export const updateResumeSectionItemSchema = z.discriminatedUnion("type", [
   experienceSectionItemSchema.extend({
     itemId: z.number(),
-    resumeId: z.number(),
+    resumeId: resumeIdSchema,
   }),
   educationSectionItemSchema.extend({
     itemId: z.number(),
-    resumeId: z.number(),
+    resumeId: resumeIdSchema,
   }),
   certificationSectionItemSchema.extend({
     itemId: z.number(),
-    resumeId: z.number(),
+    resumeId: resumeIdSchema,
   }),
-  skillSectionItemSchema.extend({ itemId: z.number(), resumeId: z.number() }),
-  patentSectionItemSchema.extend({ itemId: z.number(), resumeId: z.number() }),
+  skillSectionItemSchema.extend({
+    itemId: z.number(),
+    resumeId: resumeIdSchema,
+  }),
+  patentSectionItemSchema.extend({
+    itemId: z.number(),
+    resumeId: resumeIdSchema,
+  }),
 ]);
 
 export const deleteResumeSectionItemSchema = z.object({
   itemId: z.number(),
-  resumeId: z.number(),
+  resumeId: resumeIdSchema,
   type: z.enum(RESUME_SECTION_TYPES),
 });
 
 export const removeResumeSectionSchema = z.object({
-  resumeId: z.number(),
+  resumeId: resumeIdSchema,
   type: z.enum(RESUME_SECTION_TYPES),
 });
 

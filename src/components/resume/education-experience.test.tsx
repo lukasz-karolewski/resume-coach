@@ -12,7 +12,7 @@ describe("EducationExperience", () => {
       link: "https://example.edu",
       location: "Seattle, WA",
       notes: "Distributed systems",
-      resumeId: 7,
+      resumeId: "Res007",
       startDate: new Date("2020-09-01T00:00:00.000Z"),
       type: "EDUCATION" as const,
     };

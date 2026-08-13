@@ -20,7 +20,7 @@ const jobs = [
     id: 12,
     link: null,
     positions: [position],
-    resumeId: 7,
+    resumeId: "Res007",
   },
 ];
 
