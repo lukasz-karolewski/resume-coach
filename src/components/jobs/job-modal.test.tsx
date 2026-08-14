@@ -86,8 +86,8 @@ describe("JobModal", () => {
     render(
       <JobModal
         id="job-modal-test"
-        defaultValues={{ resumeId: 7, status: "INTERVIEW" }}
-        resumes={[{ id: 7, name: "Platform resume" }]}
+        defaultValues={{ resumeId: "Res007", status: "INTERVIEW" }}
+        resumes={[{ id: "Res007", name: "Platform resume" }]}
       />,
     );
 

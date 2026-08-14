@@ -7,7 +7,7 @@ const mockResume = {
   contactInfo: null,
   education: [],
   experience: [],
-  id: 7,
+  id: "Res007",
   name: "Platform Resume",
   summary: "Summary",
 };
@@ -35,11 +35,11 @@ vi.mock("~/trpc/react", () => ({
 
 describe("ResumePreviewClient", () => {
   test("renders a route back to the editor and the PDF preview", () => {
-    render(<ResumePreviewClient resumeId={7} />);
+    render(<ResumePreviewClient resumeId={"Res007"} />);
 
     expect(
       screen.getByRole("link", { name: "Back to editor" }),
-    ).toHaveAttribute("href", "/resume/7");
+    ).toHaveAttribute("href", "/resume/Res007");
     expect(
       screen.getByRole("heading", { name: "Platform Resume" }),
     ).toBeInTheDocument();

@@ -1,3 +1,7 @@
+// biome-ignore-all lint/suspicious/noArrayIndexKey: the PDF is a single static
+// render pass over immutable data — nothing reorders and no item holds state.
+// Row IDs are deliberately absent from the public projection (resume-pdf-select).
+
 "use client";
 
 import {
@@ -15,11 +19,12 @@ import {
 import type { ReactNode } from "react";
 
 import { formatFromTo, toYearMonthsDuration } from "~/app/utils";
-import type { RouterOutputs } from "~/trpc/shared";
+import type { ResumePdfData } from "~/lib/resume-pdf-select";
 
 import { partitionResumeEducation, toResumeTextBlocks } from "./resume-content";
 
-export type ResumePdfData = RouterOutputs["resume"]["getById"];
+export type { ResumePdfData };
+
 type Resume = ResumePdfData;
 type Education = Resume["education"][number];
 type Experience = Resume["experience"][number];
@@ -225,8 +230,6 @@ function ContactRow({
 function PdfMarkdown({ markdown }: { markdown: string }) {
   return toResumeTextBlocks(markdown).map((block, index) =>
     block.kind === "bullet" ? (
-      // The parsed block order is stable, and markdown lines have no domain ID.
-      // biome-ignore lint/suspicious/noArrayIndexKey: PDF text blocks are immutable for a single render.
       <View key={index} style={styles.bullet}>
         <Text style={styles.bulletMarker}>•</Text>
         <Text orphans={2} widows={2}>
@@ -234,8 +237,6 @@ function PdfMarkdown({ markdown }: { markdown: string }) {
         </Text>
       </View>
     ) : (
-      // The parsed block order is stable, and markdown lines have no domain ID.
-      // biome-ignore lint/suspicious/noArrayIndexKey: PDF text blocks are immutable for a single render.
       <Text key={index} orphans={2} style={styles.paragraph} widows={2}>
         {block.text}
       </Text>
@@ -295,8 +296,8 @@ function ExperienceItem({ experience }: { experience: Experience }) {
           experience.companyName
         )}
       </Text>
-      {experience.positions.map((position) => (
-        <PositionItem key={position.id} position={position} />
+      {experience.positions.map((position, index) => (
+        <PositionItem key={index} position={position} />
       ))}
     </View>
   );
@@ -420,24 +421,24 @@ export function ResumePdfDocument({ resume }: { resume: Resume }) {
 
         {resume.experience.length > 0 ? (
           <PdfSection title="Experience">
-            {resume.experience.map((experience) => (
-              <ExperienceItem key={experience.id} experience={experience} />
+            {resume.experience.map((experience, index) => (
+              <ExperienceItem key={index} experience={experience} />
             ))}
           </PdfSection>
         ) : null}
 
         {education.length > 0 ? (
           <PdfSection title="Education">
-            {education.map((entry) => (
-              <EducationItem education={entry} key={entry.id} />
+            {education.map((entry, index) => (
+              <EducationItem education={entry} key={index} />
             ))}
           </PdfSection>
         ) : null}
 
         {certificates.length > 0 ? (
           <PdfSection title="Certificates">
-            {certificates.map((entry) => (
-              <EducationItem education={entry} key={entry.id} />
+            {certificates.map((entry, index) => (
+              <EducationItem education={entry} key={index} />
             ))}
           </PdfSection>
         ) : null}
@@ -450,8 +451,8 @@ export function ResumePdfDocument({ resume }: { resume: Resume }) {
 
         {resume.patents.length > 0 ? (
           <PdfSection title="Patents">
-            {resume.patents.map((patent) => (
-              <PatentItem key={patent.id} patent={patent} />
+            {resume.patents.map((patent, index) => (
+              <PatentItem key={index} patent={patent} />
             ))}
           </PdfSection>
         ) : null}

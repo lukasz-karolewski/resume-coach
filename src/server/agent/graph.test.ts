@@ -147,7 +147,7 @@ describe("executeChatStream", () => {
             {
               callId: "call-1",
               error: Promise.resolve(undefined),
-              input: { resumeId: 1 },
+              input: { resumeId: "Res001" },
               name: "viewResume",
               output: Promise.resolve("ok"),
               status: Promise.resolve("finished"),
@@ -169,7 +169,7 @@ describe("executeChatStream", () => {
     });
 
     expect(mockSendEvent).toHaveBeenCalledWith("tool_start", {
-      input: { resumeId: 1 },
+      input: { resumeId: "Res001" },
       runId: "call-1",
       tool: "viewResume",
     });
@@ -192,9 +192,9 @@ describe("executeChatStream", () => {
             {
               callId: "call-open",
               error: Promise.resolve(undefined),
-              input: { resumeId: 42 },
+              input: { resumeId: "Res042" },
               name: "openResume",
-              output: Promise.resolve({ opened: true, resumeId: 42 }),
+              output: Promise.resolve({ opened: true, resumeId: "Res042" }),
               status: Promise.resolve("finished"),
             },
           ],
@@ -208,13 +208,15 @@ describe("executeChatStream", () => {
 
     await executeChatStream({
       message,
-      resumeId: 1,
+      resumeId: "Res001",
       sendEvent: mockSendEvent,
       threadId: undefined,
       userId,
     });
 
-    expect(mockSendEvent).toHaveBeenCalledWith("navigate", { resumeId: 42 });
+    expect(mockSendEvent).toHaveBeenCalledWith("navigate", {
+      resumeId: "Res042",
+    });
   });
 
   it("does not ask the UI to navigate when opening the resume failed", async () => {
@@ -227,7 +229,7 @@ describe("executeChatStream", () => {
             {
               callId: "call-open",
               error: Promise.resolve(undefined),
-              input: { resumeId: 42 },
+              input: { resumeId: "Res042" },
               name: "openResume",
               output: Promise.resolve({ error: "Resume not found" }),
               status: Promise.resolve("finished"),
@@ -243,7 +245,7 @@ describe("executeChatStream", () => {
 
     await executeChatStream({
       message,
-      resumeId: 1,
+      resumeId: "Res001",
       sendEvent: mockSendEvent,
       threadId: undefined,
       userId,
@@ -258,19 +260,19 @@ describe("executeChatStream", () => {
   it("moves an existing thread onto the resume the user is now editing", async () => {
     vi.mocked(db.chatThread.findFirst).mockResolvedValue({
       id: "thread-roaming",
-      resumeId: 1,
+      resumeId: "Res001",
     } as never);
 
     await executeChatStream({
       message,
-      resumeId: 42,
+      resumeId: "Res042",
       sendEvent: mockSendEvent,
       threadId: "thread-roaming",
       userId,
     });
 
     expect(db.chatThread.update).toHaveBeenCalledWith({
-      data: { resumeId: 42 },
+      data: { resumeId: "Res042" },
       where: { id: "thread-roaming" },
     });
   });
@@ -278,7 +280,7 @@ describe("executeChatStream", () => {
   it("keeps the thread resume when the user leaves resume pages", async () => {
     vi.mocked(db.chatThread.findFirst).mockResolvedValue({
       id: "thread-roaming",
-      resumeId: 1,
+      resumeId: "Res001",
     } as never);
 
     await executeChatStream({
@@ -382,7 +384,7 @@ describe("executeChatStream", () => {
 
     await executeChatStream({
       message,
-      resumeId: 42,
+      resumeId: "Res042",
       sendEvent: mockSendEvent,
       threadId: undefined,
       userId,
@@ -390,7 +392,7 @@ describe("executeChatStream", () => {
 
     expect(db.chatThread.create).toHaveBeenCalledWith({
       data: {
-        resumeId: 42,
+        resumeId: "Res042",
         userId,
       },
     });

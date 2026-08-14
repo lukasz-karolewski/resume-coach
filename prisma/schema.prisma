@@ -266,7 +266,7 @@ model Experience {
   companyName String
   link        String?
 
-  resumeId Int?
+  resumeId String? @db.VarChar(6)
   resume   Resume? @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
   positions Position[]
@@ -303,7 +303,7 @@ model PositionSkill {
 model ResumeSkill {
   id Int @id @default(autoincrement())
 
-  resumeId Int
+  resumeId String @db.VarChar(6)
   skillId  Int
 
   resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
@@ -325,7 +325,7 @@ model Education {
   link        String
   notes       String?
 
-  resumeId Int?
+  resumeId String? @db.VarChar(6)
   resume   Resume? @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
   @@index([resumeId])
@@ -339,7 +339,7 @@ model Patent {
   link        String?
   date        DateTime
 
-  resumeId Int?
+  resumeId String? @db.VarChar(6)
   resume   Resume? @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
   @@index([resumeId])
@@ -360,11 +360,11 @@ model Section {
   type  SectionType
 
   resume   Resume? @relation(fields: [resumeId], references: [id])
-  resumeId Int?
+  resumeId String? @db.VarChar(6)
 }
 
 model Resume {
-  id   Int    @id @default(autoincrement())
+  id   String @id @db.VarChar(6)
   name String @default("Default Resume")
 
   // User ownership - direct relation
@@ -392,6 +392,8 @@ model Resume {
   // Chat thread working on this resume copy
   ChatThread ChatThread[]
 
+  permalink ResumePermalink?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -399,11 +401,19 @@ model Resume {
   @@index([jobId])
 }
 
+model ResumePermalink {
+  id        String   @id @default(cuid())
+  slug      String   @unique @db.VarChar(64)
+  resumeId  String   @unique @db.VarChar(6)
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
 model ChatThread {
   id        String   @id @default(cuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  resumeId  Int?
+  resumeId  String?  @db.VarChar(6)
   resume    Resume?  @relation(fields: [resumeId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

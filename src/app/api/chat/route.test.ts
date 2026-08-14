@@ -50,7 +50,7 @@ describe("POST /api/chat", () => {
     );
 
     const response = await POST(
-      createRequest({ message: "  Review my resume  ", resumeId: 7 }),
+      createRequest({ message: "  Review my resume  ", resumeId: "Res007" }),
     );
 
     expect(response.headers.get("content-type")).toBe(
@@ -62,7 +62,7 @@ describe("POST /api/chat", () => {
     expect(executeChatStream).toHaveBeenCalledWith(
       expect.objectContaining({
         message: "Review my resume",
-        resumeId: 7,
+        resumeId: "Res007",
         signal: expect.any(AbortSignal),
         userId: "user-1",
       }),

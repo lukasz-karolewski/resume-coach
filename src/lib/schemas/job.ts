@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { resumeIdSchema } from "~/lib/schemas/resume-identifiers";
 
 export const jobStatuses = [
   "SAVED",
@@ -40,7 +41,7 @@ export const addJobSchema = z.object({
     .trim()
     .max(4000, "Keep notes under 4,000 characters.")
     .optional(),
-  resumeId: z.number().int().positive().nullable().optional(),
+  resumeId: resumeIdSchema.nullable().optional(),
   status: jobStatusSchema,
   title: z
     .string()

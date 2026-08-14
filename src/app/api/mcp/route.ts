@@ -2,6 +2,7 @@ import { mcpHandler } from "@better-auth/oauth-provider";
 import { createMcpHandler } from "mcp-handler";
 import { z } from "zod";
 import { auth } from "~/auth";
+import { resumeIdSchema } from "~/lib/schemas/resume-identifiers";
 import { headlessTools } from "~/server/agent/tools";
 import {
   MCP_OAUTH_SCOPE,
@@ -43,7 +44,7 @@ function isUpdateSummaryTool(tool: AgentTool) {
 function getInputSchema(tool: AgentTool) {
   if (isUpdateSummaryTool(tool)) {
     return z.object({
-      resumeId: z.number().int().positive(),
+      resumeId: resumeIdSchema,
       summary: z.string(),
     });
   }
@@ -85,7 +86,7 @@ function createHandler(userId: string) {
               input: unknown,
               config: {
                 context: {
-                  currentResumeId: number | null;
+                  currentResumeId: string | null;
                   userId: string;
                 };
               },

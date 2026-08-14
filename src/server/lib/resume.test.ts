@@ -6,6 +6,7 @@ import {
   addResumeSectionItem,
   createResume,
   createResumeCopy,
+  createResumeWithGeneratedId,
   createTailoredResumeFromProfile,
   deleteResume,
   deleteResumeSectionItem,
@@ -111,6 +112,18 @@ const userId = "user-123";
 const parseTestMonth = (value: string) => new Date(`${value}-01T00:00:00.000Z`);
 
 describe("resume lib", () => {
+  it("retries a generated resume ID after a uniqueness collision", async () => {
+    const create = vi
+      .fn<(id: string) => Promise<{ id: string }>>()
+      .mockRejectedValueOnce({ code: "P2002" })
+      .mockImplementationOnce(async (id) => ({ id }));
+
+    await expect(createResumeWithGeneratedId(create)).resolves.toEqual({
+      id: expect.stringMatching(/^[A-Za-z0-9]{6}$/),
+    });
+    expect(create).toHaveBeenCalledTimes(2);
+  });
+
   let mockDb: MockDb;
 
   beforeEach(() => {
@@ -127,7 +140,7 @@ describe("resume lib", () => {
         addResumeSectionItem(mockDb as unknown as PrismaClient, userId, {
           date: "2021-06",
           description: "Reduced stale reads in distributed systems.",
-          resumeId: 10,
+          resumeId: "Res010",
           title: "Adaptive cache invalidation",
           type: "PATENTS",
         }),
@@ -135,7 +148,7 @@ describe("resume lib", () => {
 
       expect(mockDb.section.create).toHaveBeenCalledWith({
         data: {
-          resumeId: 10,
+          resumeId: "Res010",
           title: "Patents",
           type: "PATENTS",
         },
@@ -145,7 +158,7 @@ describe("resume lib", () => {
           date: new Date("2021-06-01T00:00:00.000Z"),
           description: "Reduced stale reads in distributed systems.",
           link: null,
-          resumeId: 10,
+          resumeId: "Res010",
           title: "Adaptive cache invalidation",
         },
       });
@@ -160,7 +173,7 @@ describe("resume lib", () => {
       await expect(
         addResumeSectionItem(mockDb as unknown as PrismaClient, userId, {
           name: "TypeScript",
-          resumeId: 10,
+          resumeId: "Res010",
           type: "SKILLS_SUMMARY",
         }),
       ).resolves.toMatchObject({ id: 10 });
@@ -168,7 +181,7 @@ describe("resume lib", () => {
       expect(mockDb.section.create).not.toHaveBeenCalled();
       expect(mockDb.resumeSkill.create).toHaveBeenCalledWith({
         data: {
-          resumeId: 10,
+          resumeId: "Res010",
           skillId: 40,
         },
       });
@@ -183,7 +196,7 @@ describe("resume lib", () => {
         accomplishments: "- Built a resilient platform",
         companyName: "Globex",
         location: "Remote",
-        resumeId: 10,
+        resumeId: "Res010",
         roleTitle: "Principal Engineer",
         startDate: "2024-01",
         type: "EXPERIENCE",
@@ -201,7 +214,7 @@ describe("resume lib", () => {
               title: "Principal Engineer",
             },
           },
-          resumeId: 10,
+          resumeId: "Res010",
         },
       });
     });
@@ -234,7 +247,7 @@ describe("resume lib", () => {
               endDate,
               institution: "Stanford",
               location: "Remote",
-              resumeId: 10,
+              resumeId: "Res010",
               startDate: startDate ?? "",
               type,
             },
@@ -248,7 +261,7 @@ describe("resume lib", () => {
               endDate,
               institution: "AWS",
               location: "Remote",
-              resumeId: 10,
+              resumeId: "Res010",
               type,
             },
           );
@@ -276,7 +289,7 @@ describe("resume lib", () => {
           description: "Updated patent description.",
           itemId: 30,
           link: "https://patents.example.com/30",
-          resumeId: 10,
+          resumeId: "Res010",
           title: "Adaptive cache invalidation v2",
           type: "PATENTS",
         }),
@@ -305,7 +318,7 @@ describe("resume lib", () => {
         link: "https://example.edu",
         location: "Seattle, WA",
         notes: "Distributed systems",
-        resumeId: 10,
+        resumeId: "Res010",
         startDate: "2020-09",
         type: "EDUCATION",
       });
@@ -332,7 +345,7 @@ describe("resume lib", () => {
       await updateResumeSectionItem(mockDb as unknown as PrismaClient, userId, {
         itemId: 32,
         name: "React",
-        resumeId: 10,
+        resumeId: "Res010",
         type: "SKILLS_SUMMARY",
       });
 
@@ -350,7 +363,7 @@ describe("resume lib", () => {
 
       await deleteResumeSectionItem(mockDb as unknown as PrismaClient, userId, {
         itemId: 31,
-        resumeId: 10,
+        resumeId: "Res010",
         type: "EDUCATION",
       });
 
@@ -369,7 +382,7 @@ describe("resume lib", () => {
 
       await deleteResumeSectionItem(mockDb as unknown as PrismaClient, userId, {
         itemId: 33,
-        resumeId: 10,
+        resumeId: "Res010",
         type: "EXPERIENCE",
       });
 
@@ -387,15 +400,15 @@ describe("resume lib", () => {
       mockDb.resume.findFirst.mockResolvedValue({ id: 10 });
 
       await removeResumeSection(mockDb as unknown as PrismaClient, userId, {
-        resumeId: 10,
+        resumeId: "Res010",
         type: "PATENTS",
       });
 
       expect(mockDb.patent.deleteMany).toHaveBeenCalledWith({
-        where: { resumeId: 10 },
+        where: { resumeId: "Res010" },
       });
       expect(mockDb.section.deleteMany).toHaveBeenCalledWith({
-        where: { resumeId: 10, type: "PATENTS" },
+        where: { resumeId: "Res010", type: "PATENTS" },
       });
       expect(mockDb.$transaction).toHaveBeenCalledOnce();
     });
@@ -404,15 +417,15 @@ describe("resume lib", () => {
       mockDb.resume.findFirst.mockResolvedValue({ id: 10 });
 
       await removeResumeSection(mockDb as unknown as PrismaClient, userId, {
-        resumeId: 10,
+        resumeId: "Res010",
         type: "SKILLS_SUMMARY",
       });
 
       expect(mockDb.resumeSkill.deleteMany).toHaveBeenCalledWith({
-        where: { resumeId: 10 },
+        where: { resumeId: "Res010" },
       });
       expect(mockDb.positionSkill.deleteMany).toHaveBeenCalledWith({
-        where: { position: { experience: { resumeId: 10 } } },
+        where: { position: { experience: { resumeId: "Res010" } } },
       });
     });
   });
@@ -424,7 +437,7 @@ describe("resume lib", () => {
         id: 7,
       });
       mockDb.resume.create.mockResolvedValue({
-        id: 10,
+        id: "Res010",
         summary: "Professional summary",
       });
 
@@ -514,6 +527,7 @@ describe("resume lib", () => {
               },
             ],
           },
+          id: expect.stringMatching(/^[A-Za-z0-9]{6}$/),
           jobId: "job-123",
           name: "Core Resume",
           summary: "Professional summary",
@@ -660,6 +674,7 @@ describe("resume lib", () => {
               },
             ],
           },
+          id: expect.stringMatching(/^[A-Za-z0-9]{6}$/),
           Job: {
             connect: { id: "job-123" },
           },
@@ -731,28 +746,30 @@ describe("resume lib", () => {
     it("deletes an owned resume and its non-cascading dependencies", async () => {
       mockDb.resume.findFirst.mockResolvedValue({
         contactInfoId: 20,
-        id: 10,
+        id: "Res010",
         userId,
       });
 
       await expect(
-        deleteResume(mockDb as unknown as PrismaClient, userId, { id: 10 }),
+        deleteResume(mockDb as unknown as PrismaClient, userId, {
+          id: "Res010",
+        }),
       ).resolves.toEqual({ success: true });
 
       expect(mockDb.positionSkill.deleteMany).toHaveBeenCalledWith({
         where: {
           position: {
             experience: {
-              resumeId: 10,
+              resumeId: "Res010",
             },
           },
         },
       });
       expect(mockDb.section.deleteMany).toHaveBeenCalledWith({
-        where: { resumeId: 10 },
+        where: { resumeId: "Res010" },
       });
       expect(mockDb.resume.delete).toHaveBeenCalledWith({
-        where: { id: 10 },
+        where: { id: "Res010" },
       });
       expect(mockDb.contactInfo.deleteMany).toHaveBeenCalledWith({
         where: {
@@ -767,7 +784,9 @@ describe("resume lib", () => {
       mockDb.resume.findFirst.mockResolvedValue(null);
 
       await expect(
-        deleteResume(mockDb as unknown as PrismaClient, userId, { id: 10 }),
+        deleteResume(mockDb as unknown as PrismaClient, userId, {
+          id: "Res010",
+        }),
       ).rejects.toBeInstanceOf(TRPCError);
     });
   });
@@ -826,7 +845,9 @@ describe("resume lib", () => {
       mockDb.resume.findFirst.mockResolvedValue(resume);
 
       await expect(
-        getResume(mockDb as unknown as PrismaClient, userId, { id: 10 }),
+        getResume(mockDb as unknown as PrismaClient, userId, {
+          id: "Res010",
+        }),
       ).resolves.toBe(resume);
 
       expect(mockDb.resume.findFirst).toHaveBeenCalledWith({
@@ -853,13 +874,14 @@ describe("resume lib", () => {
           patents: {
             orderBy: { date: "desc" },
           },
+          permalink: true,
           sections: true,
           skills: {
             include: { skill: true },
           },
         },
         where: {
-          id: 10,
+          id: "Res010",
           userId,
         },
       });
@@ -869,7 +891,9 @@ describe("resume lib", () => {
       mockDb.resume.findFirst.mockResolvedValue(null);
 
       await expect(
-        getResume(mockDb as unknown as PrismaClient, userId, { id: 999 }),
+        getResume(mockDb as unknown as PrismaClient, userId, {
+          id: "Res999",
+        }),
       ).rejects.toMatchObject({
         code: "NOT_FOUND",
         message: "Resume not found",
@@ -996,7 +1020,7 @@ describe("resume lib", () => {
       const markdown = await getResumeMarkdown(
         mockDb as unknown as PrismaClient,
         userId,
-        { id: 22 },
+        { id: "Res022" },
       );
 
       expect(markdown).toContain("# Jane Doe");
@@ -1024,13 +1048,14 @@ describe("resume lib", () => {
           patents: {
             orderBy: { date: "desc" },
           },
+          permalink: true,
           sections: true,
           skills: {
             include: { skill: true },
           },
         },
         where: {
-          id: 22,
+          id: "Res022",
           userId,
         },
       });
@@ -1102,7 +1127,7 @@ describe("resume lib", () => {
     it("updates contact info, experience, education, and summary", async () => {
       mockDb.resume.findFirst.mockResolvedValue({
         contactInfoId: 3,
-        id: 10,
+        id: "Res010",
         userId,
       });
       mockDb.experience.findMany.mockResolvedValue([{ id: 55 }]);
@@ -1143,7 +1168,7 @@ describe("resume lib", () => {
             ],
           },
         ],
-        id: 10,
+        id: "Res010",
         name: "Updated Resume",
         professionalSummary: "Updated summary",
       });
@@ -1157,14 +1182,14 @@ describe("resume lib", () => {
         where: { id: 3 },
       });
       expect(mockDb.experience.deleteMany).toHaveBeenCalledWith({
-        where: { resumeId: 10 },
+        where: { resumeId: "Res010" },
       });
       expect(mockDb.experience.createMany).toHaveBeenCalledWith({
         data: [
           {
             companyName: "Updated Corp",
             link: "https://updated.example.com",
-            resumeId: 10,
+            resumeId: "Res010",
           },
         ],
       });
@@ -1189,7 +1214,7 @@ describe("resume lib", () => {
             link: "https://berkeley.edu",
             location: "Berkeley, CA",
             notes: "Leadership",
-            resumeId: 10,
+            resumeId: "Res010",
             startDate: new Date("2021-01-01T00:00:00.000Z"),
             type: EducationType.CERTIFICATION,
           },
@@ -1209,7 +1234,7 @@ describe("resume lib", () => {
             },
           },
         },
-        where: { id: 10 },
+        where: { id: "Res010" },
       });
     });
   });
@@ -1227,7 +1252,7 @@ describe("resume lib", () => {
 
       await expect(
         updateResumeTitle(mockDb as unknown as PrismaClient, userId, {
-          id: 10,
+          id: "Res010",
           name: "Updated Resume",
         }),
       ).resolves.toEqual({
@@ -1240,7 +1265,7 @@ describe("resume lib", () => {
           name: "Updated Resume",
         },
         where: {
-          id: 10,
+          id: "Res010",
         },
       });
       expect(mockDb.contactInfo.update).not.toHaveBeenCalled();
@@ -1253,7 +1278,7 @@ describe("resume lib", () => {
 
       await expect(
         updateResumeTitle(mockDb as unknown as PrismaClient, userId, {
-          id: 10,
+          id: "Res010",
           name: "Updated Resume",
         }),
       ).rejects.toMatchObject({
@@ -1316,7 +1341,7 @@ describe("resume lib", () => {
 
       await expect(
         duplicateResume(mockDb as unknown as PrismaClient, userId, {
-          id: 10,
+          id: "Res010",
           jobId: "job-123",
           name: "Custom Copy",
         }),
@@ -1336,7 +1361,7 @@ describe("resume lib", () => {
           skills: true,
         },
         where: {
-          id: 10,
+          id: "Res010",
           userId,
         },
       });
@@ -1382,6 +1407,7 @@ describe("resume lib", () => {
               },
             ],
           },
+          id: expect.stringMatching(/^[A-Za-z0-9]{6}$/),
           Job: {
             connect: {
               id: "job-123",
@@ -1430,7 +1456,9 @@ describe("resume lib", () => {
       mockDb.resume.findFirst.mockResolvedValue(null);
 
       await expect(
-        duplicateResume(mockDb as unknown as PrismaClient, userId, { id: 10 }),
+        duplicateResume(mockDb as unknown as PrismaClient, userId, {
+          id: "Res010",
+        }),
       ).rejects.toMatchObject({
         code: "NOT_FOUND",
         message: "Resume not found",
@@ -1485,18 +1513,18 @@ describe("resume lib", () => {
         summary: "Strong summary",
       });
       mockDb.resume.create.mockResolvedValue({
-        id: 44,
+        id: "Res044",
         name: "Base Resume - Copy 123",
       });
       const dateNowSpy = vi.spyOn(Date, "now").mockReturnValue(123);
 
       await expect(
         createResumeCopy(mockDb as unknown as PrismaClient, userId, {
-          sourceResumeId: 10,
+          sourceResumeId: "Res010",
         }),
       ).resolves.toEqual({
         name: "Base Resume - Copy 123",
-        resumeId: 44,
+        resumeId: "Res044",
         success: true,
       });
 
@@ -1522,7 +1550,7 @@ describe("resume lib", () => {
           skills: true,
         },
         where: {
-          id: 10,
+          id: "Res010",
           userId,
         },
       });
@@ -1568,6 +1596,7 @@ describe("resume lib", () => {
               },
             ],
           },
+          id: expect.stringMatching(/^[A-Za-z0-9]{6}$/),
           name: "Base Resume - Copy 123",
           patents: {
             create: [],
@@ -1606,18 +1635,18 @@ describe("resume lib", () => {
         summary: "Strong summary",
       });
       mockDb.resume.create.mockResolvedValue({
-        id: 46,
+        id: "Res046",
         name: "Custom Resume Name",
       });
 
       await expect(
         createResumeCopy(mockDb as unknown as PrismaClient, userId, {
           name: "Custom Resume Name",
-          sourceResumeId: 12,
+          sourceResumeId: "Res012",
         }),
       ).resolves.toEqual({
         name: "Custom Resume Name",
-        resumeId: 46,
+        resumeId: "Res046",
         success: true,
       });
 
@@ -1629,6 +1658,7 @@ describe("resume lib", () => {
           experience: {
             create: [],
           },
+          id: expect.stringMatching(/^[A-Za-z0-9]{6}$/),
           name: "Custom Resume Name",
           patents: {
             create: [],
@@ -1666,7 +1696,7 @@ describe("resume lib", () => {
       const dateNowSpy = vi.spyOn(Date, "now").mockReturnValue(456);
 
       await createResumeCopy(mockDb as unknown as PrismaClient, userId, {
-        sourceResumeId: 11,
+        sourceResumeId: "Res011",
       });
 
       expect(mockDb.resume.create).toHaveBeenCalledWith({
@@ -1677,6 +1707,7 @@ describe("resume lib", () => {
           experience: {
             create: [],
           },
+          id: expect.stringMatching(/^[A-Za-z0-9]{6}$/),
           Job: {
             connect: { id: "job-123" },
           },
@@ -1705,7 +1736,7 @@ describe("resume lib", () => {
 
       await expect(
         createResumeCopy(mockDb as unknown as PrismaClient, userId, {
-          sourceResumeId: 10,
+          sourceResumeId: "Res010",
         }),
       ).rejects.toThrow("Source resume not found");
     });
@@ -1755,7 +1786,7 @@ describe("resume lib", () => {
 
       await expect(
         updateSummary(mockDb as unknown as PrismaClient, userId, {
-          resumeId: 10,
+          resumeId: "Res010",
           summary: "New summary",
         }),
       ).rejects.toMatchObject({
@@ -1767,16 +1798,16 @@ describe("resume lib", () => {
     });
 
     it("updates summary", async () => {
-      mockDb.resume.findFirst.mockResolvedValue({ id: 10 });
-      mockDb.resume.update.mockResolvedValue({ id: 10 });
+      mockDb.resume.findFirst.mockResolvedValue({ id: "Res010" });
+      mockDb.resume.update.mockResolvedValue({ id: "Res010" });
 
       await expect(
         updateSummary(mockDb as unknown as PrismaClient, userId, {
-          resumeId: 10,
+          resumeId: "Res010",
           summary: "New summary",
         }),
       ).resolves.toEqual({
-        resumeId: 10,
+        resumeId: "Res010",
         success: true,
       });
     });
@@ -1790,7 +1821,7 @@ describe("resume lib", () => {
           companyName: "Tech Corp",
           endDate: "2024-01-01",
           location: "Remote",
-          resumeId: 10,
+          resumeId: "Res010",
           startDate: "2023-01-01",
           title: "Principal Engineer",
         }),
@@ -1815,7 +1846,7 @@ describe("resume lib", () => {
           companyName: "Tech Corp",
           endDate: "2024-01-01",
           location: "Remote",
-          resumeId: 10,
+          resumeId: "Res010",
           startDate: "2023-01-01",
           title: "Principal Engineer",
         }),
@@ -1846,7 +1877,7 @@ describe("resume lib", () => {
         accomplishments: "- Built platform",
         companyName: "New Corp",
         location: "Remote",
-        resumeId: 10,
+        resumeId: "Res010",
         startDate: "2023-01-01",
         title: "Director",
       });
@@ -1864,7 +1895,7 @@ describe("resume lib", () => {
               title: "Director",
             },
           },
-          resumeId: 10,
+          resumeId: "Res010",
         },
       });
     });

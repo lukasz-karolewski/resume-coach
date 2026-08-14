@@ -48,7 +48,7 @@ describe("useChatStream", () => {
       "fetch",
       vi.fn(async () => ({
         body: createByteStream([
-          'event: navigate\ndata: {"resumeId":42}\n\n',
+          'event: navigate\ndata: {"resumeId":"Res042"}\n\n',
           'event: chunk\ndata: {"content":"Cloned it — want a punchier summary?"}\n\n',
           'event: done\ndata: {"threadId":"thread-123"}\n\n',
         ]),
@@ -62,7 +62,7 @@ describe("useChatStream", () => {
       await result.current.sendMessage("clone my resume");
     });
 
-    expect(onOpenResume).toHaveBeenCalledWith(42);
+    expect(onOpenResume).toHaveBeenCalledWith("Res042");
     expect(result.current.messages).toEqual([
       expect.objectContaining({ content: "clone my resume", role: "user" }),
       expect.objectContaining({

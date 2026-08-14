@@ -10,7 +10,7 @@ import Assistant from "./assistant";
 
 const { navigationState, push } = vi.hoisted(() => ({
   navigationState: {
-    pathname: "/resume/1",
+    pathname: "/resume/Res001",
   },
   push: vi.fn(),
 }));
@@ -28,7 +28,7 @@ describe("Assistant conversation continuity", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     sessionStorage.clear();
-    navigationState.pathname = "/resume/1";
+    navigationState.pathname = "/resume/Res001";
     vi.stubGlobal(
       "fetch",
       vi.fn(async (input: RequestInfo | URL) => {
@@ -77,7 +77,7 @@ describe("Assistant conversation continuity", () => {
 
     expect(await screen.findByText(STORED_REPLY)).toBeInTheDocument();
 
-    navigationState.pathname = "/resume/42";
+    navigationState.pathname = "/resume/Res042";
     rerender(<Assistant />);
 
     expect(screen.getByText(STORED_REPLY)).toBeInTheDocument();

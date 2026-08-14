@@ -3,10 +3,8 @@ import clsx from "clsx";
 import type { Metadata } from "next";
 import { Noto_Serif, Playfair_Display } from "next/font/google";
 import { siteConfig } from "~/app/site-config";
-import NiceModalProviderWrapper from "~/components/providers";
 import { Toaster } from "~/components/ui/toast";
 import { cn } from "~/lib/utils";
-import { TRPCReactProvider } from "~/trpc/react";
 import "./styles.css";
 
 const playfairDisplay = Playfair_Display({
@@ -69,12 +67,8 @@ export default async function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" className={cn("font-serif", playfairDisplay.variable)}>
       <body className={clsx(font.className, "min-w-96 grid min-h-dvh")}>
-        <TRPCReactProvider>
-          <NiceModalProviderWrapper>
-            {children}
-            <Toaster />
-          </NiceModalProviderWrapper>
-        </TRPCReactProvider>
+        {children}
+        <Toaster />
         <Analytics />
       </body>
     </html>

@@ -4,6 +4,7 @@ import { RedisSaver } from "@langchain/langgraph-checkpoint-redis";
 import { ChatOpenAI } from "@langchain/openai";
 import { createAgent, HumanMessage } from "langchain";
 import * as z from "zod";
+import { resumeIdSchema } from "~/lib/schemas/resume-identifiers";
 import { db } from "../db";
 import { createChatMessage } from "../lib/chat";
 import { myDynamicSystemPromptMiddleware } from "./prompt";
@@ -28,7 +29,7 @@ function getOpenedResumeId(toolName: string, output: unknown) {
     resumeId?: unknown;
   };
 
-  return opened === true && typeof resumeId === "number" ? resumeId : null;
+  return opened === true && typeof resumeId === "string" ? resumeId : null;
 }
 
 let checkpointerPromise: Promise<
@@ -42,7 +43,7 @@ const model = new ChatOpenAI({
 });
 
 export const contextSchema = z.object({
-  currentResumeId: z.number().nullable(),
+  currentResumeId: resumeIdSchema.nullable(),
   userId: z.string(),
 });
 
@@ -85,7 +86,7 @@ type SendEvent = (event: string, data: unknown) => Promise<void>;
 interface ChatStreamParams {
   message: string;
   threadId?: string;
-  resumeId?: number;
+  resumeId?: string;
   signal?: AbortSignal;
   userId: string;
   sendEvent: SendEvent;

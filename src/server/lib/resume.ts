@@ -24,6 +24,7 @@ import {
   type updateSkillsSchema,
   type updateSummarySchema,
 } from "~/lib/schemas/resume";
+import { RESUME_ID_LENGTH } from "~/lib/schemas/resume-identifiers";
 import type {
   addResumeSectionItemSchema,
   deleteResumeSectionItemSchema,
@@ -31,9 +32,27 @@ import type {
   removeResumeSectionSchema,
   updateResumeSectionItemSchema,
 } from "~/lib/schemas/resume-section-item";
+import { generateBase62Id } from "~/server/lib/base62";
 import { getAccomplishmentProfile } from "~/server/lib/profile";
+import { isUniqueConstraintError } from "~/server/utils";
 
 type ResumeWithMarkdownRelations = Awaited<ReturnType<typeof getResume>>;
+
+const RESUME_ID_CREATE_ATTEMPTS = 5;
+
+export async function createResumeWithGeneratedId<T>(
+  create: (id: string) => Promise<T>,
+) {
+  for (let attempt = 0; attempt < RESUME_ID_CREATE_ATTEMPTS; attempt += 1) {
+    try {
+      return await create(generateBase62Id(RESUME_ID_LENGTH));
+    } catch (error) {
+      if (!isUniqueConstraintError(error)) throw error;
+    }
+  }
+
+  throw new Error("Unable to allocate a unique resume ID");
+}
 
 const MATCH_STOP_WORDS = new Set([
   "about",
@@ -69,10 +88,10 @@ type TailoredEntryMatch = {
   score: number;
 };
 
-async function requireOwnedResume(
+export async function requireOwnedResume(
   db: PrismaClient,
   userId: string,
-  resumeId: number,
+  resumeId: string,
 ) {
   const resume = await db.resume.findFirst({
     select: {
@@ -487,7 +506,7 @@ function parseResumeMonth(value: string) {
 
 async function ensureResumeSection(
   db: Prisma.TransactionClient,
-  resumeId: number,
+  resumeId: string,
   type: ResumeSectionItem["type"],
 ) {
   const section = await db.section.findFirst({
@@ -851,51 +870,54 @@ export async function createResume(
     contactInfoId = contactInfo.id;
   }
 
-  const resume = await db.resume.create({
-    data: {
-      contactInfoId: contactInfoId ?? null,
-      education: {
-        create: input.education.map((edu) => ({
-          distinction: edu.distinction,
-          endDate: edu.endDate,
-          institution: edu.institution,
-          link: edu.link,
-          location: edu.location,
-          notes: edu.notes,
-          startDate: edu.startDate,
-          type: edu.type,
-        })),
+  const resume = await createResumeWithGeneratedId((id) =>
+    db.resume.create({
+      data: {
+        contactInfoId: contactInfoId ?? null,
+        education: {
+          create: input.education.map((edu) => ({
+            distinction: edu.distinction,
+            endDate: edu.endDate,
+            institution: edu.institution,
+            link: edu.link,
+            location: edu.location,
+            notes: edu.notes,
+            startDate: edu.startDate,
+            type: edu.type,
+          })),
+        },
+        experience: {
+          create: input.experience.map((exp) => ({
+            companyName: exp.companyName,
+            link: exp.link,
+            positions: {
+              create: exp.positions.map((pos) => ({
+                accomplishments: pos.accomplishments,
+                endDate: pos.endDate,
+                location: pos.location,
+                startDate: pos.startDate,
+                title: pos.title,
+              })),
+            },
+          })),
+        },
+        id,
+        jobId: input.jobId ?? null,
+        name: input.name,
+        summary: input.professionalSummary,
+        userId: userId,
       },
-      experience: {
-        create: input.experience.map((exp) => ({
-          companyName: exp.companyName,
-          link: exp.link,
-          positions: {
-            create: exp.positions.map((pos) => ({
-              accomplishments: pos.accomplishments,
-              endDate: pos.endDate,
-              location: pos.location,
-              startDate: pos.startDate,
-              title: pos.title,
-            })),
+      include: {
+        contactInfo: true,
+        education: true,
+        experience: {
+          include: {
+            positions: true,
           },
-        })),
-      },
-      jobId: input.jobId ?? null,
-      name: input.name,
-      summary: input.professionalSummary,
-      userId: userId,
-    },
-    include: {
-      contactInfo: true,
-      education: true,
-      experience: {
-        include: {
-          positions: true,
         },
       },
-    },
-  });
+    }),
+  );
 
   return resume;
 }
@@ -960,75 +982,78 @@ export async function createTailoredResumeFromProfile(
     },
   });
 
-  return db.resume.create({
-    data: {
-      ...(baseResume?.contactInfo
-        ? {
-            contactInfo: {
-              create: {
-                email: baseResume.contactInfo.email,
-                name: baseResume.contactInfo.name,
-                phone: baseResume.contactInfo.phone,
+  return createResumeWithGeneratedId((id) =>
+    db.resume.create({
+      data: {
+        id,
+        ...(baseResume?.contactInfo
+          ? {
+              contactInfo: {
+                create: {
+                  email: baseResume.contactInfo.email,
+                  name: baseResume.contactInfo.name,
+                  phone: baseResume.contactInfo.phone,
+                },
               },
+            }
+          : {}),
+        education: {
+          create:
+            baseResume?.education.map((entry) => ({
+              distinction: entry.distinction,
+              endDate: entry.endDate,
+              institution: entry.institution,
+              link: entry.link,
+              location: entry.location,
+              notes: entry.notes,
+              startDate: entry.startDate,
+              type: entry.type,
+            })) ?? [],
+        },
+        experience: {
+          create: selectedRoles.map(({ role, entries }) => ({
+            companyName: role.companyName,
+            link: undefined,
+            positions: {
+              create: [
+                {
+                  accomplishments: formatTailoredAccomplishments(role, entries),
+                  endDate: role.endDate,
+                  location: role.location ?? "",
+                  startDate: role.startDate ?? role.endDate ?? new Date(),
+                  title: role.title,
+                },
+              ],
             },
-          }
-        : {}),
-      education: {
-        create:
-          baseResume?.education.map((entry) => ({
-            distinction: entry.distinction,
-            endDate: entry.endDate,
-            institution: entry.institution,
-            link: entry.link,
-            location: entry.location,
-            notes: entry.notes,
-            startDate: entry.startDate,
-            type: entry.type,
-          })) ?? [],
-      },
-      experience: {
-        create: selectedRoles.map(({ role, entries }) => ({
-          companyName: role.companyName,
-          link: undefined,
-          positions: {
-            create: [
-              {
-                accomplishments: formatTailoredAccomplishments(role, entries),
-                endDate: role.endDate,
-                location: role.location ?? "",
-                startDate: role.startDate ?? role.endDate ?? new Date(),
-                title: role.title,
-              },
-            ],
-          },
-        })),
-      },
-      Job: {
-        connect: { id: job.id },
-      },
-      name: parsedInput.name || buildTailoredResumeName(job),
-      summary: buildTailoredSummary(
-        job,
-        selectedRoles,
-        selectedRoles.reduce(
-          (total, currentRole) => total + currentRole.entries.length,
-          0,
+          })),
+        },
+        Job: {
+          connect: { id: job.id },
+        },
+        name: parsedInput.name || buildTailoredResumeName(job),
+        summary: buildTailoredSummary(
+          job,
+          selectedRoles,
+          selectedRoles.reduce(
+            (total, currentRole) => total + currentRole.entries.length,
+            0,
+          ),
         ),
-      ),
-      user: {
-        connect: { id: userId },
-      },
-    },
-    include: {
-      contactInfo: true,
-      education: true,
-      experience: {
-        include: {
-          positions: true,
+        user: {
+          connect: { id: userId },
         },
       },
-    },
-  });
+      include: {
+        contactInfo: true,
+        education: true,
+        experience: {
+          include: {
+            positions: true,
+          },
+        },
+      },
+    }),
+  );
 }
 
 /**
@@ -1139,89 +1164,92 @@ export async function duplicateResume(
   }
 
   // Create duplicate
-  const duplicate = await db.resume.create({
-    data: {
-      name: input.name ?? `${original.name} (Copy)`,
-      user: {
-        connect: { id: userId },
-      },
-      ...(input.jobId && {
-        Job: {
-          connect: { id: input.jobId },
+  const duplicate = await createResumeWithGeneratedId((id) =>
+    db.resume.create({
+      data: {
+        id,
+        name: input.name ?? `${original.name} (Copy)`,
+        user: {
+          connect: { id: userId },
         },
-      }),
-      ...(original.contactInfo && {
-        contactInfo: {
-          create: {
-            email: original.contactInfo.email,
-            name: original.contactInfo.name,
-            phone: original.contactInfo.phone,
+        ...(input.jobId && {
+          Job: {
+            connect: { id: input.jobId },
+          },
+        }),
+        ...(original.contactInfo && {
+          contactInfo: {
+            create: {
+              email: original.contactInfo.email,
+              name: original.contactInfo.name,
+              phone: original.contactInfo.phone,
+            },
+          },
+        }),
+        education: {
+          create: original.education.map((edu) => ({
+            distinction: edu.distinction,
+            endDate: edu.endDate,
+            institution: edu.institution,
+            link: edu.link,
+            location: edu.location,
+            notes: edu.notes,
+            startDate: edu.startDate,
+            type: edu.type,
+          })),
+        },
+        experience: {
+          create: original.experience.map((exp) => ({
+            companyName: exp.companyName,
+            link: exp.link,
+            positions: {
+              create: exp.positions.map((pos) => ({
+                accomplishments: pos.accomplishments,
+                endDate: pos.endDate,
+                location: pos.location,
+                startDate: pos.startDate,
+                title: pos.title,
+              })),
+            },
+          })),
+        },
+        patents: {
+          create: original.patents.map((patent) => ({
+            date: patent.date,
+            description: patent.description,
+            link: patent.link,
+            title: patent.title,
+          })),
+        },
+        sections: {
+          create: original.sections.map((section) => ({
+            title: section.title,
+            type: section.type,
+          })),
+        },
+        skills: {
+          create: original.skills.map((resumeSkill) => ({
+            skill: { connect: { id: resumeSkill.skillId } },
+          })),
+        },
+        summary: original.summary,
+      },
+      include: {
+        contactInfo: true,
+        education: true,
+        experience: {
+          include: {
+            positions: true,
           },
         },
-      }),
-      education: {
-        create: original.education.map((edu) => ({
-          distinction: edu.distinction,
-          endDate: edu.endDate,
-          institution: edu.institution,
-          link: edu.link,
-          location: edu.location,
-          notes: edu.notes,
-          startDate: edu.startDate,
-          type: edu.type,
-        })),
-      },
-      experience: {
-        create: original.experience.map((exp) => ({
-          companyName: exp.companyName,
-          link: exp.link,
-          positions: {
-            create: exp.positions.map((pos) => ({
-              accomplishments: pos.accomplishments,
-              endDate: pos.endDate,
-              location: pos.location,
-              startDate: pos.startDate,
-              title: pos.title,
-            })),
-          },
-        })),
-      },
-      patents: {
-        create: original.patents.map((patent) => ({
-          date: patent.date,
-          description: patent.description,
-          link: patent.link,
-          title: patent.title,
-        })),
-      },
-      sections: {
-        create: original.sections.map((section) => ({
-          title: section.title,
-          type: section.type,
-        })),
-      },
-      skills: {
-        create: original.skills.map((resumeSkill) => ({
-          skill: { connect: { id: resumeSkill.skillId } },
-        })),
-      },
-      summary: original.summary,
-    },
-    include: {
-      contactInfo: true,
-      education: true,
-      experience: {
-        include: {
-          positions: true,
+        patents: true,
+        sections: true,
+        skills: {
+          include: { skill: true },
         },
       },
-      patents: true,
-      sections: true,
-      skills: {
-        include: { skill: true },
-      },
-    },
-  });
+    }),
+  );
 
   return duplicate;
 }
@@ -1258,6 +1286,7 @@ export async function getResume(
       patents: {
         orderBy: { date: "desc" },
       },
+      permalink: true,
       sections: true,
       skills: {
         include: { skill: true },
@@ -1540,75 +1569,78 @@ export async function createResumeCopy(
   const copyName =
     input.name?.trim() || `${sourceResume.name} - Copy ${timestamp}`;
 
-  const newResume = await db.resume.create({
-    data: {
-      ...(sourceResume.contactInfo && {
-        contactInfo: {
-          create: {
-            email: sourceResume.contactInfo.email,
-            name: sourceResume.contactInfo.name,
-            phone: sourceResume.contactInfo.phone,
+  const newResume = await createResumeWithGeneratedId((id) =>
+    db.resume.create({
+      data: {
+        id,
+        ...(sourceResume.contactInfo && {
+          contactInfo: {
+            create: {
+              email: sourceResume.contactInfo.email,
+              name: sourceResume.contactInfo.name,
+              phone: sourceResume.contactInfo.phone,
+            },
           },
+        }),
+        education: {
+          create: sourceResume.education.map((edu) => ({
+            distinction: edu.distinction,
+            endDate: edu.endDate,
+            institution: edu.institution,
+            link: edu.link,
+            location: edu.location,
+            notes: edu.notes,
+            startDate: edu.startDate,
+            type: edu.type,
+          })),
         },
-      }),
-      education: {
-        create: sourceResume.education.map((edu) => ({
-          distinction: edu.distinction,
-          endDate: edu.endDate,
-          institution: edu.institution,
-          link: edu.link,
-          location: edu.location,
-          notes: edu.notes,
-          startDate: edu.startDate,
-          type: edu.type,
-        })),
-      },
-      experience: {
-        create: sourceResume.experience.map((exp) => ({
-          companyName: exp.companyName,
-          link: exp.link,
-          positions: {
-            create: exp.positions.map((pos) => ({
-              accomplishments: pos.accomplishments,
-              endDate: pos.endDate,
-              location: pos.location,
-              startDate: pos.startDate,
-              title: pos.title,
-            })),
+        experience: {
+          create: sourceResume.experience.map((exp) => ({
+            companyName: exp.companyName,
+            link: exp.link,
+            positions: {
+              create: exp.positions.map((pos) => ({
+                accomplishments: pos.accomplishments,
+                endDate: pos.endDate,
+                location: pos.location,
+                startDate: pos.startDate,
+                title: pos.title,
+              })),
+            },
+          })),
+        },
+        patents: {
+          create: sourceResume.patents.map((patent) => ({
+            date: patent.date,
+            description: patent.description,
+            link: patent.link,
+            title: patent.title,
+          })),
+        },
+        ...(sourceResume.jobId && {
+          Job: {
+            connect: { id: sourceResume.jobId },
           },
-        })),
-      },
-      patents: {
-        create: sourceResume.patents.map((patent) => ({
-          date: patent.date,
-          description: patent.description,
-          link: patent.link,
-          title: patent.title,
-        })),
-      },
-      ...(sourceResume.jobId && {
-        Job: {
-          connect: { id: sourceResume.jobId },
+        }),
+        name: copyName,
+        sections: {
+          create: sourceResume.sections.map((section) => ({
+            title: section.title,
+            type: section.type,
+          })),
         },
-      }),
-      name: copyName,
-      sections: {
-        create: sourceResume.sections.map((section) => ({
-          title: section.title,
-          type: section.type,
-        })),
+        skills: {
+          create: sourceResume.skills.map((resumeSkill) => ({
+            skill: { connect: { id: resumeSkill.skillId } },
+          })),
+        },
+        summary: sourceResume.summary,
+        user: {
+          connect: { id: userId },
+        },
       },
-      skills: {
-        create: sourceResume.skills.map((resumeSkill) => ({
-          skill: { connect: { id: resumeSkill.skillId } },
-        })),
-      },
-      summary: sourceResume.summary,
-      user: {
-        connect: { id: userId },
-      },
-    },
-  });
+    }),
+  );
 
   return {
     name: newResume.name,

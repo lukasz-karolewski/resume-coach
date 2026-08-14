@@ -3,6 +3,18 @@
 import { TRPCError } from "@trpc/server";
 
 /**
+ * Detects a Prisma unique-constraint violation (P2002).
+ */
+export function isUniqueConstraintError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "P2002"
+  );
+}
+
+/**
  * Wraps a function call with error handling to provide consistent error messages
  * @param fn The function to execute
  * @param errorMessage The error message to show if the function fails

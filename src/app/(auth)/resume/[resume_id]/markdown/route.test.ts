@@ -38,9 +38,9 @@ describe("resume markdown route", () => {
     getSession.mockResolvedValue(null);
 
     const response = await GET(
-      new Request("http://localhost/resume/1/markdown"),
+      new Request("http://localhost/resume/Res001/markdown"),
       {
-        params: Promise.resolve({ resume_id: "1" }),
+        params: Promise.resolve({ resume_id: "Res001" }),
       } as RouteContext<"/resume/[resume_id]/markdown">,
     );
 
@@ -57,19 +57,21 @@ describe("resume markdown route", () => {
     getResumeMarkdown.mockResolvedValue("# Jane Doe\n");
 
     const response = await GET(
-      new Request("http://localhost/resume/1/markdown"),
+      new Request("http://localhost/resume/Res001/markdown"),
       {
-        params: Promise.resolve({ resume_id: "1" }),
+        params: Promise.resolve({ resume_id: "Res001" }),
       } as RouteContext<"/resume/[resume_id]/markdown">,
     );
 
-    expect(getResumeMarkdown).toHaveBeenCalledWith({}, "user-123", { id: 1 });
+    expect(getResumeMarkdown).toHaveBeenCalledWith({}, "user-123", {
+      id: "Res001",
+    });
     expect(response.status).toBe(200);
     expect(response.headers.get("Content-Type")).toBe(
       "text/plain; charset=utf-8",
     );
     expect(response.headers.get("Content-Disposition")).toBe(
-      'inline; filename="resume-1.md"',
+      'inline; filename="resume-Res001.md"',
     );
     await expect(response.text()).resolves.toBe("# Jane Doe\n");
   });
@@ -101,9 +103,9 @@ describe("resume markdown route", () => {
     getResumeMarkdown.mockRejectedValue(new Error("Resume not found"));
 
     const response = await GET(
-      new Request("http://localhost/resume/1/markdown"),
+      new Request("http://localhost/resume/Res001/markdown"),
       {
-        params: Promise.resolve({ resume_id: "1" }),
+        params: Promise.resolve({ resume_id: "Res001" }),
       } as RouteContext<"/resume/[resume_id]/markdown">,
     );
 
@@ -120,9 +122,9 @@ describe("resume markdown route", () => {
     getResumeMarkdown.mockRejectedValue(new Error("database exploded"));
 
     const response = await GET(
-      new Request("http://localhost/resume/1/markdown"),
+      new Request("http://localhost/resume/Res001/markdown"),
       {
-        params: Promise.resolve({ resume_id: "1" }),
+        params: Promise.resolve({ resume_id: "Res001" }),
       } as RouteContext<"/resume/[resume_id]/markdown">,
     );
 

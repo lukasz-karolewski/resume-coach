@@ -1,0 +1,118 @@
+"server-only";
+
+import { TRPCError } from "@trpc/server";
+import type { z } from "zod";
+import type { PrismaClient } from "~/generated/prisma/client";
+import { resumePdfSelect } from "~/lib/resume-pdf-select";
+import {
+  type createResumePermalinkSchema,
+  DEFAULT_PERMALINK_SLUG_LENGTH,
+  type deleteResumePermalinkSchema,
+  permalinkSlugSchema,
+} from "~/lib/schemas/resume-identifiers";
+import { generateBase62Id } from "~/server/lib/base62";
+import { requireOwnedResume } from "~/server/lib/resume";
+import { isUniqueConstraintError } from "~/server/utils";
+
+const PERMALINK_CREATE_ATTEMPTS = 5;
+
+async function requireOwnedResumeWithPermalink(
+  db: PrismaClient,
+  userId: string,
+  resumeId: string,
+) {
+  const resume = await db.resume.findFirst({
+    select: { id: true, permalink: true },
+    where: { id: resumeId, userId },
+  });
+
+  if (!resume) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Resume not found" });
+  }
+
+  return resume;
+}
+
+/**
+ * Inserts one permalink row. Returns null when the slug is already taken by a
+ * different resume, so callers decide whether to report a conflict or retry.
+ */
+async function claimPermalinkSlug(
+  db: PrismaClient,
+  resumeId: string,
+  slug: string,
+) {
+  try {
+    return await db.resumePermalink.create({ data: { resumeId, slug } });
+  } catch (error) {
+    if (!isUniqueConstraintError(error)) throw error;
+
+    // A concurrent request may have claimed this resume's permalink first.
+    const existing = await db.resumePermalink.findUnique({
+      where: { resumeId },
+    });
+
+    return existing ?? null;
+  }
+}
+
+export async function createResumePermalink(
+  db: PrismaClient,
+  userId: string,
+  input: z.infer<typeof createResumePermalinkSchema>,
+) {
+  const resume = await requireOwnedResumeWithPermalink(
+    db,
+    userId,
+    input.resumeId,
+  );
+
+  if (resume.permalink) return resume.permalink;
+
+  if (input.slug) {
+    const claimed = await claimPermalinkSlug(db, input.resumeId, input.slug);
+    if (claimed) return claimed;
+
+    throw new TRPCError({
+      code: "CONFLICT",
+      message: "That public link is already in use. Choose another one.",
+    });
+  }
+
+  for (let attempt = 0; attempt < PERMALINK_CREATE_ATTEMPTS; attempt += 1) {
+    const claimed = await claimPermalinkSlug(
+      db,
+      input.resumeId,
+      generateBase62Id(DEFAULT_PERMALINK_SLUG_LENGTH),
+    );
+    if (claimed) return claimed;
+  }
+
+  throw new Error("Unable to allocate a unique public link");
+}
+
+export async function deleteResumePermalink(
+  db: PrismaClient,
+  userId: string,
+  input: z.infer<typeof deleteResumePermalinkSchema>,
+) {
+  await requireOwnedResume(db, userId, input.resumeId);
+  await db.resumePermalink.deleteMany({ where: { resumeId: input.resumeId } });
+
+  return { success: true };
+}
+
+export async function getPublicResumeBySlug(
+  db: PrismaClient,
+  untrustedSlug: string,
+) {
+  const parsedSlug = permalinkSlugSchema.safeParse(untrustedSlug);
+  if (!parsedSlug.success) return null;
+
+  const permalink = await db.resumePermalink.findUnique({
+    select: { resume: { select: resumePdfSelect } },
+    where: { slug: parsedSlug.data },
+  });
+
+  return permalink?.resume ?? null;
+}

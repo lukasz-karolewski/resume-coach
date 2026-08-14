@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { auth } from "~/auth";
+import { resumeIdSchema } from "~/lib/schemas/resume-identifiers";
 import { db } from "~/server/db";
 import { getResumeMarkdown } from "~/server/lib/resume";
 
@@ -25,9 +26,9 @@ export async function GET(
   }
 
   const { resume_id: resumeIdParam } = await context.params;
-  const resumeId = Number.parseInt(resumeIdParam, 10);
+  const result = resumeIdSchema.safeParse(resumeIdParam);
 
-  if (Number.isNaN(resumeId)) {
+  if (!result.success) {
     return new Response("Resume not found", {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
@@ -35,6 +36,8 @@ export async function GET(
       status: 404,
     });
   }
+
+  const resumeId = result.data;
 
   try {
     const markdown = await getResumeMarkdown(db, session.user.id, {

@@ -46,16 +46,21 @@ const mockResume = {
           title: "Staff Engineer",
         },
       ],
-      resumeId: 7,
+      resumeId: "Res007",
     },
   ],
-  id: 7,
+  id: "Res007",
   name: "Platform Resume",
   patents: [],
+  permalink: null,
   sections: [],
   skills: [],
   summary: "Summary",
 };
+
+vi.mock("~/components/resume/resume-share-dialog", () => ({
+  ResumeShareDialog: () => null,
+}));
 
 vi.mock("~/components/ui/toast", () => ({
   toast: {
@@ -275,7 +280,7 @@ describe("ResumeDetailClient", () => {
   });
 
   test("renders an inline title input without edit controls", () => {
-    render(<ResumeDetailClient resumeId={7} />);
+    render(<ResumeDetailClient resumeId={"Res007"} />);
 
     const input = screen.getByLabelText("Resume name");
 
@@ -304,7 +309,7 @@ describe("ResumeDetailClient", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /preview resume/i }),
-    ).toHaveAttribute("href", "/resume/7/preview");
+    ).toHaveAttribute("href", "/resume/Res007/preview");
     expect(
       screen.getByRole("button", { name: /delete resume/i }),
     ).toBeInTheDocument();
@@ -321,11 +326,13 @@ describe("ResumeDetailClient", () => {
             description: "Reduced stale reads in distributed systems.",
             id: 21,
             link: null,
-            resumeId: 7,
+            resumeId: "Res007",
             title: "Adaptive cache invalidation",
           },
         ],
-        sections: [{ id: 22, resumeId: 7, title: "Patents", type: "PATENTS" }],
+        sections: [
+          { id: 22, resumeId: "Res007", title: "Patents", type: "PATENTS" },
+        ],
       });
     });
     mockAddSectionItemMutation.mockImplementation((options) => {
@@ -334,7 +341,7 @@ describe("ResumeDetailClient", () => {
       return { isPending: false, mutate };
     });
 
-    render(<ResumeDetailClient resumeId={7} />);
+    render(<ResumeDetailClient resumeId={"Res007"} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Add section" }));
 
@@ -366,7 +373,7 @@ describe("ResumeDetailClient", () => {
     expect(mutate).toHaveBeenCalledWith({
       date: "2021-06",
       description: "Reduced stale reads in distributed systems.",
-      resumeId: 7,
+      resumeId: "Res007",
       title: "Adaptive cache invalidation",
       type: "PATENTS",
     });
@@ -379,7 +386,7 @@ describe("ResumeDetailClient", () => {
     const mutate = vi.fn();
     mockAddSectionItemMutation.mockReturnValue({ isPending: false, mutate });
 
-    render(<ResumeDetailClient resumeId={7} />);
+    render(<ResumeDetailClient resumeId={"Res007"} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Add experience" }));
 
@@ -407,7 +414,7 @@ describe("ResumeDetailClient", () => {
       accomplishments: "- Built a resilient platform",
       companyName: "Globex",
       location: "Remote",
-      resumeId: 7,
+      resumeId: "Res007",
       roleTitle: "Principal Engineer",
       startDate: "2024-01",
       type: "EXPERIENCE",
@@ -421,12 +428,12 @@ describe("ResumeDetailClient", () => {
     });
     mockClipboardWriteText.mockResolvedValue(undefined);
 
-    render(<ResumeDetailClient resumeId={7} />);
+    render(<ResumeDetailClient resumeId={"Res007"} />);
 
     fireEvent.click(screen.getByRole("button", { name: /copy as markdown/i }));
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith("/resume/7/markdown");
+      expect(mockFetch).toHaveBeenCalledWith("/resume/Res007/markdown");
       expect(mockClipboardWriteText).toHaveBeenCalledWith("# Resume markdown");
       expect(toast.add).toHaveBeenCalledWith({
         title: "Copied markdown",
@@ -443,7 +450,7 @@ describe("ResumeDetailClient", () => {
       mutate,
     });
 
-    render(<ResumeDetailClient resumeId={7} />);
+    render(<ResumeDetailClient resumeId={"Res007"} />);
 
     const input = screen.getByLabelText("Resume name");
     fireEvent.change(input, { target: { value: "Platform Resume v2" } });
@@ -454,7 +461,7 @@ describe("ResumeDetailClient", () => {
     });
 
     expect(mutate).toHaveBeenCalledWith({
-      id: 7,
+      id: "Res007",
       name: "Platform Resume v2",
     });
 
@@ -462,7 +469,7 @@ describe("ResumeDetailClient", () => {
   });
 
   test("opens the browser print dialog from the toolbar", () => {
-    render(<ResumeDetailClient resumeId={7} />);
+    render(<ResumeDetailClient resumeId={"Res007"} />);
 
     fireEvent.click(screen.getByRole("button", { name: /print resume/i }));
 
@@ -470,7 +477,7 @@ describe("ResumeDetailClient", () => {
   });
 
   test("opens and cancels the delete confirmation dialog", async () => {
-    render(<ResumeDetailClient resumeId={7} />);
+    render(<ResumeDetailClient resumeId={"Res007"} />);
 
     fireEvent.click(screen.getByRole("button", { name: /delete resume/i }));
 
@@ -508,7 +515,7 @@ describe("ResumeDetailClient", () => {
       };
     });
 
-    render(<ResumeDetailClient resumeId={7} />);
+    render(<ResumeDetailClient resumeId={"Res007"} />);
 
     fireEvent.change(screen.getByLabelText("Resume name"), {
       target: { value: "Platform Resume v2" },
@@ -535,13 +542,13 @@ describe("ResumeDetailClient", () => {
       mutate,
     });
 
-    render(<ResumeDetailClient resumeId={7} />);
+    render(<ResumeDetailClient resumeId={"Res007"} />);
 
     fireEvent.click(screen.getByRole("button", { name: /duplicate resume/i }));
 
     await waitFor(() => {
       expect(mutate).toHaveBeenCalledWith({
-        id: 7,
+        id: "Res007",
         name: "Platform Resume (Copy)",
       });
     });
@@ -554,13 +561,13 @@ describe("ResumeDetailClient", () => {
       mutate,
     });
 
-    render(<ResumeDetailClient resumeId={7} />);
+    render(<ResumeDetailClient resumeId={"Res007"} />);
 
     fireEvent.click(screen.getByRole("button", { name: /delete resume/i }));
     fireEvent.click(screen.getByRole("button", { name: "Delete" }));
 
     await waitFor(() => {
-      expect(mutate).toHaveBeenCalledWith({ id: 7 });
+      expect(mutate).toHaveBeenCalledWith({ id: "Res007" });
     });
   });
 
@@ -574,7 +581,7 @@ describe("ResumeDetailClient", () => {
               companyName: string;
               itemId: number;
               location: string;
-              resumeId: number;
+              resumeId: string;
               roleTitle: string;
               startDate: string;
               type: "EXPERIENCE";
@@ -588,7 +595,7 @@ describe("ResumeDetailClient", () => {
         companyName: string;
         itemId: number;
         location: string;
-        resumeId: number;
+        resumeId: string;
         roleTitle: string;
         startDate: string;
         type: "EXPERIENCE";
@@ -602,7 +609,7 @@ describe("ResumeDetailClient", () => {
       return { isPending: false, mutate };
     });
 
-    render(<ResumeDetailClient resumeId={7} />);
+    render(<ResumeDetailClient resumeId={"Res007"} />);
 
     fireEvent.click(
       screen.getByRole("button", { name: "Edit test experience" }),
@@ -622,7 +629,7 @@ describe("ResumeDetailClient", () => {
       companyName: "Acme",
       itemId: 34,
       location: "Remote",
-      resumeId: 7,
+      resumeId: "Res007",
       roleTitle: "Staff Engineer",
       startDate: "2022-01",
       type: "EXPERIENCE",
@@ -633,7 +640,7 @@ describe("ResumeDetailClient", () => {
     const mutate = vi.fn();
     mockRemoveSectionMutation.mockReturnValue({ isPending: false, mutate });
 
-    render(<ResumeDetailClient resumeId={7} />);
+    render(<ResumeDetailClient resumeId={"Res007"} />);
 
     fireEvent.click(
       screen.getByRole("button", { name: "Remove Experience section" }),
@@ -646,7 +653,7 @@ describe("ResumeDetailClient", () => {
     fireEvent.click(screen.getByRole("button", { name: "Remove section" }));
 
     expect(mutate).toHaveBeenCalledWith({
-      resumeId: 7,
+      resumeId: "Res007",
       type: "EXPERIENCE",
     });
   });
@@ -656,11 +663,11 @@ describe("ResumeDetailClient", () => {
       | {
           onSuccess?: (
             data: unknown,
-            variables: { resumeId: number; summary: string },
+            variables: { resumeId: string; summary: string },
           ) => void | Promise<void>;
         }
       | undefined;
-    const mutate = vi.fn((variables: { resumeId: number; summary: string }) => {
+    const mutate = vi.fn((variables: { resumeId: string; summary: string }) => {
       void mutationOptions?.onSuccess?.({}, variables);
     });
 
@@ -669,7 +676,7 @@ describe("ResumeDetailClient", () => {
       return { isPending: false, mutate };
     });
 
-    render(<ResumeDetailClient resumeId={7} />);
+    render(<ResumeDetailClient resumeId={"Res007"} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Edit test summary" }));
     const editor = await screen.findByLabelText("Professional summary");
@@ -679,7 +686,7 @@ describe("ResumeDetailClient", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     expect(mutate).toHaveBeenCalledWith({
-      resumeId: 7,
+      resumeId: "Res007",
       summary: "Platform engineer focused on reliable delivery.",
     });
     await waitFor(() => {

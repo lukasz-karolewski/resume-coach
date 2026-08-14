@@ -35,7 +35,7 @@ import type { RouterInputs } from "~/trpc/shared";
 export type JobFormResult = RouterInputs["job"]["addJob"];
 
 type ResumeOption = {
-  id: number;
+  id: string;
   name: string;
 };
 
@@ -204,9 +204,7 @@ export const JobModal = createModal<JobFormResult, JobModalProps>(
                   items={resumeItems}
                   value={resumeId.field.value?.toString() ?? "none"}
                   onValueChange={(value) =>
-                    resumeId.field.onChange(
-                      value === "none" ? null : Number(value),
-                    )
+                    resumeId.field.onChange(value === "none" ? null : value)
                   }
                 >
                   <SelectTrigger id="job-resume" className="w-full">

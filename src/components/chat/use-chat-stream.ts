@@ -24,9 +24,9 @@ export interface ConversationMessage {
 
 interface UseChatStreamOptions {
   threadId?: string;
-  resumeId?: number;
+  resumeId?: string;
   onThreadCreated?: (threadId: string) => void;
-  onOpenResume?: (resumeId: number) => void;
+  onOpenResume?: (resumeId: string) => void;
 }
 
 export function useChatStream(options: UseChatStreamOptions = {}) {
@@ -201,7 +201,7 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
             case "navigate": {
               // The agent keeps streaming while the app routes to the resume,
               // so the conversation survives the navigation.
-              if (typeof data.resumeId === "number") {
+              if (typeof data.resumeId === "string") {
                 onOpenResume?.(data.resumeId);
               }
               break;
