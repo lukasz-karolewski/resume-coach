@@ -139,7 +139,7 @@ CREATE TABLE "ResumePermalink" (
   CONSTRAINT "ResumePermalink_pkey" PRIMARY KEY ("id"),
   CONSTRAINT "ResumePermalink_slug_check"
     CHECK (
-      char_length("slug") BETWEEN 3 AND 64
+      char_length("slug") BETWEEN 8 AND 64
       AND "slug" ~ '^[A-Za-z0-9]+(-[A-Za-z0-9]+)*$'
     ),
   CONSTRAINT "ResumePermalink_resumeId_fkey"

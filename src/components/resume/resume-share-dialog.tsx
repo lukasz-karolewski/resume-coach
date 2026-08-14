@@ -210,7 +210,7 @@ export function ResumeShareDialog({
                   id="public-resume-slug"
                   aria-invalid={Boolean(errors.slug)}
                   className="border-0 shadow-none focus-visible:ring-0"
-                  placeholder="your-name"
+                  placeholder="your-full-name"
                   {...register("slug")}
                 />
               </div>
@@ -225,7 +225,9 @@ export function ResumeShareDialog({
                 </p>
               ) : null}
               <p className="text-xs text-muted-foreground">
-                Leave blank to generate a random private-looking link.
+                Anyone with the link can see your name, email, and phone, so a
+                custom link needs at least 8 characters. Leave blank to generate
+                a random private-looking link.
               </p>
             </div>
             <DialogFooter>
