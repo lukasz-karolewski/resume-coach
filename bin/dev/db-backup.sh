@@ -15,10 +15,12 @@ Defaults:
 Environment:
   DB_DOCKER_SERVICE=postgres
   PROD_ENV_FILE=.env.production.local
+  PROD_URL_KEY=POSTGRES_URL_NON_POOLING
   PROD_DATABASE_URL_UNPOOLED=<production connection string>
-  NEON_PROJECT_ID=fragrant-unit-64753227
-  NEON_ROLE_NAME=neondb_owner
-  NEON_DATABASE_NAME=neondb
+
+The prod target reads exactly one key, PROD_URL_KEY, from PROD_ENV_FILE, unless
+PROD_DATABASE_URL_UNPOOLED is set. It never falls back to another key, and it
+refuses to run if the result points at a local database.
 USAGE
 }
 
@@ -53,21 +55,17 @@ compose_has_pg_dump() {
     fail "pg_dump not found in Docker service '$DB_DOCKER_SERVICE'."
 }
 
+is_local_url() {
+  [[ "$1" =~ @(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])([:/]|$) ]]
+}
+
 prod_url() {
   if [[ -n "${PROD_DATABASE_URL_UNPOOLED:-}" ]]; then
     echo "$PROD_DATABASE_URL_UNPOOLED"
     return
   fi
 
-  local url
-  url="$(env_value "$PROD_ENV_FILE" DATABASE_URL_UNPOOLED)"
-  [[ -n "$url" ]] && echo "$url" && return
-
-  npx -y neonctl connection-string main \
-    --project-id "$NEON_PROJECT_ID" \
-    --role-name "$NEON_ROLE_NAME" \
-    --database-name "$NEON_DATABASE_NAME" \
-    --ssl require
+  env_value "$PROD_ENV_FILE" "$PROD_URL_KEY"
 }
 
 TARGET="${1:-}"
@@ -80,9 +78,7 @@ fi
 
 DB_DOCKER_SERVICE="${DB_DOCKER_SERVICE:-postgres}"
 PROD_ENV_FILE="${PROD_ENV_FILE:-.env.production.local}"
-NEON_PROJECT_ID="${NEON_PROJECT_ID:-fragrant-unit-64753227}"
-NEON_ROLE_NAME="${NEON_ROLE_NAME:-neondb_owner}"
-NEON_DATABASE_NAME="${NEON_DATABASE_NAME:-neondb}"
+PROD_URL_KEY="${PROD_URL_KEY:-POSTGRES_URL_NON_POOLING}"
 LOCAL_DATABASE_URL="${LOCAL_DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/resume_coach}"
 OUTPUT="${2:-}"
 
@@ -94,7 +90,18 @@ mkdir -p "$(dirname "$OUTPUT")"
 compose_has_pg_dump
 
 if [[ "$TARGET" == "prod" ]]; then
+  if [[ -n "${PROD_DATABASE_URL_UNPOOLED:-}" ]]; then
+    PROD_URL_SOURCE="PROD_DATABASE_URL_UNPOOLED"
+  else
+    PROD_URL_SOURCE="$PROD_URL_KEY in $PROD_ENV_FILE"
+  fi
+
   DB_URL="$(prod_url)"
+  [[ -n "$DB_URL" ]] ||
+    fail "$PROD_URL_SOURCE is empty. Set it, or pass PROD_DATABASE_URL_UNPOOLED."
+  if is_local_url "$DB_URL"; then
+    fail "'prod' resolved to a local database via $PROD_URL_SOURCE. Point it at production."
+  fi
 else
   DB_URL="$LOCAL_DATABASE_URL"
 fi

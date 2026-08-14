@@ -45,11 +45,17 @@ The script creates a PostgreSQL custom-format dump of `public` with
 `pg_dump --schema=public --no-owner --no-acl -Fc`. It uses the Compose
 container's PostgreSQL tools and redacts passwords in output.
 
-Resolve production credentials in this order:
+Production credentials resolve from exactly one place, with no fallback chain:
 
-1. `PROD_DATABASE_URL_UNPOOLED`
-2. `DATABASE_URL_UNPOOLED` in `.env.production.local`
-3. `neonctl connection-string main` for the configured project
+1. `PROD_DATABASE_URL_UNPOOLED` if set, otherwise
+2. the single key named by `PROD_URL_KEY` (default `POSTGRES_URL_NON_POOLING`)
+   in `PROD_ENV_FILE` (default `.env.production.local`)
+
+If that value is missing, or points at a local database, the script fails
+instead of falling back to another key. This matters because
+`vercel env pull --environment=production` can write a `localhost` value for
+`DATABASE_URL_UNPOOLED`, which previously made `db-backup.sh prod` dump the
+local database while reporting success.
 
 ## Restore
 
@@ -81,11 +87,9 @@ script.
 | `DB_DOCKER_SERVICE` | `postgres` | Compose service containing PostgreSQL tools |
 | `LOCAL_DATABASE_URL` | local `resume_coach` URL | Local backup/restore target |
 | `LOCAL_ADMIN_URL` | local `postgres` database URL | Local drop/create connection |
-| `PROD_ENV_FILE` | `.env.production.local` | Production URL source |
+| `PROD_ENV_FILE` | `.env.production.local` | File holding the production URL |
+| `PROD_URL_KEY` | `POSTGRES_URL_NON_POOLING` | The one key read from that file |
 | `PROD_DATABASE_URL_UNPOOLED` | unset | Explicit production URL override |
-| `NEON_PROJECT_ID` | `fragrant-unit-64753227` | Production Neon project |
-| `NEON_ROLE_NAME` | `neondb_owner` | Neon role |
-| `NEON_DATABASE_NAME` | `neondb` | Neon database |
 
 ## Safety Rules
 
