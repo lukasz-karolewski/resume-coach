@@ -70,6 +70,14 @@ describe("MCP route", () => {
     getSession.mockResolvedValue(null);
   });
 
+  test("keeps the installed OAuth provider compatible with protected MCP requests", async () => {
+    const oauthProvider = await vi.importActual<Record<string, unknown>>(
+      "@better-auth/oauth-provider",
+    );
+
+    expect(oauthProvider.mcpHandler).toEqual(expect.any(Function));
+  });
+
   test("challenges unauthenticated clients with protected-resource metadata", async () => {
     const response = await GET(
       new Request("http://localhost/api/mcp", { method: "GET" }),

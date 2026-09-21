@@ -8,3 +8,6 @@ allowBuilds:
   msw: true
   prisma: true
   sharp: true
+
+overrides:
+  "@better-auth/core": 1.6.27
