@@ -1,7 +1,10 @@
 {
   "dependencies": {
     "@base-ui/react": "^1.8.0",
-    "@better-auth/oauth-provider": "1.6.27",
+    "@better-auth/cimd": "1.7.5",
+    "@better-auth/core": "1.7.5",
+    "@better-auth/mcp": "1.7.5",
+    "@better-auth/oauth-provider": "1.7.5",
     "@ebay/nice-modal-react": "^1.2.13",
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^5.9.1",
@@ -26,7 +29,7 @@
     "@trpc/tanstack-react-query": "^11.19.0",
     "@vercel/analytics": "^2.0.1",
     "@vitejs/plugin-react": "^6.1.1",
-    "better-auth": "1.6.27",
+    "better-auth": "1.7.5",
     "cheerio": "^1.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -36,7 +39,6 @@
     "langchain": "^1.5.11",
     "lexical": "^0.51.0",
     "markdown-to-jsx": "^9.10.3",
-    "mcp-handler": "^2.1.1",
     "next": "^16.3.5",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
@@ -71,7 +73,7 @@
   "packageManager": "pnpm@11.20.0",
   "private": true,
   "scripts": {
-    "auth-update-db": "npx @better-auth/cli generate",
+    "auth-update-db": "pnpm dlx auth@1.7.5 generate --config better-auth.schema.ts --adapter prisma --dialect postgresql",
     "build": "prisma generate && next build",
     "dev": "next dev",
     "generate": "prisma generate",
@@ -86,6 +88,7 @@
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:ui": "playwright test --ui",
+    "test:mcp-oauth": "tsx --conditions=react-server bin/dev/mcp-oauth-e2e.mts",
     "test:ui": "vitest --ui",
     "test:watch": "vitest --watch"
   },

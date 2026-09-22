@@ -1,6 +1,14 @@
 import { expect, test, vi } from "vitest";
 
 vi.unmock("~/auth");
+vi.mock("~/server/db", () => ({
+  db: {
+    oauthResource: {
+      create: vi.fn(({ data }) => data),
+      findFirst: vi.fn().mockResolvedValue(null),
+    },
+  },
+}));
 
 test("publishes the OAuth authorization server used by MCP", async () => {
   const { GET } = await import("./route");

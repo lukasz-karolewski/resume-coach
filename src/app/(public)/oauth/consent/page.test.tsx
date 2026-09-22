@@ -31,8 +31,10 @@ test("shows the requesting OAuth client and scopes", async () => {
   );
 
   expect(screen.getByText(/MCP Inspector wants to connect/i)).toBeVisible();
-  expect(screen.getByText("openid")).toBeVisible();
-  expect(screen.getByText("mcp:tools")).toBeVisible();
+  expect(screen.getByText("Confirm who you are")).toBeVisible();
+  expect(
+    screen.getByText("Use Resume Coach tools on your behalf"),
+  ).toBeVisible();
   expect(screen.getByRole("button", { name: "Allow" })).toBeVisible();
   expect(screen.getByRole("button", { name: "Deny" })).toBeVisible();
   expect(screen.getByRole("link", { name: "Resume Coach" })).toBeVisible();

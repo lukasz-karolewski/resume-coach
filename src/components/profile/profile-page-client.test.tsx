@@ -50,6 +50,10 @@ vi.mock("./accomplishment-profile-editor", () => ({
   }) => <div>{`Profile editor ${initialProfile.roles[0]?.startMonth}`}</div>,
 }));
 
+vi.mock("./connected-apps-card", () => ({
+  ConnectedAppsCard: () => <div>Connected apps card</div>,
+}));
+
 describe("ProfilePageClient", () => {
   test("reads hydrated profile data through suspense queries", () => {
     render(<ProfilePageClient />);
@@ -57,5 +61,6 @@ describe("ProfilePageClient", () => {
     expect(screen.getByText("Not provided")).toBeInTheDocument();
     expect(screen.getByText("jane@example.com")).toBeInTheDocument();
     expect(screen.getByText("Profile editor 2023-01")).toBeInTheDocument();
+    expect(screen.getByText("Connected apps card")).toBeInTheDocument();
   });
 });

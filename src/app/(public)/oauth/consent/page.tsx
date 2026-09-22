@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { auth } from "~/auth";
 import { AuthScreen } from "~/components/auth/auth-screen";
 import { Alert, AlertDescription } from "~/components/ui/alert";
+import { describeScope } from "~/server/lib/oauth";
 import { ConsentForm } from "./consent-form";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -43,7 +44,7 @@ export default async function OAuthConsentPage({
   return (
     <AuthScreen
       description={`${client.client_name ?? "An external application"} wants to connect to your Resume Coach account.`}
-      footer="You can revoke access later by revoking the OAuth session."
+      footer="You can disconnect this app later from your profile."
       layout="focused"
       title="Allow access?"
     >
@@ -52,7 +53,7 @@ export default async function OAuthConsentPage({
         <ul className="divide-y rounded-lg border">
           {scopes.map((scope) => (
             <li className="px-3 py-2 text-sm" key={scope}>
-              {scope}
+              {describeScope(scope)}
             </li>
           ))}
         </ul>

@@ -1,8 +1,15 @@
+import {
+  CLIENT_CAPABILITIES_META_KEY,
+  CLIENT_INFO_META_KEY,
+  PROTOCOL_VERSION_META_KEY,
+} from "@modelcontextprotocol/server";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { z } from "zod";
-import { GET, POST } from "./route";
+import * as route from "./route";
 
-const { agentTool, getSession, invoke, verifyOptions } = vi.hoisted(() => {
+const { POST } = route;
+
+const { agentTool, findConsent, invoke, verifyOptions } = vi.hoisted(() => {
   const invoke = vi.fn(function (this: { defaultConfig?: unknown }) {
     if (!this.defaultConfig) {
       throw new TypeError(
@@ -20,7 +27,7 @@ const { agentTool, getSession, invoke, verifyOptions } = vi.hoisted(() => {
       invoke,
       name: "listResumes",
     },
-    getSession: vi.fn(),
+    findConsent: vi.fn(),
     invoke,
     verifyOptions: vi.fn(),
   };
@@ -32,9 +39,43 @@ async function readMcpResponse(response: Response) {
   return JSON.parse(data ?? body);
 }
 
-vi.mock("@better-auth/oauth-provider", () => ({
-  mcpHandler:
-    (options: unknown, handler: (request: Request, jwt: unknown) => Response) =>
+function mcpRequest(method: string, params = {}) {
+  const headers = new Headers({
+    accept: "application/json, text/event-stream",
+    authorization: "Bearer valid-token",
+    "content-type": "application/json",
+    "mcp-method": method,
+    "mcp-protocol-version": "2026-07-28",
+  });
+  const name = (params as { name?: unknown }).name;
+  if (typeof name === "string") headers.set("mcp-name", name);
+
+  return new Request("http://localhost:3000/api/mcp", {
+    body: JSON.stringify({
+      id: 1,
+      jsonrpc: "2.0",
+      method,
+      params: {
+        ...params,
+        _meta: {
+          [CLIENT_CAPABILITIES_META_KEY]: {},
+          [CLIENT_INFO_META_KEY]: { name: "resume-coach-test", version: "1" },
+          [PROTOCOL_VERSION_META_KEY]: "2026-07-28",
+        },
+      },
+    }),
+    headers,
+    method: "POST",
+  });
+}
+
+vi.mock("@better-auth/mcp", () => ({
+  requireMcpAuth:
+    (
+      _auth: unknown,
+      handler: (request: Request, jwt: unknown) => Response,
+      options: unknown,
+    ) =>
     async (request: Request) => {
       verifyOptions(options);
       if (request.headers.get("authorization") !== "Bearer valid-token") {
@@ -48,6 +89,7 @@ vi.mock("@better-auth/oauth-provider", () => ({
       }
 
       return handler(request, {
+        client_id: "chatgpt-client",
         scope: "mcp:tools",
         sub: "oauth-user-1",
       });
@@ -55,7 +97,11 @@ vi.mock("@better-auth/oauth-provider", () => ({
 }));
 
 vi.mock("~/auth", () => ({
-  auth: { api: { getSession } },
+  auth: {},
+}));
+
+vi.mock("~/server/db", () => ({
+  db: { oauthConsent: { findFirst: findConsent } },
 }));
 
 vi.mock("~/server/agent/tools", () => ({
@@ -64,23 +110,26 @@ vi.mock("~/server/agent/tools", () => ({
 
 describe("MCP route", () => {
   beforeEach(() => {
-    getSession.mockReset();
     invoke.mockReset();
+    findConsent.mockReset();
+    findConsent.mockResolvedValue({ id: "consent-1" });
     verifyOptions.mockClear();
-    getSession.mockResolvedValue(null);
   });
 
-  test("keeps the installed OAuth provider compatible with protected MCP requests", async () => {
-    const oauthProvider = await vi.importActual<Record<string, unknown>>(
-      "@better-auth/oauth-provider",
-    );
+  test("exports only the stateless POST transport", () => {
+    expect("GET" in route).toBe(false);
+  });
 
-    expect(oauthProvider.mcpHandler).toEqual(expect.any(Function));
+  test("uses the installed MCP authorization package", async () => {
+    const mcp =
+      await vi.importActual<Record<string, unknown>>("@better-auth/mcp");
+
+    expect(mcp.requireMcpAuth).toEqual(expect.any(Function));
   });
 
   test("challenges unauthenticated clients with protected-resource metadata", async () => {
-    const response = await GET(
-      new Request("http://localhost/api/mcp", { method: "GET" }),
+    const response = await POST(
+      new Request("http://localhost/api/mcp", { method: "POST" }),
     );
 
     expect(response.status).toBe(401);
@@ -89,54 +138,11 @@ describe("MCP route", () => {
     );
   });
 
-  test("keeps browser-session authentication for first-party clients", async () => {
-    getSession.mockResolvedValue({ user: { id: "user-1" } });
-
-    const response = await POST(
-      new Request("http://localhost/api/mcp", {
-        body: JSON.stringify({
-          id: 1,
-          jsonrpc: "2.0",
-          method: "tools/list",
-          params: {},
-        }),
-        headers: {
-          accept: "application/json, text/event-stream",
-          "content-type": "application/json",
-        },
-        method: "POST",
-      }),
-    );
-    const payload = await readMcpResponse(response);
-
-    expect(response.status).toBe(200);
-    expect(payload.result.tools).toEqual([
-      expect.objectContaining({
-        annotations: expect.objectContaining({ readOnlyHint: true }),
-        name: "listResumes",
-      }),
-    ]);
-  });
-
   test("offers safe resume editing workflow guidance", async () => {
-    getSession.mockResolvedValue({ user: { id: "user-1" } });
-
     const response = await POST(
-      new Request("http://localhost/api/mcp", {
-        body: JSON.stringify({
-          id: 3,
-          jsonrpc: "2.0",
-          method: "prompts/get",
-          params: {
-            arguments: { objective: "Tailor a disposable copy" },
-            name: "edit-resume-safely",
-          },
-        }),
-        headers: {
-          accept: "application/json, text/event-stream",
-          "content-type": "application/json",
-        },
-        method: "POST",
+      mcpRequest("prompts/get", {
+        arguments: { objective: "Tailor a disposable copy" },
+        name: "edit-resume-safely",
       }),
     );
     const payload = await readMcpResponse(response);
@@ -152,19 +158,9 @@ describe("MCP route", () => {
 
   test("uses the OAuth subject as the tool user", async () => {
     const response = await POST(
-      new Request("http://localhost/api/mcp", {
-        body: JSON.stringify({
-          id: 2,
-          jsonrpc: "2.0",
-          method: "tools/call",
-          params: { arguments: {}, name: "listResumes" },
-        }),
-        headers: {
-          accept: "application/json, text/event-stream",
-          authorization: "Bearer valid-token",
-          "content-type": "application/json",
-        },
-        method: "POST",
+      mcpRequest("tools/call", {
+        arguments: {},
+        name: "listResumes",
       }),
     );
 
@@ -178,14 +174,42 @@ describe("MCP route", () => {
     expect(invoke.mock.contexts[0]).toEqual(
       expect.objectContaining({ defaultConfig: {} }),
     );
-    expect(verifyOptions).toHaveBeenCalledWith(
-      expect.objectContaining({
-        scopes: ["mcp:tools"],
-        verifyOptions: expect.objectContaining({
-          audience: "http://localhost:3000/api/mcp",
-          issuer: "http://localhost:3000/api/auth",
+    expect(verifyOptions).toHaveBeenCalledWith({
+      requiredScopes: ["mcp:tools"],
+      resource: "http://localhost:3000/api/mcp",
+    });
+    expect(findConsent).toHaveBeenCalledWith({
+      where: { clientId: "chatgpt-client", userId: "oauth-user-1" },
+    });
+  });
+
+  test("rejects an access token after its grant is revoked", async () => {
+    findConsent.mockResolvedValue(null);
+
+    const response = await POST(mcpRequest("tools/list"));
+
+    expect(response.status).toBe(403);
+    expect(invoke).not.toHaveBeenCalled();
+  });
+
+  test("rejects session-oriented legacy MCP traffic", async () => {
+    const response = await POST(
+      new Request("http://localhost:3000/api/mcp", {
+        body: JSON.stringify({
+          id: 1,
+          jsonrpc: "2.0",
+          method: "tools/list",
+          params: {},
         }),
+        headers: {
+          authorization: "Bearer valid-token",
+          "content-type": "application/json",
+        },
+        method: "POST",
       }),
     );
+
+    expect(response.status).toBe(400);
+    expect(await response.text()).toContain("2026-07-28");
   });
 });

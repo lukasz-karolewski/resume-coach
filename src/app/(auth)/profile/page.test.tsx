@@ -10,6 +10,9 @@ const mockUserInformationQueryOptions = vi.fn(() => ({
 const mockAccomplishmentQueryOptions = vi.fn(() => ({
   queryKey: ["profile", "getAccomplishmentProfile"],
 }));
+const mockConnectedAppsQueryOptions = vi.fn(() => ({
+  queryKey: ["profile", "getConnectedApps"],
+}));
 
 vi.mock("~/trpc/server", () => ({
   HydrateClient: ({ children }: { children: React.ReactNode }) => (
@@ -20,6 +23,9 @@ vi.mock("~/trpc/server", () => ({
     profile: {
       getAccomplishmentProfile: {
         queryOptions: () => mockAccomplishmentQueryOptions(),
+      },
+      getConnectedApps: {
+        queryOptions: () => mockConnectedAppsQueryOptions(),
       },
       getUserInfo: {
         queryOptions: () => mockUserInformationQueryOptions(),
@@ -37,7 +43,7 @@ describe("ProfilePage", () => {
     vi.clearAllMocks();
   });
 
-  test("prefetches both profile queries inside the hydration boundary", () => {
+  test("prefetches profile queries inside the hydration boundary", () => {
     render(<ProfilePage />);
 
     expect(mockPrefetch).toHaveBeenCalledWith({
@@ -45,6 +51,9 @@ describe("ProfilePage", () => {
     });
     expect(mockPrefetch).toHaveBeenCalledWith({
       queryKey: ["profile", "getAccomplishmentProfile"],
+    });
+    expect(mockPrefetch).toHaveBeenCalledWith({
+      queryKey: ["profile", "getConnectedApps"],
     });
     expect(screen.getByTestId("hydrate-client")).toContainElement(
       screen.getByText("Profile client body"),

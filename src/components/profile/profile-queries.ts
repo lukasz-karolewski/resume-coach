@@ -8,6 +8,10 @@ export function accomplishmentProfileQuery(trpc: TRPC) {
   return trpc.profile.getAccomplishmentProfile.queryOptions();
 }
 
+export function connectedAppsQuery(trpc: TRPC) {
+  return trpc.profile.getConnectedApps.queryOptions();
+}
+
 export function userInformationQuery(trpc: TRPC) {
   return trpc.profile.getUserInfo.queryOptions();
 }

@@ -68,6 +68,17 @@ approve the `mcp:tools` scope before the client receives access.
 Production deployments must define `BETTER_AUTH_URL` as the public HTTPS origin
 and use a high-entropy `BETTER_AUTH_SECRET` of at least 32 characters.
 
+After changing OAuth or MCP configuration, run the complete in-process flow
+against the local database:
+
+```bash
+pnpm test:mcp-oauth
+```
+
+The check creates and removes its own test user and OAuth client. It covers
+scope-less dynamic registration, PKCE and consent, token refresh, MCP access
+after web sign-out, connected-app listing, and immediate disconnection.
+
 ## Notes
 
 TODO:

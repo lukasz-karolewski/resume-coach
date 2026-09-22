@@ -1,14 +1,11 @@
-import { mcpHandler } from "@better-auth/oauth-provider";
-import { createMcpHandler } from "mcp-handler";
+import { requireMcpAuth } from "@better-auth/mcp";
+import { createMcpHandler, McpServer } from "@modelcontextprotocol/server";
 import { z } from "zod";
 import { auth } from "~/auth";
 import { resumeIdSchema } from "~/lib/schemas/resume-identifiers";
 import { headlessTools } from "~/server/agent/tools";
-import {
-  MCP_OAUTH_SCOPE,
-  MCP_RESOURCE,
-  OAUTH_ISSUER,
-} from "~/server/lib/oauth";
+import { db } from "~/server/db";
+import { MCP_OAUTH_SCOPE, MCP_RESOURCE } from "~/server/lib/oauth";
 
 const MCP_SERVER_INFO = {
   name: "resume-coach",
@@ -69,7 +66,12 @@ function formatToolResult(result: unknown) {
 
 function createHandler(userId: string) {
   return createMcpHandler(
-    (server) => {
+    () => {
+      const server = new McpServer(MCP_SERVER_INFO, {
+        instructions:
+          "Resume Coach manages resumes owned by the authenticated user. Discover IDs with listResumes/getResume, preserve source data, treat update tools as replacements, and verify every mutation by reading it back.",
+      });
+
       for (const agentTool of headlessTools) {
         server.registerTool(
           agentTool.name,
@@ -140,48 +142,39 @@ function createHandler(userId: string) {
           ],
         }),
       );
+
+      return server;
     },
     {
-      instructions:
-        "Resume Coach manages resumes owned by the authenticated user. Discover IDs with listResumes/getResume, preserve source data, treat update tools as replacements, and verify every mutation by reading it back.",
-      serverInfo: MCP_SERVER_INFO,
+      legacy: "reject",
     },
   );
 }
 
-const handleOAuthRequest = mcpHandler(
-  {
-    jwksUrl: `${OAUTH_ISSUER}/jwks`,
-    scopes: [MCP_OAUTH_SCOPE],
-    verifyOptions: {
-      audience: MCP_RESOURCE,
-      issuer: OAUTH_ISSUER,
-    },
-  },
-  (request, jwt) => {
-    if (!jwt.sub) {
-      return new Response("Access token is missing a user subject", {
-        status: 401,
+const POST = requireMcpAuth(
+  auth,
+  async (request, jwt) => {
+    if (typeof jwt.sub !== "string" || typeof jwt.client_id !== "string") {
+      return new Response("Resume Coach couldn't authorize this connection", {
+        status: 403,
       });
     }
 
-    return createHandler(jwt.sub)(request);
+    const consent = await db.oauthConsent.findFirst({
+      where: { clientId: jwt.client_id, userId: jwt.sub },
+    });
+    if (!consent) {
+      return new Response("Resume Coach couldn't authorize this connection", {
+        status: 403,
+      });
+    }
+
+    return createHandler(jwt.sub).fetch(request);
+  },
+  {
+    requiredScopes: [MCP_OAUTH_SCOPE],
+    resource: MCP_RESOURCE,
   },
 );
 
-async function handle(request: Request) {
-  if (request.headers.get("authorization")?.startsWith("Bearer ")) {
-    return handleOAuthRequest(request);
-  }
-
-  const session = await auth.api.getSession({ headers: request.headers });
-
-  if (session?.user?.id) {
-    return createHandler(session.user.id)(request);
-  }
-
-  return handleOAuthRequest(request);
-}
-
-export const GET = handle;
-export const POST = handle;
+export { POST };
