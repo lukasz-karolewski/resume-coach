@@ -90,7 +90,8 @@
     "test:e2e:ui": "playwright test --ui",
     "test:mcp-oauth": "tsx --conditions=react-server bin/dev/mcp-oauth-e2e.mts",
     "test:ui": "vitest --ui",
-    "test:watch": "vitest --watch"
+    "test:watch": "vitest --watch",
+    "vercel-build": "tsx bin/vercel-build.ts"
   },
   "type": "module",
   "version": "0.1.0"

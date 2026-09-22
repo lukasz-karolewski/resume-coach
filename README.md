@@ -28,7 +28,14 @@ Use this connection for both `DATABASE_URL` and `DATABASE_URL_UNPOOLED` in
 `.env.local`:
 
 ```text
-postgresql://postgres:postgres@localhost:5432/resume_coach
+postgresql://postgres:postgres@localhost:55432/resume_coach
+```
+
+Use `redis://localhost:56379` for `REDIS_URL`. The Vercel Development
+environment stores these local endpoints, so refresh `.env.local` with:
+
+```bash
+vercel env pull .env.local --environment=development --yes
 ```
 
 Then apply migrations and optionally seed development data:
@@ -40,6 +47,9 @@ pnpm seed
 
 Database backup and restore commands are documented in
 `.agents/skills/db-backup-restore/SKILL.md`.
+
+Vercel runs pending Prisma migrations before production builds. Preview builds
+never run migrations.
 
 ### Playwright
 

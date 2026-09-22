@@ -19,8 +19,7 @@ services:
     # Override to use full stack with RedisInsight UI for local development
     image: "redis/redis-stack:latest"
     ports:
-      - 6379:6379
-      - 13333:8001  # RedisInsight UI (custom port for local dev)
+      - "127.0.0.1:59133:8001" # RedisInsight UI
 
   smtp:
     restart: unless-stopped
