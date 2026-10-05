@@ -75,8 +75,10 @@ The endpoint advertises its OAuth 2.1/OIDC authorization server through RFC
 authorization-code flow with PKCE. Users sign in through Resume Coach and must
 approve the `mcp:tools` scope before the client receives access.
 
-Production deployments must define `BETTER_AUTH_URL` as the public HTTPS origin
-and use a high-entropy `BETTER_AUTH_SECRET` of at least 32 characters.
+Production deployments must use a high-entropy `BETTER_AUTH_SECRET` of at least
+32 characters. Set `BETTER_AUTH_URL` to the public HTTPS origin when using a
+custom domain. On Vercel, the app derives it from the production hostname or,
+for previews, the deployment hostname when `BETTER_AUTH_URL` is unset.
 
 After changing OAuth or MCP configuration, run the complete in-process flow
 against the local database:
