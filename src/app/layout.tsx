@@ -1,4 +1,5 @@
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import clsx from "clsx";
 import type { Metadata } from "next";
 import { Noto_Serif, Playfair_Display } from "next/font/google";
@@ -70,6 +71,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         {children}
         <Toaster />
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
