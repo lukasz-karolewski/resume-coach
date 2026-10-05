@@ -7,7 +7,6 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   test: {
-    environment: "jsdom",
     exclude: [
       "**/node_modules/**",
       "**/dist/**",
@@ -16,7 +15,23 @@ export default defineConfig({
       "**/tests/**",
     ],
     globals: true,
-    include: ["**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}"],
-    setupFiles: "./vitest.setup.ts",
+    projects: [
+      {
+        test: {
+          environment: "node",
+          include: ["**/*.test.ts", "**/*.spec.ts"],
+          name: "node",
+          setupFiles: "./vitest.setup.ts",
+        },
+      },
+      {
+        test: {
+          environment: "jsdom",
+          include: ["**/*.test.tsx", "**/*.spec.tsx"],
+          name: "jsdom",
+          setupFiles: ["./vitest.setup.ts", "./vitest.setup.dom.ts"],
+        },
+      },
+    ],
   },
 });

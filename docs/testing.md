@@ -3,6 +3,11 @@
 Vitest + Testing Library for unit and component tests (`pnpm test`). Playwright
 (`pnpm test:e2e`) only for browser-level workflows those cannot cover.
 
+Vitest 5 requires Node 22.12+, 24, or 26+. Keep `vitest`, `@vitest/ui`, and
+`@vitest/coverage-v8` on the same version when upgrading. `pnpm test:coverage`
+runs the suite once and writes reports to `coverage/`. `pnpm test:watch` watches
+for changes. For `pnpm test:ui`, open the authenticated URL printed by Vitest.
+
 The guiding rule: **tests assert behavior, not wording.** A test should fail when
 the app does the wrong thing, not when someone improves a sentence.
 
@@ -39,13 +44,19 @@ component does not need a test unless the app adds behavior of its own.
 | `*.test.ts` | `node` | logic, server, queries, config |
 | `*.test.tsx` | `jsdom` | anything that renders |
 
-Building a jsdom costs roughly a second per file and slows every assertion made
-inside it, so only rendering tests should pay for one. Importing a heavy
-node-side dependency inside jsdom is far worse — one config test took 11.6s
-under jsdom and 0.4s under node.
+Creating jsdom for every file adds startup work, so only tests that render
+components or hooks should use it. Keep stream parsers and other pure logic in
+Node tests even when a component consumes them.
 
-If a `.ts` test needs the DOM, rename it to `.tsx` or opt in per file with
-`// @vitest-environment jsdom`. Filter to one half with
+Both projects load `vitest.setup.ts` for shared server mocks and deterministic
+test credentials. The jsdom project also loads `vitest.setup.dom.ts` for DOM
+matchers and observer mocks. Declare both setup files explicitly in that project.
+Keep file isolation enabled so module mocks and browser state cannot leak between
+files. Vitest 5 clears mock call history before each test by default; reset mock
+implementations explicitly when a test changes behavior another test relies on.
+
+If a `.ts` test needs the DOM, rename it to `.tsx` so it receives both jsdom and
+the DOM setup file. Filter to one half with
 `pnpm test --project node` / `--project jsdom`.
 
 The reverse matters too: type tests, helpers, adapters, and other pure logic
