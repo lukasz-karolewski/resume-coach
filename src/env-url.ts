@@ -1,4 +1,6 @@
-export function getBetterAuthUrl(env: NodeJS.ProcessEnv): string | undefined {
+export function getBetterAuthUrl(
+  env: Record<string, string | undefined>,
+): string | undefined {
   const configuredUrl = env.BETTER_AUTH_URL;
   if (configuredUrl) return configuredUrl;
 

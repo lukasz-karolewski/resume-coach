@@ -1,6 +1,6 @@
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
-import { getBetterAuthUrl } from "./env-url";
+import { getBetterAuthUrl } from "./env-url.ts";
 
 export const env = createEnv({
   /**
