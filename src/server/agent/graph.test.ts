@@ -29,6 +29,7 @@ const { createRun } = vi.hoisted(() => ({
 
 // Mock dependencies before imports
 vi.mock("../db", () => ({
+  databaseUrl: "postgresql://test/resume_coach",
   db: {
     chatMessage: {
       create: vi.fn(),
@@ -50,9 +51,9 @@ vi.mock("langchain", () => ({
   },
 }));
 
-vi.mock("@langchain/langgraph-checkpoint-redis", () => ({
-  RedisSaver: {
-    fromUrl: vi.fn(() => Promise.resolve({})),
+vi.mock("@langchain/langgraph-checkpoint-postgres", () => ({
+  PostgresSaver: {
+    fromConnString: vi.fn(() => ({ setup: vi.fn(() => Promise.resolve()) })),
   },
 }));
 

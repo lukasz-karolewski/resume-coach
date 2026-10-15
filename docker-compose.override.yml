@@ -15,12 +15,6 @@ services:
   #   volumes:
   #     - caddy_data:/data
 
-  redis:
-    # Override to use full stack with RedisInsight UI for local development
-    image: "redis/redis-stack:latest"
-    ports:
-      - "127.0.0.1:59133:8001" # RedisInsight UI
-
   smtp:
     restart: unless-stopped
     image: mailhog/mailhog
