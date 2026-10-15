@@ -63,6 +63,13 @@ vi.mock("~/components/resume/resume-share-dialog", () => ({
   ResumeShareDialog: () => null,
 }));
 
+vi.mock("~/components/resume/resume-pdf-viewer-lazy", () => ({
+  createResumePdfViewer: () =>
+    function MockResumePdfViewer({ resume }: { resume: { name: string } }) {
+      return <div data-testid="pdf-viewer">{resume.name}</div>;
+    },
+}));
+
 vi.mock("~/components/ui/toast", () => ({
   toast: {
     add: vi.fn(),
@@ -443,12 +450,22 @@ describe("ResumeDetailClient", () => {
     vi.useRealTimers();
   });
 
-  test("opens the browser print dialog from the toolbar", () => {
+  test("print opens the resume PDF full screen instead of the browser print dialog", async () => {
     render(<ResumeDetailClient resumeId={"Res007"} />);
 
     fireEvent.click(screen.getByRole("button", { name: /print resume/i }));
 
-    expect(mockPrint).toHaveBeenCalled();
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByTestId("pdf-viewer")).toHaveTextContent(
+      mockResume.name,
+    );
+    expect(mockPrint).not.toHaveBeenCalled();
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "Close" }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
   });
 
   test("cancelling the delete confirmation closes it without deleting", async () => {

@@ -5,7 +5,6 @@ import {
   ClipboardDocumentIcon,
   EyeIcon,
   PlusIcon,
-  PrinterIcon,
   Squares2X2Icon,
   TrashIcon,
 } from "@heroicons/react/20/solid";
@@ -24,6 +23,7 @@ import JobExperience from "~/components/resume/job-experience";
 import { MarkdownEditorDialog } from "~/components/resume/markdown-editor-dialog";
 import { PatentList } from "~/components/resume/patent-list";
 import { ProfessionalSummary } from "~/components/resume/professional-summary";
+import { ResumePrintDialog } from "~/components/resume/resume-print-dialog";
 import { ResumeSectionItemDialog } from "~/components/resume/resume-section-item-dialog";
 import { ResumeShareDialog } from "~/components/resume/resume-share-dialog";
 import Section from "~/components/resume/section";
@@ -484,24 +484,7 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: string }) {
                   </TooltipTrigger>
                   <TooltipContent>Copy as markdown</TooltipContent>
                 </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger
-                    render={
-                      <Button
-                        size="icon-sm"
-                        variant="ghost"
-                        className="cursor-pointer"
-                        aria-label="Print resume"
-                        onClick={() => {
-                          window.print();
-                        }}
-                      />
-                    }
-                  >
-                    <PrinterIcon className="size-4" />
-                  </TooltipTrigger>
-                  <TooltipContent>Print</TooltipContent>
-                </Tooltip>
+                <ResumePrintDialog resume={resume} />
                 <Tooltip>
                   <TooltipTrigger
                     render={
