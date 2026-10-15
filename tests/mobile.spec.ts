@@ -1,5 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
+import { signUp } from "./helpers";
+
 // Viewport only: `isMobile` is unsupported in the Firefox project.
 test.use({ viewport: { height: 844, width: 390 } });
 
@@ -12,17 +14,7 @@ async function expectNoHorizontalScroll(page: Page) {
 }
 
 test("signed-in pages fit a phone-width viewport", async ({ page }) => {
-  // Submitting before hydration falls back to a native POST that reloads
-  // /signup (see docs/ui-patterns.md). WebKit hydrates the dev build slowly
-  // enough to hit that, so wait for the page's scripts to finish loading.
-  await page.goto("/signup", { waitUntil: "networkidle" });
-  await page.getByRole("textbox", { name: "Name" }).fill("Mobile Tester");
-  await page
-    .getByRole("textbox", { name: "Email" })
-    .fill(`mobile${Date.now()}@test.com`);
-  await page.getByRole("textbox", { name: "Password" }).fill("samplepassword");
-  await page.getByRole("button", { exact: true, name: "Sign Up" }).click();
-  await expect(page).toHaveURL(/\/jobs$/, { timeout: 30_000 });
+  await signUp(page, "Mobile Tester");
 
   // A tracked application renders the jobs table, the widest piece of UI.
   await page.getByRole("button", { name: "Add application" }).first().click();
@@ -41,9 +33,25 @@ test("signed-in pages fit a phone-width viewport", async ({ page }) => {
   ).toBeVisible();
   await expectNoHorizontalScroll(page);
 
-  for (const path of ["/resume", "/profile"]) {
-    await page.goto(path);
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    await expectNoHorizontalScroll(page);
-  }
+  // The profile editor's widest state is an open role card.
+  await page.goto("/profile");
+  await page.getByRole("button", { name: "Add role" }).click();
+  await expect(page.getByLabel("Company")).toBeVisible();
+  await expectNoHorizontalScroll(page);
+
+  await page.goto("/resume");
+  await page.getByRole("button", { name: "Create new resume" }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("textbox")
+    .first()
+    .fill("A Rather Long Senior Staff Software Engineer Resume");
+  await page.getByRole("button", { name: "Create Resume" }).click();
+  await expectNoHorizontalScroll(page);
+
+  await page.locator("main a[href^='/resume/']").first().click();
+  await expect(
+    page.getByRole("textbox", { name: "Resume name" }),
+  ).toBeVisible();
+  await expectNoHorizontalScroll(page);
 });

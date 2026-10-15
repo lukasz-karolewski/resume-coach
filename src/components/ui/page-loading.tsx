@@ -1,3 +1,10 @@
+import {
+  resumePaperClass,
+  resumeToolbarClass,
+  resumeToolbarInnerClass,
+} from "~/components/resume/resume-layout";
+import { cn } from "~/lib/utils";
+
 type PageLoadingVariant = "cards" | "document" | "panel" | "table";
 
 const CARD_SKELETON_KEYS = [
@@ -98,8 +105,8 @@ export default function PageLoading({
         className="mx-auto flex w-full max-w-6xl flex-col gap-6"
         data-testid="page-loading-document"
       >
-        <div className="sticky top-[89px] z-20 mx-auto w-full max-w-[calc(8.5in+6rem)] print:hidden">
-          <div className="rounded-2xl border bg-card/95 px-12 py-3 shadow-sm backdrop-blur">
+        <div className={resumeToolbarClass}>
+          <div className={resumeToolbarInnerClass}>
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div className="flex min-w-0 flex-1 items-center gap-2">
                 <LoadingBlock className="h-11 w-72 rounded-md" />
@@ -114,7 +121,7 @@ export default function PageLoading({
             </div>
           </div>
         </div>
-        <div className="mx-auto w-[8.5in] bg-white p-12 shadow-lg print:p-0 print:shadow-none">
+        <div className={cn(resumePaperClass, "w-full max-w-[8.5in]")}>
           <div className="flex w-full flex-col gap-8">
             <div className="space-y-3">
               <LoadingBlock className="h-8 w-48 rounded-md" />

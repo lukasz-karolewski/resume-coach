@@ -23,6 +23,11 @@ import JobExperience from "~/components/resume/job-experience";
 import { MarkdownEditorDialog } from "~/components/resume/markdown-editor-dialog";
 import { PatentList } from "~/components/resume/patent-list";
 import { ProfessionalSummary } from "~/components/resume/professional-summary";
+import {
+  resumePaperClass,
+  resumeToolbarClass,
+  resumeToolbarInnerClass,
+} from "~/components/resume/resume-layout";
 import { ResumePrintDialog } from "~/components/resume/resume-print-dialog";
 import { ResumeSectionItemDialog } from "~/components/resume/resume-section-item-dialog";
 import { ResumeShareDialog } from "~/components/resume/resume-share-dialog";
@@ -410,8 +415,8 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: string }) {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
       <TooltipProvider delay={150}>
-        <div className="z-20 mx-auto sm:sticky sm:top-[89px] w-full max-w-[calc(8.5in+6rem)] print:hidden">
-          <div className="rounded-2xl border bg-card/95 px-4 py-3 sm:px-12 shadow-sm backdrop-blur">
+        <div className={resumeToolbarClass}>
+          <div className={resumeToolbarInnerClass}>
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div className="flex min-w-0 flex-1 items-center gap-2">
                 <Input
@@ -555,7 +560,7 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: string }) {
         </div>
       </TooltipProvider>
 
-      <div className="mx-auto bg-white p-6 shadow-lg sm:p-12 print:p-0 print:shadow-none">
+      <div className={resumePaperClass}>
         <div className="flex w-full max-w-[8.5in] flex-col gap-8">
           <ContactInfo contactInfo={resume.contactInfo} />
 

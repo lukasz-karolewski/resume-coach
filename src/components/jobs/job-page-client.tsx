@@ -294,7 +294,8 @@ export function JobPageClient() {
                     <TableCell
                       className={cn(
                         stackedCell,
-                        "max-md:before:text-muted-foreground max-md:before:content-['Next_action:_']",
+                        stackedLabel,
+                        "max-md:before:content-['Next_action:_']",
                         !job.nextActionAt && "max-md:hidden",
                       )}
                     >
@@ -307,7 +308,8 @@ export function JobPageClient() {
                     <TableCell
                       className={cn(
                         stackedCell,
-                        "max-md:before:text-muted-foreground max-md:before:content-['Resume:_']",
+                        stackedLabel,
+                        "max-md:before:content-['Resume:_']",
                         !job.resume[0] && "max-md:hidden",
                       )}
                     >
@@ -331,7 +333,7 @@ export function JobPageClient() {
                     >
                       {job.notes ? (
                         <p
-                          className="line-clamp-2 min-w-40 text-muted-foreground"
+                          className="line-clamp-2 min-w-40 text-muted-foreground [overflow-wrap:anywhere]"
                           title={job.notes}
                         >
                           {job.notes}
@@ -363,10 +365,12 @@ export function JobPageClient() {
 
 // Below `md` each table row collapses into a two-column card: the details
 // stack in the first column and the edit action pins to the top-right. Cells
-// that would only show a placeholder dash are hidden there, and the ones that
-// lose their column header get an inline label via `before:content`.
+// that would only show a placeholder dash are hidden there (as is the "Added"
+// date, to keep cards short), and the ones that lose their column header get
+// an inline label via `before:content`.
 const stackedRow =
   "max-md:grid max-md:grid-cols-[minmax(0,1fr)_auto] max-md:items-start max-md:gap-x-3 max-md:px-4 max-md:py-3";
+const stackedLabel = "max-md:before:text-muted-foreground";
 const stackedCell =
   "max-md:col-start-1 max-md:px-0 max-md:py-0.5 max-md:whitespace-normal";
 
