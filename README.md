@@ -31,8 +31,10 @@ Use this connection for both `DATABASE_URL` and `DATABASE_URL_UNPOOLED` in
 postgresql://postgres:postgres@localhost:55432/resume_coach
 ```
 
-Use `redis://localhost:56379` for `REDIS_URL`. The Vercel Development
-environment stores these local endpoints, so refresh `.env.local` with:
+Postgres is the only storage service: the chat agent's LangGraph checkpoints
+are kept in the `langgraph` schema of the same database, created automatically
+on first use. The Vercel Development environment stores this local endpoint, so
+refresh `.env.local` with:
 
 ```bash
 vercel env pull .env.local --environment=development --yes

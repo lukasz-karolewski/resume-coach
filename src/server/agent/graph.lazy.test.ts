@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-const redisFromUrl = vi.fn(() => Promise.resolve({}));
+const checkpointerSetup = vi.fn(() => Promise.resolve());
+const checkpointerEnd = vi.fn(() => Promise.resolve());
+const postgresFromConnString = vi.fn(() => ({
+  end: checkpointerEnd,
+  setup: checkpointerSetup,
+}));
 const streamEvents = vi.fn(async () => ({
   messages: {
     async *[Symbol.asyncIterator]() {},
@@ -14,6 +19,7 @@ const createAgent = vi.fn(() => ({ streamEvents }));
 const chatOpenAIConstructor = vi.fn();
 
 vi.mock("../db", () => ({
+  databaseUrl: "postgresql://test/resume_coach",
   db: {
     chatMessage: {
       create: vi.fn(),
@@ -25,9 +31,9 @@ vi.mock("../db", () => ({
   },
 }));
 
-vi.mock("@langchain/langgraph-checkpoint-redis", () => ({
-  RedisSaver: {
-    fromUrl: redisFromUrl,
+vi.mock("@langchain/langgraph-checkpoint-postgres", () => ({
+  PostgresSaver: {
+    fromConnString: postgresFromConnString,
   },
 }));
 
@@ -54,16 +60,16 @@ vi.mock("./tools", () => ({
   allTools: [],
 }));
 
-describe("graph Redis initialization", () => {
+describe("graph checkpointer initialization", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
   });
 
-  test("does not connect to Redis when the module is imported", async () => {
+  test("does not connect to Postgres when the module is imported", async () => {
     await import("./graph");
 
-    expect(redisFromUrl).not.toHaveBeenCalled();
+    expect(postgresFromConnString).not.toHaveBeenCalled();
   });
 
   test("configures GPT-5.4 to use the responses API", async () => {
@@ -76,7 +82,7 @@ describe("graph Redis initialization", () => {
     });
   });
 
-  test("connects to Redis when chat execution starts", async () => {
+  test("sets up the Postgres checkpointer when chat execution starts", async () => {
     const [{ db }, { executeChatStream }] = await Promise.all([
       import("../db"),
       import("./graph"),
@@ -94,11 +100,19 @@ describe("graph Redis initialization", () => {
       userId: "user-123",
     });
 
-    expect(redisFromUrl).toHaveBeenCalledTimes(1);
-    expect(createAgent).toHaveBeenCalledTimes(1);
+    expect(postgresFromConnString).toHaveBeenCalledWith(
+      "postgresql://test/resume_coach",
+      { schema: "langgraph" },
+    );
+    expect(checkpointerSetup).toHaveBeenCalledTimes(1);
+    expect(createAgent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        checkpointer: expect.objectContaining({ setup: checkpointerSetup }),
+      }),
+    );
   });
 
-  test("retries Redis initialization after a transient failure", async () => {
+  test("retries checkpointer setup after a transient failure", async () => {
     const [{ db }, { executeChatStream }] = await Promise.all([
       import("../db"),
       import("./graph"),
@@ -108,9 +122,7 @@ describe("graph Redis initialization", () => {
       id: "thread-123",
     } as never);
 
-    redisFromUrl
-      .mockRejectedValueOnce(new Error("Redis unavailable"))
-      .mockResolvedValueOnce({});
+    checkpointerSetup.mockRejectedValueOnce(new Error("Postgres unavailable"));
 
     await expect(
       executeChatStream({
@@ -120,7 +132,7 @@ describe("graph Redis initialization", () => {
         threadId: undefined,
         userId: "user-123",
       }),
-    ).rejects.toThrow("Redis unavailable");
+    ).rejects.toThrow("Postgres unavailable");
 
     await expect(
       executeChatStream({
@@ -132,6 +144,8 @@ describe("graph Redis initialization", () => {
       }),
     ).resolves.toEqual({ threadId: "thread-123" });
 
-    expect(redisFromUrl).toHaveBeenCalledTimes(2);
+    expect(checkpointerEnd).toHaveBeenCalledTimes(1);
+    expect(postgresFromConnString).toHaveBeenCalledTimes(2);
+    expect(checkpointerSetup).toHaveBeenCalledTimes(2);
   });
 });

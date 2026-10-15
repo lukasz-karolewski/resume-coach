@@ -1,16 +1,20 @@
 "server-only";
 
-import { RedisSaver } from "@langchain/langgraph-checkpoint-redis";
+import { PostgresSaver } from "@langchain/langgraph-checkpoint-postgres";
 import { ChatOpenAI } from "@langchain/openai";
 import { createAgent, HumanMessage } from "langchain";
 import * as z from "zod";
 import { resumeIdSchema } from "~/lib/schemas/resume-identifiers";
-import { db } from "../db";
+import { databaseUrl, db } from "../db";
 import { createChatMessage } from "../lib/chat";
 import { myDynamicSystemPromptMiddleware } from "./prompt";
 import { allTools } from "./tools";
 
-const redisUrl = process.env.REDIS_URL ?? "redis://redis:6379";
+/**
+ * Agent checkpoints live in their own Postgres schema so they stay out of the
+ * Prisma-managed `public` schema (and out of `prisma migrate` drift checks).
+ */
+export const CHECKPOINT_SCHEMA = "langgraph";
 
 const OPEN_RESUME_TOOL_NAME = "openResume";
 
@@ -32,9 +36,7 @@ function getOpenedResumeId(toolName: string, output: unknown) {
   return opened === true && typeof resumeId === "string" ? resumeId : null;
 }
 
-let checkpointerPromise: Promise<
-  Awaited<ReturnType<typeof RedisSaver.fromUrl>>
-> | null = null;
+let checkpointerPromise: Promise<PostgresSaver> | null = null;
 
 const model = new ChatOpenAI({
   model: "gpt-5.4",
@@ -52,7 +54,21 @@ export const stateSchema = z.object({
 });
 
 async function getCheckpointer() {
-  checkpointerPromise ??= RedisSaver.fromUrl(redisUrl).catch((error) => {
+  checkpointerPromise ??= (async () => {
+    const checkpointer = PostgresSaver.fromConnString(databaseUrl, {
+      schema: CHECKPOINT_SCHEMA,
+    });
+
+    try {
+      // Creates the schema and tables on first use; a no-op once applied.
+      await checkpointer.setup();
+    } catch (error) {
+      await checkpointer.end();
+      throw error;
+    }
+
+    return checkpointer;
+  })().catch((error) => {
     checkpointerPromise = null;
     throw error;
   });
