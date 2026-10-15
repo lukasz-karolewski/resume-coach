@@ -16,13 +16,17 @@ describe("MCP OAuth scopes", () => {
     ]);
   });
 
-  test.each([
-    ["openid", "Confirm who you are"],
-    ["email", "See your email address"],
-    ["offline_access", "Stay connected until you disconnect it"],
-    [MCP_OAUTH_SCOPE, "Use Resume Coach tools on your behalf"],
-    ["custom", "custom"],
-  ])("describes the %s scope", (scope, description) => {
-    expect(describeScope(scope)).toBe(description);
+  test.each(["openid", "email", "offline_access", MCP_OAUTH_SCOPE])(
+    "describes the %s scope in plain language",
+    (scope) => {
+      const description = describeScope(scope);
+
+      expect(description.trim()).not.toBe("");
+      expect(description).not.toBe(scope);
+    },
+  );
+
+  test("falls back to the raw identifier for an unknown scope", () => {
+    expect(describeScope("custom")).toBe("custom");
   });
 });

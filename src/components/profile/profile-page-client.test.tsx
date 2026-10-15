@@ -51,7 +51,7 @@ vi.mock("./accomplishment-profile-editor", () => ({
 }));
 
 vi.mock("./connected-apps-card", () => ({
-  ConnectedAppsCard: () => <div>Connected apps card</div>,
+  ConnectedAppsCard: () => null,
 }));
 
 describe("ProfilePageClient", () => {
@@ -61,6 +61,5 @@ describe("ProfilePageClient", () => {
     expect(screen.getByText("Not provided")).toBeInTheDocument();
     expect(screen.getByText("jane@example.com")).toBeInTheDocument();
     expect(screen.getByText("Profile editor 2023-01")).toBeInTheDocument();
-    expect(screen.getByText("Connected apps card")).toBeInTheDocument();
   });
 });

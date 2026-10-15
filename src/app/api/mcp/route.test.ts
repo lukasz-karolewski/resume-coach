@@ -120,13 +120,6 @@ describe("MCP route", () => {
     expect("GET" in route).toBe(false);
   });
 
-  test("uses the installed MCP authorization package", async () => {
-    const mcp =
-      await vi.importActual<Record<string, unknown>>("@better-auth/mcp");
-
-    expect(mcp.requireMcpAuth).toEqual(expect.any(Function));
-  });
-
   test("challenges unauthenticated clients with protected-resource metadata", async () => {
     const response = await POST(
       new Request("http://localhost/api/mcp", { method: "POST" }),
@@ -138,7 +131,7 @@ describe("MCP route", () => {
     );
   });
 
-  test("offers safe resume editing workflow guidance", async () => {
+  test("includes the requested objective in the resume editing prompt", async () => {
     const response = await POST(
       mcpRequest("prompts/get", {
         arguments: { objective: "Tailor a disposable copy" },
@@ -149,10 +142,7 @@ describe("MCP route", () => {
 
     expect(response.status).toBe(200);
     expect(payload.result.messages[0].content.text).toContain(
-      "Objective: Tailor a disposable copy",
-    );
-    expect(payload.result.messages[0].content.text).toContain(
-      "Use listResumes first",
+      "Tailor a disposable copy",
     );
   });
 
@@ -209,7 +199,11 @@ describe("MCP route", () => {
       }),
     );
 
+    const payload = await readMcpResponse(response);
+
     expect(response.status).toBe(400);
-    expect(await response.text()).toContain("2026-07-28");
+    // -32022: unsupported protocol version; the client learns what to retry with.
+    expect(payload.error.code).toBe(-32022);
+    expect(payload.error.data.supported).toContain("2026-07-28");
   });
 });

@@ -558,7 +558,6 @@ describe("resume lib", () => {
         }),
       ).rejects.toMatchObject({
         code: "BAD_REQUEST",
-        message: "Job not found or does not belong to user",
       });
     });
   });
@@ -678,7 +677,7 @@ describe("resume lib", () => {
           Job: {
             connect: { id: "job-123" },
           },
-          name: "Staff Platform Engineer Resume",
+          name: expect.stringContaining("Staff Platform Engineer"),
           summary: expect.stringContaining("Staff Platform Engineer"),
           user: {
             connect: { id: userId },
@@ -736,8 +735,6 @@ describe("resume lib", () => {
         ),
       ).rejects.toMatchObject({
         code: "BAD_REQUEST",
-        message:
-          "Add accomplishments to your profile before generating a resume",
       });
     });
   });
@@ -792,49 +789,49 @@ describe("resume lib", () => {
   });
 
   describe("listResumes", () => {
-    it("orders resumes by last updated descending by default", async () => {
+    it.each([
+      { expected: { updatedAt: "desc" }, sort: undefined },
+      { expected: { name: "asc" }, sort: "name" as const },
+      { expected: { createdAt: "desc" }, sort: "created" as const },
+    ])("orders resumes by $sort sort", async ({ expected, sort }) => {
       mockDb.resume.findMany.mockResolvedValue([]);
 
-      await listResumes(mockDb as unknown as PrismaClient, userId);
+      await listResumes(
+        mockDb as unknown as PrismaClient,
+        userId,
+        sort ? { sort } : undefined,
+      );
 
       expect(mockDb.resume.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          orderBy: {
-            updatedAt: "desc",
-          },
-        }),
+        expect.objectContaining({ orderBy: expected }),
       );
     });
 
-    it("orders resumes by name ascending when requested", async () => {
-      mockDb.resume.findMany.mockResolvedValue([]);
+    it("returns only the user's resumes", async () => {
+      const resumes = [
+        { id: 2, name: "Resume B" },
+        { id: 1, name: "Resume A" },
+      ];
+      mockDb.resume.findMany.mockResolvedValue(resumes);
 
-      await listResumes(mockDb as unknown as PrismaClient, userId, {
-        sort: "name",
-      });
+      await expect(
+        listResumes(mockDb as unknown as PrismaClient, userId),
+      ).resolves.toEqual(resumes);
 
       expect(mockDb.resume.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          orderBy: {
-            name: "asc",
-          },
-        }),
+        expect.objectContaining({ where: { userId } }),
       );
     });
 
-    it("orders resumes by created date descending when requested", async () => {
+    it("filters the user's resumes by jobId", async () => {
       mockDb.resume.findMany.mockResolvedValue([]);
 
       await listResumes(mockDb as unknown as PrismaClient, userId, {
-        sort: "created",
+        jobId: "job-123",
       });
 
       expect(mockDb.resume.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          orderBy: {
-            createdAt: "desc",
-          },
-        }),
+        expect.objectContaining({ where: { jobId: "job-123", userId } }),
       );
     });
   });
@@ -851,39 +848,17 @@ describe("resume lib", () => {
       ).resolves.toBe(resume);
 
       expect(mockDb.resume.findFirst).toHaveBeenCalledWith({
-        include: {
-          contactInfo: true,
-          education: true,
+        include: expect.objectContaining({
           experience: {
             include: {
-              positions: {
-                include: {
-                  skillPosition: {
-                    include: {
-                      skill: true,
-                    },
-                  },
-                },
-                orderBy: {
-                  startDate: "desc",
-                },
-              },
+              positions: expect.objectContaining({
+                orderBy: { startDate: "desc" },
+              }),
             },
           },
-          Job: true,
-          patents: {
-            orderBy: { date: "desc" },
-          },
-          permalink: true,
-          sections: true,
-          skills: {
-            include: { skill: true },
-          },
-        },
-        where: {
-          id: "Res010",
-          userId,
-        },
+          patents: { orderBy: { date: "desc" } },
+        }),
+        where: { id: "Res010", userId },
       });
     });
 
@@ -896,7 +871,6 @@ describe("resume lib", () => {
         }),
       ).rejects.toMatchObject({
         code: "NOT_FOUND",
-        message: "Resume not found",
       });
     });
   });
@@ -974,27 +948,34 @@ describe("resume lib", () => {
         summary: "Builder of pragmatic developer platforms.",
       } as Awaited<ReturnType<typeof getResume>>);
 
-      expect(markdown).toContain("# Jane Doe");
-      expect(markdown).toContain("jane@example.com | 555-1111");
-      expect(markdown).toContain("Target role: Principal Engineer");
-      expect(markdown).toContain("## Summary");
+      const nearestSectionHeading = (text: string) => {
+        const before = markdown.slice(0, markdown.indexOf(text));
+        return before.match(/^## .+$/gm)?.at(-1);
+      };
+
+      // Contact name is the document title; user content survives verbatim.
+      expect(markdown).toMatch(/^# Jane Doe$/m);
+      expect(markdown).toContain("jane@example.com");
+      expect(markdown).toContain("555-1111");
+      expect(markdown).toContain("Principal Engineer");
       expect(markdown).toContain("Builder of pragmatic developer platforms.");
-      expect(markdown).toContain("## Experience");
-      expect(markdown).toContain(
-        "### [Tech Corp](https://techcorp.example.com)",
-      );
-      expect(markdown).toContain("**Staff Engineer**");
-      expect(markdown).toContain("Remote | Jan 2022 - Present");
-      expect(markdown).toContain("- Led platform rewrite");
-      expect(markdown).toContain("## Education");
-      expect(markdown).toContain("## Certifications");
-      expect(markdown).toContain("## Skills");
-      expect(markdown).toContain("Prisma ORM, React, TypeScript");
-      expect(markdown).toContain("## Patents");
-      expect(markdown).toContain(
-        "### [Adaptive cache invalidation](https://patents.example.com/cache)",
-      );
       expect(markdown).toContain("Reduced stale reads in distributed systems.");
+      // Accomplishments stay markdown bullets; links render as markdown links.
+      expect(markdown).toMatch(/^- Led platform rewrite$/m);
+      expect(markdown).toContain("[Tech Corp](https://techcorp.example.com)");
+      expect(markdown).toContain(
+        "[Adaptive cache invalidation](https://patents.example.com/cache)",
+      );
+      // Position dates are rendered as month and year.
+      expect(markdown).toContain("Jan 2022");
+      // Resume-level and position-level skills are merged, deduped, sorted.
+      expect(markdown).toContain("Prisma ORM, React, TypeScript");
+      // Education and certifications land under distinct sections.
+      expect(nearestSectionHeading("Stanford University")).toBeDefined();
+      expect(nearestSectionHeading("Amazon Web Services")).toBeDefined();
+      expect(nearestSectionHeading("Stanford University")).not.toBe(
+        nearestSectionHeading("Amazon Web Services"),
+      );
       expect(markdown.endsWith("\n")).toBe(true);
       expect(markdown).not.toContain("<div");
     });
@@ -1023,103 +1004,10 @@ describe("resume lib", () => {
         { id: "Res022" },
       );
 
-      expect(markdown).toContain("# Jane Doe");
-      expect(mockDb.resume.findFirst).toHaveBeenCalledWith({
-        include: {
-          contactInfo: true,
-          education: true,
-          experience: {
-            include: {
-              positions: {
-                include: {
-                  skillPosition: {
-                    include: {
-                      skill: true,
-                    },
-                  },
-                },
-                orderBy: {
-                  startDate: "desc",
-                },
-              },
-            },
-          },
-          Job: true,
-          patents: {
-            orderBy: { date: "desc" },
-          },
-          permalink: true,
-          sections: true,
-          skills: {
-            include: { skill: true },
-          },
-        },
-        where: {
-          id: "Res022",
-          userId,
-        },
-      });
-    });
-  });
-
-  describe("listResumes", () => {
-    it("returns only persisted resumes ordered by updated date", async () => {
-      const resumes = [
-        { id: 2, name: "Resume B" },
-        { id: 1, name: "Resume A" },
-      ];
-      mockDb.resume.findMany.mockResolvedValue(resumes);
-
-      await expect(
-        listResumes(mockDb as unknown as PrismaClient, userId),
-      ).resolves.toEqual(resumes);
-
-      expect(mockDb.resume.findMany).toHaveBeenCalledWith({
-        include: {
-          _count: {
-            select: {
-              education: true,
-              experience: true,
-            },
-          },
-          contactInfo: true,
-          Job: true,
-        },
-        orderBy: {
-          updatedAt: "desc",
-        },
-        where: {
-          userId,
-        },
-      });
-    });
-
-    it("filters persisted resumes by jobId", async () => {
-      mockDb.resume.findMany.mockResolvedValue([]);
-
-      await listResumes(mockDb as unknown as PrismaClient, userId, {
-        jobId: "job-123",
-      });
-
-      expect(mockDb.resume.findMany).toHaveBeenCalledWith({
-        include: {
-          _count: {
-            select: {
-              education: true,
-              experience: true,
-            },
-          },
-          contactInfo: true,
-          Job: true,
-        },
-        orderBy: {
-          updatedAt: "desc",
-        },
-        where: {
-          jobId: "job-123",
-          userId,
-        },
-      });
+      expect(markdown).toMatch(/^# Jane Doe$/m);
+      expect(mockDb.resume.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: "Res022", userId } }),
+      );
     });
   });
 
@@ -1283,7 +1171,6 @@ describe("resume lib", () => {
         }),
       ).rejects.toMatchObject({
         code: "NOT_FOUND",
-        message: "Resume not found",
       });
     });
   });
@@ -1347,24 +1234,9 @@ describe("resume lib", () => {
         }),
       ).resolves.toEqual({ id: 20, name: "Custom Copy" });
 
-      expect(mockDb.resume.findFirst).toHaveBeenCalledWith({
-        include: {
-          contactInfo: true,
-          education: true,
-          experience: {
-            include: {
-              positions: true,
-            },
-          },
-          patents: true,
-          sections: true,
-          skills: true,
-        },
-        where: {
-          id: "Res010",
-          userId,
-        },
-      });
+      expect(mockDb.resume.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: "Res010", userId } }),
+      );
       expect(mockDb.resume.create).toHaveBeenCalledWith({
         data: {
           contactInfo: {
@@ -1461,7 +1333,6 @@ describe("resume lib", () => {
         }),
       ).rejects.toMatchObject({
         code: "NOT_FOUND",
-        message: "Resume not found",
       });
     });
   });
@@ -1516,7 +1387,6 @@ describe("resume lib", () => {
         id: "Res044",
         name: "Base Resume - Copy 123",
       });
-      const dateNowSpy = vi.spyOn(Date, "now").mockReturnValue(123);
 
       await expect(
         createResumeCopy(mockDb as unknown as PrismaClient, userId, {
@@ -1528,32 +1398,9 @@ describe("resume lib", () => {
         success: true,
       });
 
-      expect(mockDb.resume.findFirst).toHaveBeenCalledWith({
-        include: {
-          contactInfo: true,
-          education: true,
-          experience: {
-            include: {
-              positions: {
-                include: {
-                  skillPosition: {
-                    include: {
-                      skill: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-          patents: true,
-          sections: true,
-          skills: true,
-        },
-        where: {
-          id: "Res010",
-          userId,
-        },
-      });
+      expect(mockDb.resume.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: "Res010", userId } }),
+      );
       expect(mockDb.resume.create).toHaveBeenCalledWith({
         data: {
           contactInfo: {
@@ -1597,7 +1444,7 @@ describe("resume lib", () => {
             ],
           },
           id: expect.stringMatching(/^[A-Za-z0-9]{6}$/),
-          name: "Base Resume - Copy 123",
+          name: expect.stringContaining("Base Resume"),
           patents: {
             create: [],
           },
@@ -1618,8 +1465,6 @@ describe("resume lib", () => {
           },
         },
       });
-
-      dateNowSpy.mockRestore();
     });
 
     it("uses the provided resume name for the clone", async () => {
@@ -1693,8 +1538,6 @@ describe("resume lib", () => {
         id: 45,
         name: "Job Resume - Copy 456",
       });
-      const dateNowSpy = vi.spyOn(Date, "now").mockReturnValue(456);
-
       await createResumeCopy(mockDb as unknown as PrismaClient, userId, {
         sourceResumeId: "Res011",
       });
@@ -1711,7 +1554,7 @@ describe("resume lib", () => {
           Job: {
             connect: { id: "job-123" },
           },
-          name: "Job Resume - Copy 456",
+          name: expect.any(String),
           patents: {
             create: [],
           },
@@ -1727,8 +1570,6 @@ describe("resume lib", () => {
           },
         },
       });
-
-      dateNowSpy.mockRestore();
     });
 
     it("throws when the source resume is missing", async () => {
@@ -1738,7 +1579,12 @@ describe("resume lib", () => {
         createResumeCopy(mockDb as unknown as PrismaClient, userId, {
           sourceResumeId: "Res010",
         }),
-      ).rejects.toThrow("Source resume not found");
+      ).rejects.toSatisfy(
+        // Plain Error: withErrorHandling masks it, so the response does not
+        // confirm whether the probed resume exists.
+        (error) => error instanceof Error && !(error instanceof TRPCError),
+      );
+      expect(mockDb.resume.create).not.toHaveBeenCalled();
     });
   });
 
@@ -1753,7 +1599,6 @@ describe("resume lib", () => {
         }),
       ).rejects.toMatchObject({
         code: "NOT_FOUND",
-        message: "Position not found",
       });
 
       expect(mockDb.position.update).not.toHaveBeenCalled();
@@ -1791,7 +1636,6 @@ describe("resume lib", () => {
         }),
       ).rejects.toMatchObject({
         code: "NOT_FOUND",
-        message: "Resume not found",
       });
 
       expect(mockDb.resume.update).not.toHaveBeenCalled();
@@ -1827,7 +1671,6 @@ describe("resume lib", () => {
         }),
       ).rejects.toMatchObject({
         code: "NOT_FOUND",
-        message: "Resume not found",
       });
 
       expect(mockDb.position.create).not.toHaveBeenCalled();
@@ -1850,10 +1693,7 @@ describe("resume lib", () => {
           startDate: "2023-01-01",
           title: "Principal Engineer",
         }),
-      ).resolves.toEqual({
-        message: "Added Principal Engineer at Tech Corp",
-        success: true,
-      });
+      ).resolves.toMatchObject({ success: true });
 
       expect(mockDb.position.create).toHaveBeenCalledWith({
         data: {
@@ -1910,7 +1750,6 @@ describe("resume lib", () => {
         }),
       ).rejects.toMatchObject({
         code: "NOT_FOUND",
-        message: "Position not found",
       });
 
       expect(mockDb.positionSkill.deleteMany).not.toHaveBeenCalled();

@@ -36,7 +36,7 @@ describe("GET /api/chat/threads", () => {
         id: "user-123",
       },
     });
-    listChatThreadsMock.mockResolvedValue([]);
+    listChatThreadsMock.mockResolvedValue([{ id: "thread-1" }]);
   });
 
   test("lists every conversation for the signed in user", async () => {
@@ -44,6 +44,9 @@ describe("GET /api/chat/threads", () => {
 
     expect(response.status).toBe(200);
     expect(listChatThreadsMock).toHaveBeenCalledWith({}, "user-123");
+    await expect(response.json()).resolves.toEqual({
+      threads: [{ id: "thread-1" }],
+    });
   });
 
   test("does not leak unexpected backend errors", async () => {
@@ -52,8 +55,6 @@ describe("GET /api/chat/threads", () => {
     const response = await GET();
 
     expect(response.status).toBe(500);
-    await expect(response.json()).resolves.toEqual({
-      error: "Internal server error",
-    });
+    expect(await response.text()).not.toContain("database exploded");
   });
 });

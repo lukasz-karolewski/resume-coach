@@ -27,6 +27,10 @@ describe("addJobSchema", () => {
     });
 
     expect(result.success).toBe(false);
-    expect(result.error?.issues).toHaveLength(3);
+    expect(result.error?.issues.map((issue) => issue.path[0]).sort()).toEqual([
+      "company",
+      "title",
+      "url",
+    ]);
   });
 });

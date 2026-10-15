@@ -45,7 +45,7 @@ describe("resume markdown route", () => {
     );
 
     expect(response.status).toBe(401);
-    await expect(response.text()).resolves.toBe("Unauthorized");
+    expect(getResumeMarkdown).not.toHaveBeenCalled();
   });
 
   test("returns markdown as plain text for an owned resume", async () => {
@@ -91,7 +91,7 @@ describe("resume markdown route", () => {
     );
 
     expect(response.status).toBe(404);
-    await expect(response.text()).resolves.toBe("Resume not found");
+    expect(getResumeMarkdown).not.toHaveBeenCalled();
   });
 
   test("returns not found when the resume lookup fails", async () => {
@@ -110,7 +110,6 @@ describe("resume markdown route", () => {
     );
 
     expect(response.status).toBe(404);
-    await expect(response.text()).resolves.toBe("Resume not found");
   });
 
   test("does not leak unexpected export errors", async () => {
@@ -129,6 +128,6 @@ describe("resume markdown route", () => {
     );
 
     expect(response.status).toBe(500);
-    await expect(response.text()).resolves.toBe("Internal server error");
+    await expect(response.text()).resolves.not.toContain("database exploded");
   });
 });

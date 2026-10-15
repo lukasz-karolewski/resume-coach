@@ -304,7 +304,11 @@ describe("Resume Router", () => {
           jobId: "non-existent-job-id",
           name: "Resume for fake job",
         }),
-      ).rejects.toThrow("Job not found or does not belong to user");
+      ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+      expect(mockDb.job.findFirst).toHaveBeenCalledWith({
+        where: { id: "non-existent-job-id", userId: "user-123" },
+      });
+      expect(mockDb.resume.create).not.toHaveBeenCalled();
     });
 
     test("should handle empty string jobId as undefined", async () => {
@@ -440,24 +444,14 @@ describe("Resume Router", () => {
       });
     });
 
-    test("should throw NOT_FOUND when resume does not exist", async () => {
+    test("should throw NOT_FOUND for a resume outside the user's scope", async () => {
       mockDb.resume.findFirst.mockResolvedValue(null);
 
       const caller = createCaller();
 
-      await expect(caller.getById({ id: "Res999" })).rejects.toThrow(
-        "Resume not found",
-      );
-    });
-
-    test("should not return resume from different user", async () => {
-      mockDb.resume.findFirst.mockResolvedValue(null);
-
-      const caller = createCaller();
-
-      await expect(caller.getById({ id: "Res001" })).rejects.toThrow(
-        "Resume not found",
-      );
+      await expect(caller.getById({ id: "Res001" })).rejects.toMatchObject({
+        code: "NOT_FOUND",
+      });
       expect(mockDb.resume.findFirst).toHaveBeenCalledWith({
         include: expect.any(Object),
         where: { id: "Res001", userId: "user-123" },
@@ -593,7 +587,7 @@ describe("Resume Router", () => {
 
       await expect(
         caller.update({ id: "Res999", name: "Test" }),
-      ).rejects.toThrow("Resume not found");
+      ).rejects.toMatchObject({ code: "NOT_FOUND" });
     });
 
     test("should update contact info if provided", async () => {
@@ -678,7 +672,7 @@ describe("Resume Router", () => {
 
       await expect(
         caller.updateTitle({ id: "Res999", name: "Test" }),
-      ).rejects.toThrow("Resume not found");
+      ).rejects.toMatchObject({ code: "NOT_FOUND" });
     });
   });
 
@@ -760,9 +754,10 @@ describe("Resume Router", () => {
 
       const caller = createCaller();
 
-      await expect(caller.delete({ id: "Res999" })).rejects.toThrow(
-        "Resume not found",
-      );
+      await expect(caller.delete({ id: "Res999" })).rejects.toMatchObject({
+        code: "NOT_FOUND",
+      });
+      expect(mockDb.resume.delete).not.toHaveBeenCalled();
     });
   });
 
@@ -841,8 +836,9 @@ describe("Resume Router", () => {
       const result = await caller.duplicate({ id: "Res001" });
 
       expect(result.id).toBe(2);
-      expect(result.name).toBe("Original (Copy)");
-      expect(mockDb.resume.create).toHaveBeenCalled();
+      const createdName = mockDb.resume.create.mock.calls[0]?.[0]?.data?.name;
+      expect(createdName).toEqual(expect.stringContaining("Original"));
+      expect(createdName).not.toBe("Original");
     });
 
     test("should use custom name when provided", async () => {
@@ -873,12 +869,16 @@ describe("Resume Router", () => {
       mockDb.resume.create.mockResolvedValue(duplicatedResume);
 
       const caller = createCaller();
-      const result = await caller.duplicate({
+      await caller.duplicate({
         id: "Res001",
         name: "Custom Name",
       });
 
-      expect(result.name).toBe("Custom Name");
+      expect(mockDb.resume.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ name: "Custom Name" }),
+        }),
+      );
     });
 
     test("should throw NOT_FOUND when duplicating non-existent resume", async () => {
@@ -886,9 +886,10 @@ describe("Resume Router", () => {
 
       const caller = createCaller();
 
-      await expect(caller.duplicate({ id: "Res999" })).rejects.toThrow(
-        "Resume not found",
-      );
+      await expect(caller.duplicate({ id: "Res999" })).rejects.toMatchObject({
+        code: "NOT_FOUND",
+      });
+      expect(mockDb.resume.create).not.toHaveBeenCalled();
     });
   });
 });

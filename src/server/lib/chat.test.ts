@@ -1,15 +1,8 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { PrismaClient } from "~/generated/prisma/client";
-import {
-  createChatMessage,
-  getChatThreadMessages,
-  listChatThreads,
-} from "./chat";
+import { getChatThreadMessages, listChatThreads } from "./chat";
 
 type MockDb = {
-  chatMessage: {
-    create: ReturnType<typeof vi.fn>;
-  };
   chatThread: {
     findFirst: ReturnType<typeof vi.fn>;
     findMany: ReturnType<typeof vi.fn>;
@@ -21,9 +14,6 @@ describe("chat lib", () => {
 
   beforeEach(() => {
     mockDb = {
-      chatMessage: {
-        create: vi.fn(),
-      },
       chatThread: {
         findFirst: vi.fn(),
         findMany: vi.fn(),
@@ -31,39 +21,35 @@ describe("chat lib", () => {
     };
   });
 
-  test("lists chat threads with a summary from the first user message", async () => {
+  test("lists the user's chat threads summarized by the first user message", async () => {
+    const longPrompt = `Tailor   my resume\n\nfor ${"a".repeat(200)}`;
     mockDb.chatThread.findMany.mockResolvedValue([
       {
         createdAt: new Date("2026-03-23T00:00:00.000Z"),
         id: "thread-1",
-        messages: [
-          {
-            content:
-              "This is the first prompt sent to the assistant and it should be truncated if it is very long indeed.",
-          },
-        ],
+        messages: [{ content: longPrompt }],
+      },
+      {
+        createdAt: new Date("2026-03-24T00:00:00.000Z"),
+        id: "thread-2",
+        messages: [],
       },
     ]);
 
-    const result = await listChatThreads(
+    const [summarized, empty] = await listChatThreads(
       mockDb as unknown as PrismaClient,
       "user-123",
     );
 
-    expect(result).toEqual([
-      {
-        createdAt: new Date("2026-03-23T00:00:00.000Z"),
-        id: "thread-1",
-        summary:
-          "This is the first prompt sent to the assistant and it should be truncated if it is very long indeed.",
-      },
-    ]);
+    // Whitespace collapses and the summary is capped at 100 characters.
+    expect(summarized).toMatchObject({ id: "thread-1" });
+    expect(summarized?.summary).toHaveLength(100);
+    expect(summarized?.summary.startsWith("Tailor my resume for a")).toBe(true);
+    // A thread without a user message still gets a non-empty summary.
+    expect(empty?.summary).toEqual(expect.any(String));
+    expect(empty?.summary.trim()).not.toBe("");
     expect(mockDb.chatThread.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: {
-          userId: "user-123",
-        },
-      }),
+      expect.objectContaining({ where: { userId: "user-123" } }),
     );
   });
 
@@ -95,21 +81,22 @@ describe("chat lib", () => {
         role: "user",
       },
     ]);
+    expect(mockDb.chatThread.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: "thread-1", userId: "user-123" },
+      }),
+    );
   });
 
-  test("creates chat messages", async () => {
-    await createChatMessage(mockDb as unknown as PrismaClient, {
-      content: "Hello",
-      role: "user",
-      threadId: "thread-1",
-    });
+  test("reports NOT_FOUND for a conversation outside the user's scope", async () => {
+    mockDb.chatThread.findFirst.mockResolvedValue(null);
 
-    expect(mockDb.chatMessage.create).toHaveBeenCalledWith({
-      data: {
-        content: "Hello",
-        role: "user",
-        threadId: "thread-1",
-      },
-    });
+    await expect(
+      getChatThreadMessages(
+        mockDb as unknown as PrismaClient,
+        "user-123",
+        "thread-other",
+      ),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 });

@@ -20,14 +20,8 @@ function resolveAll(answers: DnsAnswer[], hostname = "chatgpt.com") {
 }
 
 describe("pinnedLookup", () => {
-  test("answers an all:true lookup with an array", async () => {
+  test("answers an all:true lookup with every answer so a v6-first host can fall back to v4", async () => {
     await expect(resolveAll(addresses)).resolves.toEqual(addresses);
-  });
-
-  test("keeps every answer so a v6-first host can fall back to v4", async () => {
-    const result = await resolveAll(addresses);
-
-    expect(result.map((entry) => entry.family)).toEqual([6, 4]);
   });
 
   test("answers a single-address lookup with the first answer", async () => {

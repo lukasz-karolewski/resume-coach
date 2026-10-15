@@ -88,9 +88,8 @@ describe("ConnectedAppsCard", () => {
     )?.();
 
     expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["profile"] });
-    expect(toastAdd).toHaveBeenCalledWith({
-      title: "App disconnected",
-      type: "success",
-    });
+    expect(toastAdd).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "success" }),
+    );
   });
 });

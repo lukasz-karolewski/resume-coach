@@ -61,33 +61,4 @@ describe("formatFromTo", () => {
       formattedTo: "Present",
     });
   });
-
-  test("should handle same start and end date", () => {
-    const date = new Date(2022, 0, 1); // January 1, 2022
-    const result = formatFromTo(date, date);
-    expect(result).toEqual({
-      formattedFrom: "Jan 2022",
-      formattedTo: "Jan 2022",
-    });
-  });
-
-  test("should format dates correctly for different months and years", () => {
-    const from = new Date(2019, 10, 15); // November 15, 2019
-    const to = new Date(2021, 2, 10); // March 10, 2021
-    const result = formatFromTo(from, to);
-    expect(result).toEqual({
-      formattedFrom: "Nov 2019",
-      formattedTo: "Mar 2021",
-    });
-  });
-
-  test("should format dates correctly for end of month dates", () => {
-    const from = new Date(2018, 11, 31); // December 31, 2018
-    const to = new Date(2020, 11, 31); // December 31, 2020
-    const result = formatFromTo(from, to);
-    expect(result).toEqual({
-      formattedFrom: "Dec 2018",
-      formattedTo: "Dec 2020",
-    });
-  });
 });

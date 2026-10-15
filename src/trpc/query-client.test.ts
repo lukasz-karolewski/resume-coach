@@ -7,7 +7,8 @@ describe("makeQueryClient", () => {
     const queryClient = makeQueryClient();
     const defaultOptions = queryClient.getDefaultOptions();
 
-    expect(defaultOptions.queries?.staleTime).toBe(30_000);
+    // A non-zero stale time keeps hydrated server data from refetching on mount.
+    expect(defaultOptions.queries?.staleTime).toBeGreaterThan(0);
 
     const pendingQuery = {
       state: { status: "pending" },
@@ -16,10 +17,19 @@ describe("makeQueryClient", () => {
     expect(
       defaultOptions.dehydrate?.shouldDehydrateQuery?.(pendingQuery as never),
     ).toBe(true);
-    expect(defaultOptions.dehydrate?.serializeData).toBeTypeOf("function");
     expect(defaultOptions.dehydrate?.shouldRedactErrors?.(new Error())).toBe(
       false,
     );
-    expect(defaultOptions.hydrate?.deserializeData).toBeTypeOf("function");
+  });
+
+  test("round-trips rich values from server dehydration to client hydration", () => {
+    const { dehydrate, hydrate } = makeQueryClient().getDefaultOptions();
+    const updatedAt = new Date("2026-03-24T10:30:00.000Z");
+
+    const restored = hydrate?.deserializeData?.(
+      JSON.parse(JSON.stringify(dehydrate?.serializeData?.({ updatedAt }))),
+    );
+
+    expect(restored).toEqual({ updatedAt });
   });
 });

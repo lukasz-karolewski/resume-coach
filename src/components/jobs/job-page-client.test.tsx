@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { JobPageClient } from "./job-page-client";
@@ -96,7 +96,18 @@ describe("JobPageClient", () => {
     expect(
       screen.getByRole("link", { name: "Platform resume" }),
     ).toHaveAttribute("href", "/resume/Res007");
-    expect(screen.getByText("1", { selector: "p" })).toBeInTheDocument();
+  });
+
+  test("summarizes the pipeline counts by status", () => {
+    render(<JobPageClient />);
+
+    const summary = screen.getByRole("region", { name: "Pipeline summary" });
+    const metric = (label: string) =>
+      within(summary).getByText(label).parentElement;
+
+    expect(metric("Active applications")).toHaveTextContent("2");
+    expect(metric("Interviewing")).toHaveTextContent("1");
+    expect(metric("Offers")).toHaveTextContent("0");
   });
 
   test("filters applications by a user-entered search", () => {

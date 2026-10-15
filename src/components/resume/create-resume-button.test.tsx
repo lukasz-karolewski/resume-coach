@@ -84,15 +84,21 @@ describe("CreateResumeButton", () => {
     });
   });
 
-  test("opens the create modal from the trigger button", () => {
+  test("submits the entered resume name", () => {
+    const mutate = vi.fn();
+    mockCreateMutation.mockReturnValue({ isPending: false, mutate });
+
     render(<CreateResumeButton />);
 
     fireEvent.click(screen.getByRole("button", { name: "Create new resume" }));
+    fireEvent.change(document.getElementById("resume-name")!, {
+      target: { value: "Platform Resume" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Create Resume" }));
 
-    expect(screen.getByText("Create New Resume")).toBeInTheDocument();
-    expect(
-      screen.getByPlaceholderText("e.g., Software Engineer Resume"),
-    ).toBeInTheDocument();
+    expect(mutate).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "Platform Resume" }),
+    );
   });
 
   test("submits a string professional summary when creating a resume", () => {
@@ -146,11 +152,17 @@ describe("CreateResumeButton", () => {
     });
   });
 
-  test("shows grounded generation when a job is selected and the profile has accomplishments", async () => {
+  test("generates a tailored resume when a job is selected and the profile has accomplishments", async () => {
+    const mutate = vi.fn();
+    mockCreateTailoredMutation.mockReturnValue({ isPending: false, mutate });
+
     render(<CreateResumeButton />);
 
     fireEvent.click(screen.getByRole("button", { name: "Create new resume" }));
-    fireEvent.click(screen.getByLabelText("Link to Job (Optional)"));
+    expect(
+      screen.queryByRole("button", { name: "Generate from profile" }),
+    ).not.toBeInTheDocument();
+    fireEvent.click(document.getElementById("resume-job")!);
 
     const option = await screen.findByRole("option", {
       name: "Senior Data Scientist",
@@ -159,10 +171,10 @@ describe("CreateResumeButton", () => {
     fireEvent.pointerDown(option, { pointerType: "mouse" });
     fireEvent.click(option);
 
-    await waitFor(() => {
-      expect(
-        screen.getByRole("button", { name: "Generate from profile" }),
-      ).toBeInTheDocument();
-    });
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Generate from profile" }),
+    );
+
+    expect(mutate).toHaveBeenCalledWith({ jobId: "job-123", name: undefined });
   });
 });

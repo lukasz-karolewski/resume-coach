@@ -26,14 +26,21 @@ describe("date-time", () => {
   });
 
   test("formats tooltip timestamps with date and minutes in local time", () => {
-    const value = new Date("2026-03-24T10:30:00.000Z");
+    const originalTimeZone = process.env.TZ;
+    process.env.TZ = "America/New_York";
 
-    expect(formatTimestampTooltip(value)).toBe(
-      new Intl.DateTimeFormat("en-US", {
-        dateStyle: "medium",
-        timeStyle: "short",
-      }).format(value),
-    );
+    try {
+      const tooltip = formatTimestampTooltip(
+        new Date("2026-03-24T14:30:00.000Z"),
+      );
+
+      expect(tooltip).toContain("24");
+      expect(tooltip).toContain("2026");
+      expect(tooltip).toContain("10:30");
+    } finally {
+      if (originalTimeZone === undefined) delete process.env.TZ;
+      else process.env.TZ = originalTimeZone;
+    }
   });
 
   test("formats ISO dateTime values for time elements", () => {

@@ -139,7 +139,8 @@ describe("deleteResumeTool", () => {
   });
 
   test("reports ownership and missing-resume failures", async () => {
-    deleteResume.mockRejectedValue(new Error("Resume not found"));
+    const failure = new Error("sentinel deleteResume failure");
+    deleteResume.mockRejectedValue(failure);
 
     await expect(
       deleteResumeTool.invoke(
@@ -151,7 +152,7 @@ describe("deleteResumeTool", () => {
           },
         },
       ),
-    ).resolves.toEqual({ error: "Resume not found" });
+    ).resolves.toEqual({ error: failure.message });
   });
 });
 
@@ -185,7 +186,8 @@ describe("openResumeTool", () => {
   });
 
   test("reports an error when the resume does not belong to the user", async () => {
-    getResume.mockRejectedValue(new Error("Resume not found"));
+    const failure = new Error("sentinel getResume failure");
+    getResume.mockRejectedValue(failure);
 
     await expect(
       openResumeTool.invoke(
@@ -197,7 +199,7 @@ describe("openResumeTool", () => {
           },
         },
       ),
-    ).resolves.toEqual({ error: "Resume not found" });
+    ).resolves.toEqual({ error: failure.message });
   });
 });
 

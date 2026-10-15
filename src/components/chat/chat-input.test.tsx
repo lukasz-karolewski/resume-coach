@@ -8,7 +8,7 @@ describe("ChatInput", () => {
 
     render(<ChatInput onSend={vi.fn()} onStop={onStop} disabled />);
 
-    fireEvent.click(screen.getByText("Stop"));
+    fireEvent.click(screen.getByRole("button", { name: "Stop" }));
 
     expect(onStop).toHaveBeenCalledTimes(1);
   });
@@ -18,15 +18,10 @@ describe("ChatInput", () => {
 
     render(<ChatInput onSend={onSend} disabled={false} />);
 
-    fireEvent.change(
-      screen.getByPlaceholderText(
-        "Ask about your resume or paste a job URL...",
-      ),
-      {
-        target: { value: "hello" },
-      },
-    );
-    fireEvent.click(screen.getByText("Send"));
+    fireEvent.change(screen.getByRole("textbox"), {
+      target: { value: "hello" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
 
     expect(onSend).toHaveBeenCalledWith("hello");
   });
@@ -34,9 +29,7 @@ describe("ChatInput", () => {
   test("grows the textarea for multi-line input", () => {
     render(<ChatInput onSend={vi.fn()} disabled={false} />);
 
-    const textarea = screen.getByPlaceholderText(
-      "Ask about your resume or paste a job URL...",
-    ) as HTMLTextAreaElement;
+    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
 
     Object.defineProperty(textarea, "scrollHeight", {
       configurable: true,
