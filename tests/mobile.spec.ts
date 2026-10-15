@@ -12,7 +12,10 @@ async function expectNoHorizontalScroll(page: Page) {
 }
 
 test("signed-in pages fit a phone-width viewport", async ({ page }) => {
-  await page.goto("/signup");
+  // Submitting before hydration falls back to a native POST that reloads
+  // /signup (see docs/ui-patterns.md). WebKit hydrates the dev build slowly
+  // enough to hit that, so wait for the page's scripts to finish loading.
+  await page.goto("/signup", { waitUntil: "networkidle" });
   await page.getByRole("textbox", { name: "Name" }).fill("Mobile Tester");
   await page
     .getByRole("textbox", { name: "Email" })
