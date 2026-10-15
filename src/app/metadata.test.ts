@@ -32,4 +32,17 @@ describe("app metadata", () => {
 
     expect(rules.flatMap((rule) => rule.disallow ?? [])).toContain("/resume");
   });
+
+  test("lists no sitemap url that robots tells crawlers to skip", () => {
+    const disallowed = [robots().rules]
+      .flat()
+      .flatMap((rule) => [rule.disallow ?? []].flat());
+    const paths = sitemap().map((entry) => new URL(entry.url).pathname);
+
+    for (const path of paths) {
+      expect(disallowed.filter((prefix) => path.startsWith(prefix))).toEqual(
+        [],
+      );
+    }
+  });
 });
