@@ -38,6 +38,7 @@ import {
   jobStatusLabels,
   type jobStatusSchema,
 } from "~/lib/schemas/job";
+import { cn } from "~/lib/utils";
 import { useTRPC } from "~/trpc/react";
 import type { RouterOutputs } from "~/trpc/shared";
 
@@ -157,7 +158,7 @@ export function JobPageClient() {
 
       <section
         aria-label="Pipeline summary"
-        className="grid overflow-hidden rounded-2xl bg-card ring-1 ring-foreground/10 sm:grid-cols-3"
+        className="grid grid-cols-3 overflow-hidden rounded-2xl bg-card ring-1 ring-foreground/10"
       >
         <Metric label="Active applications" value={activeCount} />
         <Metric label="Interviewing" value={interviewCount} />
@@ -234,8 +235,8 @@ export function JobPageClient() {
               No applications match these filters.
             </div>
           ) : (
-            <Table>
-              <TableHeader>
+            <Table className="max-md:block">
+              <TableHeader className="max-md:hidden">
                 <TableRow>
                   <TableHead>Company</TableHead>
                   <TableHead>Position</TableHead>
@@ -243,16 +244,16 @@ export function JobPageClient() {
                   <TableHead>Added</TableHead>
                   <TableHead>Next action</TableHead>
                   <TableHead>Resume</TableHead>
-                  <TableHead className="max-w-64">Notes</TableHead>
+                  <TableHead>Notes</TableHead>
                   <TableHead>
                     <span className="sr-only">Actions</span>
                   </TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
+              <TableBody className="max-md:block">
                 {filteredJobs.map((job) => (
-                  <TableRow key={job.id}>
-                    <TableCell>
+                  <TableRow key={job.id} className={stackedRow}>
+                    <TableCell className={stackedCell}>
                       <div className="font-medium">
                         {job.company ?? "Company not added"}
                       </div>
@@ -262,12 +263,12 @@ export function JobPageClient() {
                         </div>
                       ) : null}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className={stackedCell}>
                       <a
                         href={job.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex max-w-64 items-center gap-1.5 font-medium text-foreground hover:text-primary"
+                        className="inline-flex max-w-56 items-center gap-1.5 font-medium max-md:max-w-full text-foreground hover:text-primary"
                       >
                         <span className="truncate">
                           {job.title ?? "Position not added"}
@@ -275,7 +276,7 @@ export function JobPageClient() {
                         <ArrowTopRightOnSquareIcon className="size-3.5 shrink-0" />
                       </a>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className={cn(stackedCell, "max-md:pt-2")}>
                       <StatusSelect
                         disabled={
                           changeStatus.isPending &&
@@ -287,17 +288,29 @@ export function JobPageClient() {
                         }
                       />
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="text-muted-foreground max-md:hidden">
                       {formatJobDate(job.createdAt)}
                     </TableCell>
-                    <TableCell>
+                    <TableCell
+                      className={cn(
+                        stackedCell,
+                        "max-md:before:text-muted-foreground max-md:before:content-['Next_action:_']",
+                        !job.nextActionAt && "max-md:hidden",
+                      )}
+                    >
                       {job.nextActionAt ? (
                         formatJobDate(job.nextActionAt)
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell
+                      className={cn(
+                        stackedCell,
+                        "max-md:before:text-muted-foreground max-md:before:content-['Resume:_']",
+                        !job.resume[0] && "max-md:hidden",
+                      )}
+                    >
                       {job.resume[0] ? (
                         <Link
                           href={`/resume/${job.resume[0].id}`}
@@ -309,10 +322,16 @@ export function JobPageClient() {
                         <span className="text-muted-foreground">—</span>
                       )}
                     </TableCell>
-                    <TableCell className="max-w-64">
+                    <TableCell
+                      className={cn(
+                        stackedCell,
+                        "whitespace-normal",
+                        !job.notes && "max-md:hidden",
+                      )}
+                    >
                       {job.notes ? (
                         <p
-                          className="truncate text-muted-foreground"
+                          className="line-clamp-2 min-w-40 text-muted-foreground"
                           title={job.notes}
                         >
                           {job.notes}
@@ -321,7 +340,7 @@ export function JobPageClient() {
                         <span className="text-muted-foreground">—</span>
                       )}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right max-md:col-start-2 max-md:row-start-1 max-md:p-0">
                       <Button
                         aria-label={`Edit ${job.title ?? "application"} at ${job.company ?? "unknown company"}`}
                         size="icon-sm"
@@ -342,9 +361,18 @@ export function JobPageClient() {
   );
 }
 
+// Below `md` each table row collapses into a two-column card: the details
+// stack in the first column and the edit action pins to the top-right. Cells
+// that would only show a placeholder dash are hidden there, and the ones that
+// lose their column header get an inline label via `before:content`.
+const stackedRow =
+  "max-md:grid max-md:grid-cols-[minmax(0,1fr)_auto] max-md:items-start max-md:gap-x-3 max-md:px-4 max-md:py-3";
+const stackedCell =
+  "max-md:col-start-1 max-md:px-0 max-md:py-0.5 max-md:whitespace-normal";
+
 function Metric({ label, value }: { label: string; value: number }) {
   return (
-    <div className="border-b px-5 py-4 last:border-b-0 sm:border-r sm:border-b-0 sm:last:border-r-0">
+    <div className="border-r px-3 py-3 last:border-r-0 sm:px-5 sm:py-4">
       <p className="text-2xl font-semibold tracking-tight">{value}</p>
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
     </div>
