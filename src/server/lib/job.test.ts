@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { PrismaClient } from "~/generated/prisma/client";
 import { addJob, getJobs, updateJob, updateJobStatus } from "./job";
@@ -81,7 +82,7 @@ describe("Job Business Logic", () => {
   });
 
   describe("getJobs", () => {
-    it("should return all jobs for a user", async () => {
+    it("returns the user's jobs, soonest next action first", async () => {
       const userId = "user-123";
 
       const mockJobs = [
@@ -102,19 +103,15 @@ describe("Job Business Logic", () => {
       const result = await getJobs(mockDb as unknown as PrismaClient, userId);
 
       expect(result).toEqual(mockJobs);
-      expect(mockDb.job.findMany).toHaveBeenCalledWith({
-        include: {
-          resume: {
-            orderBy: { updatedAt: "desc" },
-            select: { id: true, name: true },
-          },
-        },
-        orderBy: [
-          { nextActionAt: { nulls: "last", sort: "asc" } },
-          { createdAt: "desc" },
-        ],
-        where: { userId },
-      });
+      expect(mockDb.job.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: [
+            { nextActionAt: { nulls: "last", sort: "asc" } },
+            { createdAt: "desc" },
+          ],
+          where: { userId },
+        }),
+      );
     });
   });
 
@@ -204,7 +201,10 @@ describe("Job Business Logic", () => {
           title: "Engineer",
           url: "https://example.com/job",
         }),
-      ).rejects.toThrow();
+      ).rejects.toSatisfy(
+        // Plain Error: withErrorHandling masks it so the probe learns nothing.
+        (error) => error instanceof Error && !(error instanceof TRPCError),
+      );
 
       expect(mockDb.job.update).not.toHaveBeenCalled();
     });

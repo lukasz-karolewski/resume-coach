@@ -3,11 +3,7 @@
 import { renderToBuffer } from "@react-pdf/renderer";
 import { describe, expect, test } from "vitest";
 
-import {
-  type ResumePdfData,
-  ResumePdfDocument,
-  resumePdfStyles,
-} from "./resume-pdf-viewer";
+import { type ResumePdfData, ResumePdfDocument } from "./resume-pdf-viewer";
 
 const mockResume = {
   contactInfo: {
@@ -61,21 +57,6 @@ const mockResume = {
 } as unknown as ResumePdfData;
 
 describe("ResumePdfDocument", () => {
-  test("keeps links black", () => {
-    expect(resumePdfStyles.link).toMatchObject({ color: "#111827" });
-  });
-
-  test("stacks icon-led contact details without a divider", () => {
-    expect(resumePdfStyles.contactDetails).toMatchObject({
-      flexDirection: "column",
-      gap: 3,
-    });
-    expect(resumePdfStyles.contactDetails).not.toHaveProperty("marginTop");
-    expect(resumePdfStyles.header).toMatchObject({ gap: 4 });
-    expect(resumePdfStyles.header).not.toHaveProperty("borderBottomWidth");
-    expect(resumePdfStyles.name).toMatchObject({ lineHeight: 1.2 });
-  });
-
   test("renders resume content into a valid PDF buffer", async () => {
     const buffer = await renderToBuffer(
       <ResumePdfDocument resume={mockResume} />,

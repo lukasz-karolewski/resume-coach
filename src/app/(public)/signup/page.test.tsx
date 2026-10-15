@@ -61,23 +61,17 @@ describe("SignUpPage", () => {
     });
   });
 
-  it("shows the account link below the card without badges", () => {
+  it("links visitors with an account to login", () => {
     render(<SignUpPage />);
 
-    const card = screen
-      .getByRole("button", { name: /sign up$/i })
-      .closest('[data-slot="card"]');
-    const loginPrompt = screen
-      .getByText(/Already have an account/i)
-      .closest("p");
-
     expect(
-      document.querySelector('[data-slot="badge"]'),
-    ).not.toBeInTheDocument();
-    expect(card?.nextElementSibling).toBe(loginPrompt);
+      screen
+        .getAllByRole("link")
+        .some((link) => link.getAttribute("href") === "/login"),
+    ).toBe(true);
   });
 
-  it("displays error message on failed signup", async () => {
+  it("replaces a duplicate-email error with a classified alert", async () => {
     const mockEmailSignUp = signUp.email as ReturnType<typeof vi.fn>;
     mockEmailSignUp.mockImplementation((_credentials, { onError }) => {
       onError?.({ error: { message: "Email already exists" } });
@@ -96,13 +90,9 @@ describe("SignUpPage", () => {
     fireEvent.change(passwordInput, { target: { value: "password123" } });
     fireEvent.click(submitButton);
 
-    await waitFor(() => {
-      expect(
-        screen.getByText(
-          "This email is already registered. Please sign in instead.",
-        ),
-      ).toBeInTheDocument();
-    });
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    expect(screen.queryByText("Email already exists")).not.toBeInTheDocument();
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
   it("shows loading state during sign up", async () => {

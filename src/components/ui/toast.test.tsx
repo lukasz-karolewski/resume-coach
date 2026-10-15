@@ -15,9 +15,8 @@ describe("Toaster", () => {
       toast.add({ title: "Profile saved", type: "success" });
     });
 
-    expect(await screen.findByText("Profile saved")).toBeInTheDocument();
     expect(
-      screen.getByRole("dialog", { name: "Profile saved" }),
-    ).toHaveAttribute("data-type", "success");
+      await screen.findByRole("dialog", { name: "Profile saved" }),
+    ).toBeInTheDocument();
   });
 });

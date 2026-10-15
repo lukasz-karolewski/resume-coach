@@ -1,24 +1,21 @@
-import { describe, expect, test, vi } from "vitest";
+import { QueryClient } from "@tanstack/react-query";
+import { createTRPCClient } from "@trpc/client";
+import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
+import { describe, expect, test } from "vitest";
 
-import { jobListQuery, resumesForJobQuery } from "./job-queries";
+import type { AppRouter } from "~/server/api/root";
+
+import { resumesForJobQuery } from "./job-queries";
+
+const trpc = createTRPCOptionsProxy<AppRouter>({
+  client: createTRPCClient<AppRouter>({ links: [] }),
+  queryClient: new QueryClient(),
+});
 
 describe("job query options", () => {
-  test("uses stable inputs for page prefetching and client hydration", () => {
-    const trpc = {
-      job: {
-        getJobs: { queryOptions: vi.fn(() => ({ queryKey: ["jobs"] })) },
-      },
-      resume: {
-        list: {
-          queryOptions: vi.fn((input) => ({ input, queryKey: ["resumes"] })),
-        },
-      },
-    };
-
-    expect(jobListQuery(trpc as never)).toEqual({ queryKey: ["jobs"] });
-    expect(resumesForJobQuery(trpc as never)).toEqual({
-      input: { sort: "last-updated" },
-      queryKey: ["resumes"],
-    });
+  test("offers resumes most recently updated first in the job picker", () => {
+    expect(resumesForJobQuery(trpc).queryKey).toEqual(
+      trpc.resume.list.queryKey({ sort: "last-updated" }),
+    );
   });
 });

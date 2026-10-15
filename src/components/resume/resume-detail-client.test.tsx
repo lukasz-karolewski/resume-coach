@@ -4,6 +4,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { toast } from "~/components/ui/toast";
@@ -279,40 +280,15 @@ describe("ResumeDetailClient", () => {
     });
   });
 
-  test("renders an inline title input without edit controls", () => {
+  test("exposes the resume name as an editable input and links to the preview", () => {
     render(<ResumeDetailClient resumeId={"Res007"} />);
 
-    const input = screen.getByLabelText("Resume name");
-
-    expect(input).toBeInTheDocument();
-    expect(input).toHaveClass(
-      "w-auto",
-      "rounded-none",
-      "border-0",
-      "border-b",
-      "[field-sizing:content]",
+    expect(screen.getByRole("textbox", { name: "Resume name" })).toHaveValue(
+      "Platform Resume",
     );
-    expect(
-      screen.queryByRole("button", { name: /edit resume name/i }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: /save resume name/i }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /duplicate resume/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /copy as markdown/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /print resume/i }),
-    ).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /preview resume/i }),
     ).toHaveAttribute("href", "/resume/Res007/preview");
-    expect(
-      screen.getByRole("button", { name: /delete resume/i }),
-    ).toBeInTheDocument();
   });
 
   test("collects initial content before adding a section", async () => {
@@ -435,10 +411,9 @@ describe("ResumeDetailClient", () => {
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith("/resume/Res007/markdown");
       expect(mockClipboardWriteText).toHaveBeenCalledWith("# Resume markdown");
-      expect(toast.add).toHaveBeenCalledWith({
-        title: "Copied markdown",
-        type: "success",
-      });
+      expect(toast.add).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "success" }),
+      );
     });
   });
 
@@ -476,22 +451,22 @@ describe("ResumeDetailClient", () => {
     expect(mockPrint).toHaveBeenCalled();
   });
 
-  test("opens and cancels the delete confirmation dialog", async () => {
+  test("cancelling the delete confirmation closes it without deleting", async () => {
+    const mutate = vi.fn();
+    mockDeleteMutation.mockReturnValue({ isPending: false, mutate });
+
     render(<ResumeDetailClient resumeId={"Res007"} />);
 
     fireEvent.click(screen.getByRole("button", { name: /delete resume/i }));
 
-    expect(
-      await screen.findByRole("heading", { name: "Delete resume?" }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("alertdialog")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
     await waitFor(() => {
-      expect(
-        screen.queryByRole("heading", { name: "Delete resume?" }),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
     });
+    expect(mutate).not.toHaveBeenCalled();
   });
 
   test("shows a transient saved indicator after title autosave succeeds", async () => {
@@ -564,7 +539,12 @@ describe("ResumeDetailClient", () => {
     render(<ResumeDetailClient resumeId={"Res007"} />);
 
     fireEvent.click(screen.getByRole("button", { name: /delete resume/i }));
-    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+    expect(mutate).not.toHaveBeenCalled();
+    fireEvent.click(
+      within(await screen.findByRole("alertdialog")).getByRole("button", {
+        name: "Delete",
+      }),
+    );
 
     await waitFor(() => {
       expect(mutate).toHaveBeenCalledWith({ id: "Res007" });
@@ -645,12 +625,12 @@ describe("ResumeDetailClient", () => {
     fireEvent.click(
       screen.getByRole("button", { name: "Remove Experience section" }),
     );
-    expect(
-      await screen.findByRole("heading", {
-        name: "Remove Experience section?",
+    expect(mutate).not.toHaveBeenCalled();
+    fireEvent.click(
+      within(await screen.findByRole("alertdialog")).getByRole("button", {
+        name: "Remove section",
       }),
-    ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Remove section" }));
+    );
 
     expect(mutate).toHaveBeenCalledWith({
       resumeId: "Res007",

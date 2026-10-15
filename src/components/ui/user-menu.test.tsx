@@ -35,7 +35,7 @@ describe("UserMenu", () => {
     render(<UserMenu email="jane@example.com" initials="JD" name="Jane Doe" />);
 
     fireEvent.click(screen.getByRole("button"));
-    fireEvent.click(await screen.findByText("Sign Out"));
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Sign Out" }));
 
     expect(signOut).toHaveBeenCalledWith({
       fetchOptions: {

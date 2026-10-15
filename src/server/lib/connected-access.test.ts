@@ -1,10 +1,12 @@
 import { describe, expect, test, vi } from "vitest";
 
 import { disconnectApp, listConnectedApps } from "./connected-access";
+import { describeScope } from "./oauth";
 
 describe("connected access", () => {
   test("lists the current user's grants and whether they can refresh", async () => {
     const createdAt = new Date("2026-09-20T18:00:00.000Z");
+    const scopes = ["openid", "offline_access", "mcp:tools"];
     const oauthConsent = {
       findMany: vi.fn().mockResolvedValue([
         {
@@ -15,7 +17,7 @@ describe("connected access", () => {
             name: "ChatGPT",
             uri: "https://chatgpt.com",
           },
-          scopes: ["openid", "offline_access", "mcp:tools"],
+          scopes,
           updatedAt: createdAt,
         },
       ]),
@@ -40,11 +42,7 @@ describe("connected access", () => {
         id: "consent-1",
         isActive: true,
         name: "ChatGPT",
-        permissions: [
-          "Confirm who you are",
-          "Stay connected until you disconnect it",
-          "Use Resume Coach tools on your behalf",
-        ],
+        permissions: scopes.map(describeScope),
         uri: "https://chatgpt.com",
       },
     ]);

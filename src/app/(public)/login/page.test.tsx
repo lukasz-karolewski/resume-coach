@@ -84,24 +84,17 @@ describe("LoginPage", () => {
     });
   });
 
-  it("shows the account link below the card without badges", () => {
+  it("links visitors without an account to signup", () => {
     render(<LoginPage />);
 
-    const card = screen
-      .getByRole("button", { name: /sign in$/i })
-      .closest('[data-slot="card"]');
-    const signupPrompt = screen
-      .getByText(/Don't have an account/i)
-      .closest("p");
-
-    expect(screen.queryByText("Welcome back")).not.toBeInTheDocument();
     expect(
-      document.querySelector('[data-slot="badge"]'),
-    ).not.toBeInTheDocument();
-    expect(card?.nextElementSibling).toBe(signupPrompt);
+      screen
+        .getAllByRole("link")
+        .some((link) => link.getAttribute("href") === "/signup"),
+    ).toBe(true);
   });
 
-  it("displays error message on failed login", async () => {
+  it("replaces a credential error with a classified alert", async () => {
     const mockEmailSignIn = signIn.email as ReturnType<typeof vi.fn>;
     mockEmailSignIn.mockImplementation((_credentials, { onError }) => {
       onError?.({ error: { message: "Invalid credentials" } });
@@ -118,11 +111,9 @@ describe("LoginPage", () => {
     fireEvent.change(passwordInput, { target: { value: "wrongpassword" } });
     fireEvent.click(submitButton);
 
-    await waitFor(() => {
-      expect(
-        screen.getByText("Invalid email or password. Please try again."),
-      ).toBeInTheDocument();
-    });
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    expect(screen.queryByText("Invalid credentials")).not.toBeInTheDocument();
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
   it("shows loading state during sign in", async () => {

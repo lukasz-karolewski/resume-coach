@@ -32,18 +32,14 @@ describe("HomePage", () => {
 
     render(await HomePage());
 
-    expect(
-      screen.getByRole("heading", {
-        level: 1,
-        name: /your career story,\s*logged as it happens\./i,
-      }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: /start logging accomplishments/i }),
-    ).toHaveAttribute("href", "/signup");
-    expect(
-      screen.getByRole("link", { name: /i already have an account/i }),
-    ).toHaveAttribute("href", "/login");
+    expect(redirect).not.toHaveBeenCalled();
+    expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+
+    const hrefs = screen
+      .getAllByRole("link")
+      .map((link) => link.getAttribute("href"));
+    expect(hrefs).toContain("/signup");
+    expect(hrefs).toContain("/login");
   });
 
   test("redirects authenticated users to the job tracker", async () => {

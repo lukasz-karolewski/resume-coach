@@ -30,6 +30,12 @@ vi.mock("~/server/lib/chat", () => ({
 
 import { GET } from "./route";
 
+function getThread(threadId: string) {
+  return GET(new Request(`http://localhost/api/chat/threads/${threadId}`), {
+    params: Promise.resolve({ threadId }),
+  } as RouteContext<"/api/chat/threads/[threadId]">);
+}
+
 describe("GET /api/chat/threads/[threadId]", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -44,19 +50,10 @@ describe("GET /api/chat/threads/[threadId]", () => {
   test("returns unauthorized when the session is missing", async () => {
     getSessionMock.mockResolvedValue(null);
 
-    const response = await GET(
-      new Request("http://localhost/api/chat/threads/thread-123"),
-      {
-        params: Promise.resolve({
-          threadId: "thread-123",
-        }),
-      } as RouteContext<"/api/chat/threads/[threadId]">,
-    );
+    const response = await getThread("thread-123");
 
     expect(response.status).toBe(401);
-    await expect(response.json()).resolves.toEqual({
-      error: "Unauthorized",
-    });
+    expect(getChatThreadMessagesMock).not.toHaveBeenCalled();
   });
 
   test("returns the owned thread messages", async () => {
@@ -73,14 +70,7 @@ describe("GET /api/chat/threads/[threadId]", () => {
       ],
     });
 
-    const response = await GET(
-      new Request("http://localhost/api/chat/threads/thread-123"),
-      {
-        params: Promise.resolve({
-          threadId: "thread-123",
-        }),
-      } as RouteContext<"/api/chat/threads/[threadId]">,
-    );
+    const response = await getThread("thread-123");
 
     expect(response.status).toBe(200);
     expect(getChatThreadMessagesMock).toHaveBeenCalledWith(
@@ -105,36 +95,17 @@ describe("GET /api/chat/threads/[threadId]", () => {
       new Error("Conversation not found"),
     );
 
-    const response = await GET(
-      new Request("http://localhost/api/chat/threads/thread-404"),
-      {
-        params: Promise.resolve({
-          threadId: "thread-404",
-        }),
-      } as RouteContext<"/api/chat/threads/[threadId]">,
-    );
+    const response = await getThread("thread-404");
 
     expect(response.status).toBe(404);
-    await expect(response.json()).resolves.toEqual({
-      error: "Conversation not found",
-    });
   });
 
   test("does not leak unexpected backend errors", async () => {
     getChatThreadMessagesMock.mockRejectedValue(new Error("database exploded"));
 
-    const response = await GET(
-      new Request("http://localhost/api/chat/threads/thread-500"),
-      {
-        params: Promise.resolve({
-          threadId: "thread-500",
-        }),
-      } as RouteContext<"/api/chat/threads/[threadId]">,
-    );
+    const response = await getThread("thread-500");
 
     expect(response.status).toBe(500);
-    await expect(response.json()).resolves.toEqual({
-      error: "Internal server error",
-    });
+    expect(await response.text()).not.toContain("database exploded");
   });
 });

@@ -1,10 +1,10 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
 import { MessageList } from "./message-list";
 
 describe("MessageList", () => {
-  test("composes the shadcn message scroller with accessible streaming state", () => {
-    const { container } = render(
+  test("renders the conversation and streaming reply in a busy, scrollable log", () => {
+    render(
       <MessageList
         currentChunk="A response in progress"
         isStreaming
@@ -17,10 +17,10 @@ describe("MessageList", () => {
     expect(
       screen.getByRole("region", { name: "Messages" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("log")).toHaveAttribute("aria-busy", "true");
-    expect(
-      container.querySelector('[data-slot="message-scroller-item"]'),
-    ).toHaveAttribute("data-scroll-anchor");
+    const log = screen.getByRole("log");
+    expect(log).toHaveAttribute("aria-busy", "true");
+    expect(within(log).getByText("Review my summary")).toBeInTheDocument();
+    expect(within(log).getByText("A response in progress")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Scroll to end" }),
     ).toBeInTheDocument();
