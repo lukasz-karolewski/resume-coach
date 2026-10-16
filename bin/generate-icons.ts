@@ -8,7 +8,7 @@ import {
 } from "../src/app/app-icons";
 
 const ICON_ROOT = "assets/icon";
-const DEFAULT_VARIANT = "monogram";
+const DEFAULT_VARIANT = "spark";
 
 type IconOutput = { path: string; size: number; source: AppIconSource };
 
