@@ -39,6 +39,10 @@ vi.mock("~/components/ui/footer", () => ({
   default: () => <footer>Footer</footer>,
 }));
 
+vi.mock("~/components/ui/nav-links", () => ({
+  BottomNav: () => <nav>Bottom nav</nav>,
+}));
+
 vi.mock("~/components/ui/top-nav", () => ({
   default: () => <nav>Top nav</nav>,
 }));

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 
 import {
@@ -8,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
+import { Logo } from "~/components/ui/logo";
 
 interface AuthScreenProps {
   children: ReactNode;
@@ -53,12 +53,9 @@ export function AuthScreen({
     return (
       <main className="flex min-h-screen items-center justify-center bg-background px-6 py-10">
         <div className="w-full max-w-md space-y-6">
-          <Link
-            href="/"
-            className="block text-center text-sm font-semibold tracking-[0.2em] uppercase"
-          >
-            Resume Coach
-          </Link>
+          <div className="flex justify-center">
+            <Logo nameVisibility="always" />
+          </div>
           {cardWithFooter}
         </div>
       </main>
@@ -75,12 +72,7 @@ export function AuthScreen({
         <div className="relative flex max-w-xl flex-col justify-between px-12 py-16">
           <div className="space-y-6">
             <div className="space-y-4">
-              <Link
-                href="/"
-                className="text-sm font-semibold tracking-[0.2em] uppercase"
-              >
-                Resume Coach
-              </Link>
+              <Logo nameVisibility="always" />
               <h1 className="max-w-lg text-5xl font-semibold leading-tight tracking-tight text-balance">
                 Your accomplishments are the resume. We just help you deploy
                 them.
