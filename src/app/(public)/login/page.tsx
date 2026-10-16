@@ -7,10 +7,7 @@ import { useState } from "react";
 
 import { signIn } from "~/auth-client";
 import { AuthScreen } from "~/components/auth/auth-screen";
-import {
-  isPasskeyCeremonyAborted,
-  usePasskeyAutofill,
-} from "~/components/auth/use-passkey-autofill";
+import { usePasskeyAutofill } from "~/components/auth/use-passkey-autofill";
 import { GoogleIcon } from "~/components/icons";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
@@ -18,6 +15,10 @@ import { CardDescription } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
+import { isPasskeyPromptDismissed } from "~/lib/passkey-errors";
+
+const PASSKEY_SIGN_IN_FAILED =
+  "Passkey sign-in did not finish. Try again, or sign in with your email and password.";
 
 function isOAuthAuthorizationRequest() {
   return new URLSearchParams(window.location.search).has("sig");
@@ -36,7 +37,10 @@ export default function LoginPage() {
     }
   };
 
-  const passkeyAutofill = usePasskeyAutofill(handleSignedIn);
+  const passkeyAutofill = usePasskeyAutofill({
+    onError: () => setError(PASSKEY_SIGN_IN_FAILED),
+    onSignedIn: handleSignedIn,
+  });
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,6 +78,7 @@ export default function LoginPage() {
     setIsLoading(true);
     setError("");
 
+    await passkeyAutofill.stop();
     const { data, error: passkeyError } = await signIn.passkey();
     if (data) {
       handleSignedIn();
@@ -81,11 +86,9 @@ export default function LoginPage() {
     }
 
     setIsLoading(false);
-    passkeyAutofill.restart();
-    if (!isPasskeyCeremonyAborted(passkeyError)) {
-      setError(
-        "Passkey sign-in did not finish. Try again, or sign in with your email and password.",
-      );
+    passkeyAutofill.start();
+    if (!isPasskeyPromptDismissed(passkeyError)) {
+      setError(PASSKEY_SIGN_IN_FAILED);
     }
   };
 

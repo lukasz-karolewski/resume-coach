@@ -1,25 +1,41 @@
-import { renderHook, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-import { signIn } from "~/auth-client";
+import { authClient } from "~/auth-client";
 
 import {
-  isPasskeyCeremonyAborted,
+  AUTOFILL_REFRESH_MS,
   usePasskeyAutofill,
 } from "./use-passkey-autofill";
 
-const { browserSupportsWebAuthnAutofill, cancelCeremony } = vi.hoisted(() => ({
-  browserSupportsWebAuthnAutofill: vi.fn(),
-  cancelCeremony: vi.fn(),
-}));
+const { browserSupportsWebAuthnAutofill, cancelCeremony, startAuthentication } =
+  vi.hoisted(() => ({
+    browserSupportsWebAuthnAutofill: vi.fn(),
+    cancelCeremony: vi.fn(),
+    startAuthentication: vi.fn(),
+  }));
 
-vi.mock("@simplewebauthn/browser", () => ({
-  browserSupportsWebAuthnAutofill,
-  WebAuthnAbortService: { cancelCeremony },
-}));
-vi.mock("~/auth-client", () => ({ signIn: { passkey: vi.fn() } }));
+vi.mock("@simplewebauthn/browser", () => {
+  class WebAuthnError extends Error {
+    code: string;
+    constructor({ cause, code }: { cause: Error; code: string }) {
+      super(cause.message, { cause });
+      this.code = code;
+    }
+  }
+  return {
+    browserSupportsWebAuthnAutofill,
+    startAuthentication,
+    WebAuthnAbortService: { cancelCeremony },
+    WebAuthnError,
+  };
+});
+vi.mock("~/auth-client", () => ({ authClient: { $fetch: vi.fn() } }));
 
-const passkeySignIn = vi.mocked(signIn.passkey);
+const $fetch = vi.mocked(authClient.$fetch);
+
+const OPTIONS = { challenge: "challenge" };
+const CREDENTIAL = { clientExtensionResults: {}, id: "credential" };
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
@@ -29,80 +45,180 @@ function deferred<T>() {
   return { promise, resolve };
 }
 
+function optionsCalls() {
+  return $fetch.mock.calls.filter(([path]) =>
+    String(path).includes("generate-authenticate-options"),
+  ).length;
+}
+
+async function cancelledPrompt() {
+  const { WebAuthnError } = await import("@simplewebauthn/browser");
+  const cause = new Error("cancelled");
+  cause.name = "NotAllowedError";
+  return new WebAuthnError({
+    cause,
+    code: "ERROR_PASSTHROUGH_SEE_CAUSE_PROPERTY",
+  } as never);
+}
+
+function renderAutofill() {
+  const callbacks = { onError: vi.fn(), onSignedIn: vi.fn() };
+  const hook = renderHook(() => usePasskeyAutofill(callbacks));
+  return { ...callbacks, ...hook };
+}
+
 describe("usePasskeyAutofill", () => {
   beforeEach(() => {
     browserSupportsWebAuthnAutofill.mockReset().mockResolvedValue(true);
-    passkeySignIn.mockReset();
+    cancelCeremony.mockReset();
+    startAuthentication.mockReset().mockReturnValue(new Promise(() => {}));
+    $fetch
+      .mockReset()
+      .mockImplementation(async (path) =>
+        String(path).includes("generate-authenticate-options")
+          ? { data: OPTIONS, error: null }
+          : { data: { session: {} }, error: null },
+      );
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   test("does not request a passkey where conditional mediation is unsupported", async () => {
     browserSupportsWebAuthnAutofill.mockResolvedValue(false);
 
-    renderHook(() => usePasskeyAutofill(vi.fn()));
+    renderAutofill();
 
     await waitFor(() =>
       expect(browserSupportsWebAuthnAutofill).toHaveBeenCalled(),
     );
-    expect(passkeySignIn).not.toHaveBeenCalled();
+    expect($fetch).not.toHaveBeenCalled();
+    expect(startAuthentication).not.toHaveBeenCalled();
   });
 
   test("signs in when a passkey is picked from autofill", async () => {
-    passkeySignIn.mockResolvedValue({
-      data: { session: {} },
-      error: null,
-    } as never);
-    const onSignedIn = vi.fn();
+    startAuthentication.mockResolvedValue(CREDENTIAL);
 
-    renderHook(() => usePasskeyAutofill(onSignedIn));
+    const { onError, onSignedIn } = renderAutofill();
 
     await waitFor(() => expect(onSignedIn).toHaveBeenCalledTimes(1));
-    expect(passkeySignIn).toHaveBeenCalledWith({ autoFill: true });
+    expect(startAuthentication).toHaveBeenCalledWith({
+      optionsJSON: OPTIONS,
+      useBrowserAutofill: true,
+    });
+    expect($fetch).toHaveBeenCalledWith(
+      "/passkey/verify-authentication",
+      expect.objectContaining({ body: { response: { id: "credential" } } }),
+    );
+    expect(onError).not.toHaveBeenCalled();
   });
 
-  test("stays silent when the autofill request fails", async () => {
-    passkeySignIn.mockResolvedValue({
-      data: null,
-      error: { code: "AUTH_CANCELLED", status: 400, statusText: "" },
-    });
-    const onSignedIn = vi.fn();
+  test("re-arms silently after the person dismisses the passkey prompt", async () => {
+    startAuthentication
+      .mockRejectedValueOnce(await cancelledPrompt())
+      .mockReturnValue(new Promise(() => {}));
 
-    renderHook(() => usePasskeyAutofill(onSignedIn));
+    const { onError, onSignedIn } = renderAutofill();
 
-    await waitFor(() => expect(passkeySignIn).toHaveBeenCalled());
+    await waitFor(() => expect(startAuthentication).toHaveBeenCalledTimes(2));
+    expect(onError).not.toHaveBeenCalled();
     expect(onSignedIn).not.toHaveBeenCalled();
   });
 
-  test("cancels the pending request and ignores its result after unmount", async () => {
-    const pending = deferred<Awaited<ReturnType<typeof signIn.passkey>>>();
-    passkeySignIn.mockReturnValue(pending.promise);
-    const onSignedIn = vi.fn();
+  test("does not retry a prompt that fails for another reason", async () => {
+    startAuthentication.mockRejectedValue(new Error("no webauthn input"));
 
-    const { unmount } = renderHook(() => usePasskeyAutofill(onSignedIn));
-    await waitFor(() => expect(passkeySignIn).toHaveBeenCalled());
+    const { onError } = renderAutofill();
+
+    await waitFor(() => expect(startAuthentication).toHaveBeenCalledTimes(1));
+    await act(async () => {});
+    expect(startAuthentication).toHaveBeenCalledTimes(1);
+    expect(onError).not.toHaveBeenCalled();
+  });
+
+  test("reports a rejected passkey and re-arms autofill", async () => {
+    startAuthentication
+      .mockResolvedValueOnce(CREDENTIAL)
+      .mockReturnValue(new Promise(() => {}));
+    $fetch.mockImplementation(async (path) =>
+      String(path).includes("generate-authenticate-options")
+        ? { data: OPTIONS, error: null }
+        : { data: null, error: { code: "PASSKEY_NOT_FOUND" } },
+    );
+
+    const { onError, onSignedIn } = renderAutofill();
+
+    await waitFor(() => expect(onError).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(startAuthentication).toHaveBeenCalledTimes(2));
+    expect(onSignedIn).not.toHaveBeenCalled();
+  });
+
+  test("refreshes the request before its challenge expires", async () => {
+    vi.useFakeTimers();
+
+    renderAutofill();
+    await vi.waitFor(() =>
+      expect(startAuthentication).toHaveBeenCalledTimes(1),
+    );
+    await act(() => vi.advanceTimersByTimeAsync(AUTOFILL_REFRESH_MS));
+
+    await vi.waitFor(() => expect(optionsCalls()).toBe(2));
+    expect(cancelCeremony).toHaveBeenCalled();
+  });
+
+  test("stays silent when the network fails", async () => {
+    $fetch.mockRejectedValue(new Error("offline"));
+
+    const { onError, onSignedIn } = renderAutofill();
+
+    await waitFor(() => expect($fetch).toHaveBeenCalled());
+    expect(onError).not.toHaveBeenCalled();
+    expect(onSignedIn).not.toHaveBeenCalled();
+  });
+
+  test("never starts a prompt after unmount", async () => {
+    const options = deferred<{ data: typeof OPTIONS; error: null }>();
+    $fetch.mockReturnValue(options.promise as never);
+
+    const { unmount } = renderAutofill();
+    await waitFor(() => expect($fetch).toHaveBeenCalled());
     unmount();
-    pending.resolve({ data: { session: {} }, error: null } as never);
-    await pending.promise;
+    await act(async () => options.resolve({ data: OPTIONS, error: null }));
 
     expect(cancelCeremony).toHaveBeenCalled();
-    expect(onSignedIn).not.toHaveBeenCalled();
+    expect(startAuthentication).not.toHaveBeenCalled();
   });
 
-  test("re-arms autofill after an explicit passkey attempt", async () => {
-    passkeySignIn.mockResolvedValue({ data: null, error: null } as never);
+  test("stop waits for an in-flight options request and keeps it from prompting", async () => {
+    const options = deferred<{ data: typeof OPTIONS; error: null }>();
+    $fetch.mockReturnValue(options.promise as never);
 
-    const { result } = renderHook(() => usePasskeyAutofill(vi.fn()));
-    await waitFor(() => expect(passkeySignIn).toHaveBeenCalledTimes(1));
-    result.current.restart();
+    const { result } = renderAutofill();
+    await waitFor(() => expect($fetch).toHaveBeenCalled());
 
-    await waitFor(() => expect(passkeySignIn).toHaveBeenCalledTimes(2));
-    expect(cancelCeremony).toHaveBeenCalledTimes(1);
+    let stopped = false;
+    const stopping = result.current.stop().then(() => {
+      stopped = true;
+    });
+    await act(async () => {});
+    expect(stopped).toBe(false);
+
+    await act(async () => {
+      options.resolve({ data: OPTIONS, error: null });
+      await stopping;
+    });
+    expect(stopped).toBe(true);
+    expect(startAuthentication).not.toHaveBeenCalled();
   });
-});
 
-test("treats only programmatic aborts as silent", () => {
-  expect(isPasskeyCeremonyAborted({ code: "ERROR_CEREMONY_ABORTED" })).toBe(
-    true,
-  );
-  expect(isPasskeyCeremonyAborted({ code: "AUTH_CANCELLED" })).toBe(false);
-  expect(isPasskeyCeremonyAborted(null)).toBe(false);
+  test("start re-arms autofill after it was stopped", async () => {
+    const { result } = renderAutofill();
+    await waitFor(() => expect(startAuthentication).toHaveBeenCalledTimes(1));
+
+    await act(() => result.current.stop());
+    act(() => result.current.start());
+
+    await waitFor(() => expect(startAuthentication).toHaveBeenCalledTimes(2));
+  });
 });

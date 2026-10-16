@@ -4,7 +4,6 @@ import { FingerprintIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 import { authClient, passkey } from "~/auth-client";
-import { isPasskeyCeremonyAborted } from "~/components/auth/use-passkey-autofill";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,19 +23,20 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
+import { RelativeTime } from "~/components/ui/relative-time";
 import { toast } from "~/components/ui/toast";
-import {
-  formatRelativeTime,
-  formatTimestampTooltip,
-  toDateTimeValue,
-} from "~/lib/date-time";
+import { isPasskeyPromptDismissed } from "~/lib/passkey-errors";
 
 function passkeyLabel(key: { name?: string | null }) {
   return key.name || "Passkey";
 }
 
 export function PasskeysCard() {
-  const { data: passkeys, isPending } = authClient.useListPasskeys();
+  const {
+    data: passkeys,
+    error: listError,
+    isPending,
+  } = authClient.useListPasskeys();
   const [isAdding, setIsAdding] = useState(false);
   const [removingId, setRemovingId] = useState<string>();
 
@@ -47,7 +47,15 @@ export function PasskeysCard() {
 
     if (!error) {
       toast.add({ title: "Passkey added", type: "success" });
-    } else if (!isPasskeyCeremonyAborted(error)) {
+    } else if (
+      "code" in error &&
+      error.code === "ERROR_AUTHENTICATOR_PREVIOUSLY_REGISTERED"
+    ) {
+      toast.add({
+        title: "This device already has a passkey for your account",
+        type: "error",
+      });
+    } else if (!isPasskeyPromptDismissed(error)) {
       toast.add({ title: "Failed to add passkey", type: "error" });
     }
   };
@@ -87,7 +95,11 @@ export function PasskeysCard() {
         </Button>
       </CardHeader>
       <CardContent>
-        {isPending ? null : !passkeys?.length ? (
+        {isPending ? null : listError ? (
+          <p className="text-sm text-muted-foreground">
+            Your passkeys could not be loaded. Refresh the page to try again.
+          </p>
+        ) : !passkeys?.length ? (
           <p className="text-sm text-muted-foreground">
             You have no passkeys yet.
           </p>
@@ -102,13 +114,7 @@ export function PasskeysCard() {
                   <p className="font-medium">{passkeyLabel(key)}</p>
                   {key.createdAt ? (
                     <p className="text-xs text-muted-foreground">
-                      Added{" "}
-                      <time
-                        dateTime={toDateTimeValue(key.createdAt)}
-                        title={formatTimestampTooltip(key.createdAt)}
-                      >
-                        {formatRelativeTime(key.createdAt)}
-                      </time>
+                      Added <RelativeTime value={key.createdAt} />
                     </p>
                   ) : null}
                 </div>

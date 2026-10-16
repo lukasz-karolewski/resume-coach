@@ -41,11 +41,11 @@ describe("PasskeysCard", () => {
     expect(addPasskey).toHaveBeenCalled();
   });
 
-  test("stays quiet when registration is aborted", async () => {
+  test("stays quiet when registration is dismissed", async () => {
     listPasskeys([]);
     addPasskey.mockResolvedValue({
       data: null,
-      error: { code: "ERROR_CEREMONY_ABORTED" },
+      error: { code: "ERROR_PASSTHROUGH_SEE_CAUSE_PROPERTY" },
     } as never);
 
     render(<PasskeysCard />);
@@ -68,5 +68,37 @@ describe("PasskeysCard", () => {
     await waitFor(() =>
       expect(deletePasskey).toHaveBeenCalledWith({ id: "pk-1" }),
     );
+  });
+
+  test("tells the person when this device already has a passkey", async () => {
+    listPasskeys([]);
+    addPasskey.mockResolvedValue({
+      data: null,
+      error: { code: "ERROR_AUTHENTICATOR_PREVIOUSLY_REGISTERED" },
+    } as never);
+
+    render(<PasskeysCard />);
+    fireEvent.click(screen.getByRole("button", { name: /add a passkey/i }));
+
+    await waitFor(() =>
+      expect(toastAdd).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "error" }),
+      ),
+    );
+  });
+
+  test("does not claim there are no passkeys when the list fails to load", () => {
+    useListPasskeys.mockReturnValue({
+      data: null,
+      error: new Error("offline"),
+      isPending: false,
+    } as never);
+
+    render(<PasskeysCard />);
+
+    expect(screen.queryByText(/no passkeys yet/i)).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /add a passkey/i }),
+    ).toBeVisible();
   });
 });
