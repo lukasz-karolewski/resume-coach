@@ -6,6 +6,7 @@ import { auth } from "~/auth";
 import Assistant from "~/components/assistant";
 import NiceModalProviderWrapper from "~/components/providers";
 import Footer from "~/components/ui/footer";
+import { BottomNav } from "~/components/ui/nav-links";
 import TopNav from "~/components/ui/top-nav";
 import { TRPCReactProvider } from "~/trpc/react";
 
@@ -27,7 +28,8 @@ export default async function AuthLayout({
   return (
     <TRPCReactProvider>
       <NiceModalProviderWrapper>
-        <div className="grid min-h-dvh grid-cols-1 grid-rows-[auto_1fr_auto]">
+        {/* The bottom padding keeps the footer clear of the phone `BottomNav`. */}
+        <div className="grid min-h-dvh grid-cols-1 grid-rows-[auto_1fr_auto] pb-(--bottom-nav-clearance)">
           <TopNav />
           <main className="relative bg-muted/30">
             <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
@@ -35,6 +37,7 @@ export default async function AuthLayout({
             </div>
           </main>
           <Footer />
+          <BottomNav />
           <Assistant />
         </div>
       </NiceModalProviderWrapper>

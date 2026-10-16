@@ -43,7 +43,7 @@ export function ChatWindow({
   return (
     <div
       data-testid="assistant-panel"
-      className="fixed bottom-5 right-5 flex h-[min(66vh,48rem)] w-[min(32rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-3xl border border-border/70 bg-card/95 text-card-foreground shadow-2xl shadow-black/10 backdrop-blur supports-[backdrop-filter]:bg-card/90"
+      className="fixed bottom-5 right-5 z-40 flex h-[min(66vh,48rem)] w-[min(32rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-3xl border border-border/70 bg-card/95 text-card-foreground shadow-2xl shadow-black/10 backdrop-blur supports-[backdrop-filter]:bg-card/90"
     >
       <div className="flex items-start justify-between gap-4 border-b border-border/60 bg-muted/40 px-5 py-4">
         <div className="min-w-0 space-y-2">
