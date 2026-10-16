@@ -45,7 +45,7 @@ export function AddResumeSectionDropdown({
         }
       >
         <PlusIcon data-icon="inline-start" />
-        Add section
+        <span className="max-sm:hidden">Add section</span>
         <ChevronDownIcon data-icon="inline-end" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">

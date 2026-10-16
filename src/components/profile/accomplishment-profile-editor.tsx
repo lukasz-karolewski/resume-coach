@@ -125,7 +125,10 @@ export function AccomplishmentProfileEditor({
           </div>
         ) : (
           roles.map((role, roleIndex) => (
-            <div key={role.id} className="space-y-4 rounded-xl border p-5">
+            <div
+              key={role.id}
+              className="space-y-4 rounded-xl border p-4 sm:p-5"
+            >
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h3 className="text-base font-semibold">
@@ -261,7 +264,7 @@ export function AccomplishmentProfileEditor({
               </div>
 
               <div className="space-y-3">
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm font-medium">Accomplishments</p>
                     <p className="text-sm text-muted-foreground">

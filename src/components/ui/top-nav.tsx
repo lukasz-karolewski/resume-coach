@@ -8,12 +8,17 @@ import UserButton from "./user-button";
 const TopNav: React.FC = async () => {
   return (
     <nav className="sticky top-0 z-30 border-b bg-background/80 backdrop-blur print:hidden">
-      <div className="mx-auto flex max-w-6xl items-center gap-3 px-6 py-4">
-        <Link href="/" className="mr-2 text-lg font-semibold tracking-tight">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 sm:flex-nowrap sm:px-6 sm:py-4">
+        <Link
+          href="/"
+          className="mr-auto whitespace-nowrap text-lg font-semibold tracking-tight sm:mr-2"
+        >
           Resume Coach
         </Link>
 
-        <div className="flex grow items-center gap-2">
+        {/* Below `sm` the links drop to their own full-width row so the brand,
+            links, and avatar never overflow a phone-width viewport. */}
+        <div className="order-last -mx-2.5 flex w-full items-center gap-1 sm:order-none sm:mx-0 sm:w-auto sm:grow sm:gap-2">
           <Link
             href="/jobs"
             className={cn(buttonVariants({ size: "sm", variant: "ghost" }))}

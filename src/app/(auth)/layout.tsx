@@ -27,10 +27,12 @@ export default async function AuthLayout({
   return (
     <TRPCReactProvider>
       <NiceModalProviderWrapper>
-        <div className="grid min-h-dvh grid-rows-[auto_1fr_auto]">
+        <div className="grid min-h-dvh grid-cols-1 grid-rows-[auto_1fr_auto]">
           <TopNav />
           <main className="relative bg-muted/30">
-            <div className="mx-auto w-full max-w-6xl px-6 py-8">{children}</div>
+            <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+              {children}
+            </div>
           </main>
           <Footer />
           <Assistant />

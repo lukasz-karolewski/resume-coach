@@ -23,6 +23,11 @@ import JobExperience from "~/components/resume/job-experience";
 import { MarkdownEditorDialog } from "~/components/resume/markdown-editor-dialog";
 import { PatentList } from "~/components/resume/patent-list";
 import { ProfessionalSummary } from "~/components/resume/professional-summary";
+import {
+  resumePaperClass,
+  resumeToolbarClass,
+  resumeToolbarInnerClass,
+} from "~/components/resume/resume-layout";
 import { ResumePrintDialog } from "~/components/resume/resume-print-dialog";
 import { ResumeSectionItemDialog } from "~/components/resume/resume-section-item-dialog";
 import { ResumeShareDialog } from "~/components/resume/resume-share-dialog";
@@ -410,8 +415,8 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: string }) {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
       <TooltipProvider delay={150}>
-        <div className="sticky top-[89px] z-20 mx-auto w-full max-w-[calc(8.5in+6rem)] print:hidden">
-          <div className="rounded-2xl border bg-card/95 px-12 py-3 shadow-sm backdrop-blur">
+        <div className={resumeToolbarClass}>
+          <div className={resumeToolbarInnerClass}>
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div className="flex min-w-0 flex-1 items-center gap-2">
                 <Input
@@ -423,7 +428,7 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: string }) {
                     }
                   }}
                   onChange={(e) => setDraftName(e.target.value)}
-                  className="h-11 w-auto max-w-2xl rounded-none border-0 border-b border-border/50 bg-transparent px-0 pb-px pt-0 text-xl font-semibold tracking-tight shadow-none [field-sizing:content] focus:border-b focus:border-foreground/30 focus:outline-hidden focus-visible:ring-0"
+                  className="h-11 w-auto min-w-0 max-w-full md:max-w-2xl rounded-none border-0 border-b border-border/50 bg-transparent px-0 pb-px pt-0 text-xl font-semibold tracking-tight shadow-none [field-sizing:content] focus:border-b focus:border-foreground/30 focus:outline-hidden focus-visible:ring-0"
                 />
                 <div
                   aria-label={showSavedIndicator ? "Saved" : undefined}
@@ -437,7 +442,7 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: string }) {
                   <CheckIcon className="size-4" />
                 </div>
               </div>
-              <div className="flex items-center gap-1 self-end md:self-auto">
+              <div className="flex flex-wrap items-center gap-1 self-end md:self-auto">
                 <AddResumeSectionDropdown
                   addedSectionTypes={activeSectionTypes}
                   isPending={addSectionItemMutation.isPending}
@@ -555,7 +560,7 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: string }) {
         </div>
       </TooltipProvider>
 
-      <div className="mx-auto bg-white p-12 shadow-lg print:p-0 print:shadow-none">
+      <div className={resumePaperClass}>
         <div className="flex w-full max-w-[8.5in] flex-col gap-8">
           <ContactInfo contactInfo={resume.contactInfo} />
 
