@@ -1,11 +1,16 @@
 "use client";
 
+import { FingerprintIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { signIn } from "~/auth-client";
 import { AuthScreen } from "~/components/auth/auth-screen";
+import {
+  isPasskeyCeremonyAborted,
+  usePasskeyAutofill,
+} from "~/components/auth/use-passkey-autofill";
 import { GoogleIcon } from "~/components/icons";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
@@ -24,6 +29,14 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+
+  const handleSignedIn = () => {
+    if (!isOAuthAuthorizationRequest()) {
+      router.push("/jobs");
+    }
+  };
+
+  const passkeyAutofill = usePasskeyAutofill(handleSignedIn);
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,13 +65,28 @@ export default function LoginPage() {
         onRequest: () => {
           setIsLoading(true);
         },
-        onSuccess: () => {
-          if (!isOAuthAuthorizationRequest()) {
-            router.push("/jobs");
-          }
-        },
+        onSuccess: handleSignedIn,
       },
     );
+  };
+
+  const handlePasskeySignIn = async () => {
+    setIsLoading(true);
+    setError("");
+
+    const { data, error: passkeyError } = await signIn.passkey();
+    if (data) {
+      handleSignedIn();
+      return;
+    }
+
+    setIsLoading(false);
+    passkeyAutofill.restart();
+    if (!isPasskeyCeremonyAborted(passkeyError)) {
+      setError(
+        "Passkey sign-in did not finish. Try again, or sign in with your email and password.",
+      );
+    }
   };
 
   const handleGoogleSignIn = async () => {
@@ -80,6 +108,16 @@ export default function LoginPage() {
               Or continue with
             </CardDescription>
           </div>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full justify-center"
+            disabled={isLoading}
+            onClick={handlePasskeySignIn}
+          >
+            <FingerprintIcon className="size-4" />
+            Sign in with passkey
+          </Button>
           <Button
             type="button"
             variant="outline"
@@ -116,6 +154,7 @@ export default function LoginPage() {
           <Input
             id="email"
             type="email"
+            autoComplete="username webauthn"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
@@ -128,6 +167,7 @@ export default function LoginPage() {
           <Input
             id="password"
             type="password"
+            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"

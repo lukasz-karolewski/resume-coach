@@ -9,6 +9,7 @@ import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { AccomplishmentProfileEditor } from "./accomplishment-profile-editor";
 import { ConnectedAppsCard } from "./connected-apps-card";
+import { PasskeysCard } from "./passkeys-card";
 import {
   accomplishmentProfileQuery,
   userInformationQuery,
@@ -70,6 +71,8 @@ export function ProfilePageClient() {
           </div>
         </CardContent>
       </Card>
+
+      <PasskeysCard />
 
       <ConnectedAppsCard />
 

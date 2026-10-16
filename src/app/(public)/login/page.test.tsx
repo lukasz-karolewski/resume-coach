@@ -13,8 +13,17 @@ vi.mock("next/navigation", () => ({
 vi.mock("~/auth-client", () => ({
   signIn: {
     email: vi.fn(),
+    passkey: vi.fn(),
     social: vi.fn(),
   },
+}));
+
+const { restartAutofill } = vi.hoisted(() => ({ restartAutofill: vi.fn() }));
+vi.mock("~/components/auth/use-passkey-autofill", async (importOriginal) => ({
+  ...(await importOriginal<
+    typeof import("~/components/auth/use-passkey-autofill")
+  >()),
+  usePasskeyAutofill: () => ({ restart: restartAutofill }),
 }));
 
 describe("LoginPage", () => {
@@ -157,5 +166,60 @@ describe("LoginPage", () => {
         provider: "google",
       });
     });
+  });
+
+  it("marks the email field for passkey autofill", () => {
+    render(<LoginPage />);
+
+    expect(
+      screen.getByLabelText(/email/i).getAttribute("autocomplete")?.split(" "),
+    ).toEqual(["username", "webauthn"]);
+  });
+
+  it("signs in with the passkey button", async () => {
+    const mockPasskeySignIn = signIn.passkey as ReturnType<typeof vi.fn>;
+    mockPasskeySignIn.mockResolvedValue({ data: { session: {} }, error: null });
+
+    render(<LoginPage />);
+    fireEvent.click(
+      screen.getByRole("button", { name: /sign in with passkey/i }),
+    );
+
+    await waitFor(() => expect(mockPush).toHaveBeenCalledWith("/jobs"));
+    expect(mockPasskeySignIn).toHaveBeenCalledWith();
+  });
+
+  it("keeps password sign-in available after a cancelled passkey attempt", async () => {
+    const mockPasskeySignIn = signIn.passkey as ReturnType<typeof vi.fn>;
+    mockPasskeySignIn.mockResolvedValue({
+      data: null,
+      error: { code: "ERROR_PASSTHROUGH_SEE_CAUSE_PROPERTY", status: 400 },
+    });
+
+    render(<LoginPage />);
+    fireEvent.click(
+      screen.getByRole("button", { name: /sign in with passkey/i }),
+    );
+
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    expect(restartAutofill).toHaveBeenCalled();
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: /sign in$/i })).toBeEnabled();
+  });
+
+  it("shows no error when a newer request aborts the passkey attempt", async () => {
+    const mockPasskeySignIn = signIn.passkey as ReturnType<typeof vi.fn>;
+    mockPasskeySignIn.mockResolvedValue({
+      data: null,
+      error: { code: "ERROR_CEREMONY_ABORTED", status: 400 },
+    });
+
+    render(<LoginPage />);
+    fireEvent.click(
+      screen.getByRole("button", { name: /sign in with passkey/i }),
+    );
+
+    await waitFor(() => expect(restartAutofill).toHaveBeenCalled());
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });
