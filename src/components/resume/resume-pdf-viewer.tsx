@@ -23,6 +23,7 @@ import { buttonVariants } from "~/components/ui/button";
 import type { ResumePdfData } from "~/lib/resume-pdf-select";
 
 import { PdfPages } from "./pdf-pages";
+import { PDF_ERROR_MESSAGE, PdfStatus } from "./pdf-status";
 import { partitionResumeEducation, toResumeTextBlocks } from "./resume-content";
 
 export type { ResumePdfData };
@@ -502,12 +503,9 @@ function ResumePdfPages({ resume }: { resume: Resume }) {
 
   if (!instance.url) {
     return (
-      <div
-        className="flex h-full items-center justify-center text-sm text-muted-foreground"
-        role="status"
-      >
-        {instance.error ? "Could not render the PDF." : "Rendering PDF…"}
-      </div>
+      <PdfStatus className="h-full">
+        {instance.error ? PDF_ERROR_MESSAGE : "Rendering PDF…"}
+      </PdfStatus>
     );
   }
 

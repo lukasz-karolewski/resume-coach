@@ -8,16 +8,14 @@ import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { useTRPC } from "~/trpc/react";
 
+import { PdfStatus } from "./pdf-status";
 import { createResumePdfViewer } from "./resume-pdf-viewer-lazy";
 import { resumeDetailQuery } from "./resume-queries";
 
 const ResumePdfViewer = createResumePdfViewer(() => (
-  <div
-    className="flex h-full min-h-[42rem] items-center justify-center bg-muted text-sm text-muted-foreground"
-    role="status"
-  >
+  <PdfStatus className="h-full min-h-[42rem]">
     Rendering paginated preview…
-  </div>
+  </PdfStatus>
 ));
 
 export default function ResumePreviewClient({

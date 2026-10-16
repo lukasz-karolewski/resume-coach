@@ -3,6 +3,8 @@
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import { useEffect, useRef, useState } from "react";
 
+import { PDF_ERROR_MESSAGE, PdfStatus } from "./pdf-status";
+
 /**
  * Draws every page of a PDF onto canvases sized to the container width.
  *
@@ -15,6 +17,7 @@ export function PdfPages({ url }: { url: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const [pdf, setPdf] = useState<PDFDocumentProxy | null>(null);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -30,21 +33,27 @@ export function PdfPages({ url }: { url: string }) {
   useEffect(() => {
     let cancelled = false;
     let destroy: (() => unknown) | undefined;
+    setFailed(false);
 
     void (async () => {
-      // The legacy build polyfills the newest JS APIs the modern build relies
-      // on, which current iOS Safari does not ship yet.
-      const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-      if (cancelled) return;
-      pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-        "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
-        import.meta.url,
-      ).toString();
+      try {
+        // The legacy build polyfills the newest JS APIs the modern build relies
+        // on, which current iOS Safari does not ship yet.
+        const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+        if (cancelled) return;
+        pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+          "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
+          import.meta.url,
+        ).toString();
 
-      const loadingTask = pdfjs.getDocument({ url });
-      destroy = () => loadingTask.destroy();
-      const loaded = await loadingTask.promise;
-      if (!cancelled) setPdf(loaded);
+        const loadingTask = pdfjs.getDocument({ url });
+        destroy = () => loadingTask.destroy();
+        const loaded = await loadingTask.promise;
+        if (!cancelled) setPdf(loaded);
+      } catch {
+        // Destroying the task on cleanup rejects it too; only a real failure counts.
+        if (!cancelled) setFailed(true);
+      }
     })();
 
     return () => {
@@ -53,21 +62,30 @@ export function PdfPages({ url }: { url: string }) {
     };
   }, [url]);
 
+  if (failed) {
+    return <PdfStatus className="h-full">{PDF_ERROR_MESSAGE}</PdfStatus>;
+  }
+
   return (
     <div className="h-full overflow-y-auto bg-muted p-2 sm:p-4">
-      <div className="mx-auto flex max-w-[8.5in] flex-col gap-2 sm:gap-4">
-        <div ref={containerRef} />
-        {pdf
-          ? Array.from({ length: pdf.numPages }, (_, index) => (
+      <div
+        className="mx-auto flex max-w-[8.5in] flex-col gap-2 sm:gap-4"
+        ref={containerRef}
+      >
+        {pdf ? (
+          Array.from({ length: pdf.numPages }, (_, index) => index + 1).map(
+            (pageNumber) => (
               <PdfPageCanvas
-                // biome-ignore lint/suspicious/noArrayIndexKey: the page number is the page's identity.
-                key={index}
-                pageNumber={index + 1}
+                key={pageNumber}
+                pageNumber={pageNumber}
                 pdf={pdf}
                 width={width}
               />
-            ))
-          : null}
+            ),
+          )
+        ) : (
+          <PdfStatus className="h-40">Rendering PDF…</PdfStatus>
+        )}
       </div>
     </div>
   );
@@ -92,8 +110,9 @@ function PdfPageCanvas({
     let cancelRender: (() => void) | undefined;
 
     void (async () => {
-      const page = await pdf.getPage(pageNumber);
-      if (cancelled) return;
+      // getPage rejects once the document is destroyed for a newer URL.
+      const page = await pdf.getPage(pageNumber).catch(() => null);
+      if (!page || cancelled) return;
 
       const scale =
         (width / page.getViewport({ scale: 1 }).width) *
