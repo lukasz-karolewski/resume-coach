@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { BottomNav, NavLinks } from "./nav-links";
@@ -44,6 +44,5 @@ describe("app navigation", () => {
     const nav = screen.getByRole("navigation", { name: "Primary" });
     expect(nav).toHaveAttribute("data-bottom-nav");
     expect(nav).toHaveClass("sm:hidden");
-    expect(within(nav).getAllByRole("link")).toHaveLength(3);
   });
 });

@@ -44,5 +44,4 @@ function isNavItemActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export type { NavItem };
 export { isNavItemActive, navItems };
