@@ -54,18 +54,24 @@ Font.register({
   ],
 });
 
+// Pagination rules learned the hard way from react-pdf:
+// - Sections, companies and positions render as flat siblings (fragments, not
+//   wrapping Views). minPresenceAhead only takes effect on an element that has
+//   a sibling before it on the page, so a heading wrapped as a View's first
+//   child could still be left alone at the bottom of a page.
+// - Blocks that can end a page space themselves with paddingBottom or the next
+//   block's marginTop, never marginBottom: react-pdf counts a last child's
+//   bottom margin as content to keep on the page, so a block ending just above
+//   the page edge jumps to the next page whole instead of splitting.
 const styles = StyleSheet.create({
   bullet: {
     flexDirection: "row",
     gap: 6,
-    marginBottom: 3,
+    paddingBottom: 3,
     paddingLeft: 4,
   },
   bulletMarker: {
     width: 8,
-  },
-  company: {
-    marginBottom: 10,
   },
   companyName: {
     color: "#111827",
@@ -101,7 +107,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   educationItem: {
-    marginBottom: 7,
+    paddingBottom: 7,
   },
   educationTitle: {
     flexGrow: 1,
@@ -119,7 +125,6 @@ const styles = StyleSheet.create({
   },
   header: {
     gap: 4,
-    marginBottom: 16,
   },
   link: {
     color: "#111827",
@@ -130,6 +135,12 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 700,
     lineHeight: 1.2,
+  },
+  nextCompany: {
+    marginTop: 19,
+  },
+  nextPosition: {
+    marginTop: 9,
   },
   page: {
     backgroundColor: "#ffffff",
@@ -142,10 +153,7 @@ const styles = StyleSheet.create({
     paddingTop: 38,
   },
   paragraph: {
-    marginBottom: 4,
-  },
-  position: {
-    marginBottom: 9,
+    paddingBottom: 4,
   },
   positionHeader: {
     flexDirection: "row",
@@ -163,9 +171,6 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
     fontWeight: 700,
   },
-  section: {
-    marginBottom: 13,
-  },
   sectionTitle: {
     borderBottomColor: "#d1d5db",
     borderBottomWidth: 0.75,
@@ -173,6 +178,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 700,
     marginBottom: 7,
+    marginTop: 18,
     paddingBottom: 3,
   },
   timeframe: {
@@ -255,24 +261,33 @@ function PdfSection({
   title: string;
 }) {
   return (
-    <View style={styles.section}>
+    <>
       <Text minPresenceAhead={40} style={styles.sectionTitle}>
         {title}
       </Text>
       {children}
-    </View>
+    </>
   );
 }
 
-function PositionItem({ position }: { position: Position }) {
+function PositionItem({
+  isFirst,
+  position,
+}: {
+  isFirst: boolean;
+  position: Position;
+}) {
   const { formattedFrom, formattedTo } = formatFromTo(
     position.startDate,
     position.endDate,
   );
 
   return (
-    <View style={styles.position}>
-      <View minPresenceAhead={36} style={styles.positionHeader}>
+    <>
+      <View
+        minPresenceAhead={36}
+        style={[styles.positionHeader, isFirst ? {} : styles.nextPosition]}
+      >
         <Text style={styles.positionTitle}>{position.title}</Text>
         <Text style={styles.timeframe}>
           {toYearMonthsDuration(position.startDate, position.endDate)} ·{" "}
@@ -283,14 +298,23 @@ function PositionItem({ position }: { position: Position }) {
         <Text style={styles.positionLocation}>{position.location}</Text>
       ) : null}
       <PdfMarkdown markdown={position.accomplishments} />
-    </View>
+    </>
   );
 }
 
-function ExperienceItem({ experience }: { experience: Experience }) {
+function ExperienceItem({
+  experience,
+  isFirst,
+}: {
+  experience: Experience;
+  isFirst: boolean;
+}) {
   return (
-    <View style={styles.company}>
-      <Text minPresenceAhead={48} style={styles.companyName}>
+    <>
+      <Text
+        minPresenceAhead={72}
+        style={[styles.companyName, isFirst ? {} : styles.nextCompany]}
+      >
         {experience.link ? (
           <Link src={experience.link} style={styles.link}>
             {experience.companyName}
@@ -300,9 +324,9 @@ function ExperienceItem({ experience }: { experience: Experience }) {
         )}
       </Text>
       {experience.positions.map((position, index) => (
-        <PositionItem key={index} position={position} />
+        <PositionItem isFirst={index === 0} key={index} position={position} />
       ))}
-    </View>
+    </>
   );
 }
 
@@ -425,7 +449,11 @@ export function ResumePdfDocument({ resume }: { resume: Resume }) {
         {resume.experience.length > 0 ? (
           <PdfSection title="Experience">
             {resume.experience.map((experience, index) => (
-              <ExperienceItem key={index} experience={experience} />
+              <ExperienceItem
+                experience={experience}
+                isFirst={index === 0}
+                key={index}
+              />
             ))}
           </PdfSection>
         ) : null}
