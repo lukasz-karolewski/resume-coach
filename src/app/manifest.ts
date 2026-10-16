@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { manifestIcons } from "~/app/app-icons";
 import { siteConfig } from "~/app/site-config";
 
 export default function manifest(): MetadataRoute.Manifest {
@@ -13,6 +14,12 @@ export default function manifest(): MetadataRoute.Manifest {
         src: "/icon.svg",
         type: "image/svg+xml",
       },
+      ...manifestIcons.map(({ purpose, size, src }) => ({
+        purpose,
+        sizes: `${size}x${size}`,
+        src,
+        type: "image/png",
+      })),
     ],
     lang: "en",
     name: siteConfig.name,
