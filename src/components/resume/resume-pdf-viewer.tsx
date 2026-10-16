@@ -14,13 +14,16 @@ import {
   StyleSheet,
   Svg,
   Text,
+  usePDF,
   View,
 } from "@react-pdf/renderer";
-import type { ReactNode } from "react";
-
+import { type ReactNode, useEffect, useSyncExternalStore } from "react";
 import { formatFromTo, toYearMonthsDuration } from "~/app/utils";
+import { buttonVariants } from "~/components/ui/button";
 import type { ResumePdfData } from "~/lib/resume-pdf-select";
 
+import { PdfPages } from "./pdf-pages";
+import { PDF_ERROR_MESSAGE, PdfStatus } from "./pdf-status";
 import { partitionResumeEducation, toResumeTextBlocks } from "./resume-content";
 
 export type { ResumePdfData };
@@ -469,16 +472,78 @@ export function ResumePdfDocument({ resume }: { resume: Resume }) {
   );
 }
 
+const COARSE_POINTER_QUERY = "(pointer: coarse)";
+
+function subscribeToPointer(onChange: () => void) {
+  const query = window.matchMedia(COARSE_POINTER_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
+/**
+ * Touch devices report a PDF viewer but can't show one usefully in an iframe
+ * (iOS paints a clipped first page), so only desktop browsers embed it.
+ */
+function useCanEmbedPdf() {
+  return useSyncExternalStore(
+    subscribeToPointer,
+    () =>
+      navigator.pdfViewerEnabled !== false &&
+      !window.matchMedia(COARSE_POINTER_QUERY).matches,
+    () => true,
+  );
+}
+
+function ResumePdfPages({ resume }: { resume: Resume }) {
+  const [instance, update] = usePDF();
+
+  useEffect(() => {
+    update(<ResumePdfDocument resume={resume} />);
+  }, [resume, update]);
+
+  if (!instance.url) {
+    return (
+      <PdfStatus className="h-full">
+        {instance.error ? PDF_ERROR_MESSAGE : "Rendering PDF…"}
+      </PdfStatus>
+    );
+  }
+
+  return (
+    <div className="relative h-full">
+      <PdfPages url={instance.url} />
+      {/* The browser's own viewer, opened full screen, is where the user prints or shares. */}
+      <a
+        className={buttonVariants({
+          className: "absolute right-3 bottom-3 shadow-md",
+          size: "sm",
+        })}
+        href={instance.url}
+        rel="noopener"
+        target="_blank"
+      >
+        Open PDF
+      </a>
+    </div>
+  );
+}
+
 export default function ResumePdfViewer({ resume }: { resume: Resume }) {
+  const canEmbedPdf = useCanEmbedPdf();
+
   return (
     <div
       aria-label={`Paginated preview of ${resume.name}`}
       className="h-full w-full"
       role="region"
     >
-      <PDFViewer showToolbar style={styles.viewer}>
-        <ResumePdfDocument resume={resume} />
-      </PDFViewer>
+      {canEmbedPdf ? (
+        <PDFViewer showToolbar style={styles.viewer}>
+          <ResumePdfDocument resume={resume} />
+        </PDFViewer>
+      ) : (
+        <ResumePdfPages resume={resume} />
+      )}
     </div>
   );
 }

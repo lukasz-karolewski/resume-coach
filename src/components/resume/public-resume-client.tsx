@@ -2,15 +2,11 @@
 
 import type { ResumePdfData } from "~/components/resume/resume-pdf-viewer";
 
+import { PdfStatus } from "./pdf-status";
 import { createResumePdfViewer } from "./resume-pdf-viewer-lazy";
 
 const ResumePdfViewer = createResumePdfViewer(() => (
-  <div
-    className="flex min-h-dvh items-center justify-center bg-muted text-sm text-muted-foreground"
-    role="status"
-  >
-    Rendering resume…
-  </div>
+  <PdfStatus className="min-h-dvh">Rendering resume…</PdfStatus>
 ));
 
 export default function PublicResumeClient({

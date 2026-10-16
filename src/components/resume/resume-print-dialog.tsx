@@ -17,15 +17,11 @@ import {
 } from "~/components/ui/tooltip";
 import type { ResumePdfData } from "~/lib/resume-pdf-select";
 
+import { PdfStatus } from "./pdf-status";
 import { createResumePdfViewer } from "./resume-pdf-viewer-lazy";
 
 const ResumePdfViewer = createResumePdfViewer(() => (
-  <div
-    className="flex h-full items-center justify-center bg-muted text-sm text-muted-foreground"
-    role="status"
-  >
-    Rendering PDF…
-  </div>
+  <PdfStatus className="h-full">Rendering PDF…</PdfStatus>
 ));
 
 /**

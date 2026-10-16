@@ -41,6 +41,7 @@
     "lexical": "^0.52.0",
     "markdown-to-jsx": "^9.10.3",
     "next": "^16.4.0",
+    "pdfjs-dist": "^6.4.299",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-hook-form": "^7.89.0",
