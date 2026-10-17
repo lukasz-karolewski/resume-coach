@@ -1,8 +1,9 @@
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import clsx from "clsx";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Noto_Serif, Playfair_Display } from "next/font/google";
+import { pageMetadata } from "~/app/seo";
 import { siteConfig } from "~/app/site-config";
 import { Toaster } from "~/components/ui/toast";
 import { cn } from "~/lib/utils";
@@ -16,28 +17,22 @@ const playfairDisplay = Playfair_Display({
 const font = Noto_Serif({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  alternates: {
-    canonical: "/",
-  },
+  ...pageMetadata({
+    description: siteConfig.description,
+    path: "/",
+    title: siteConfig.name,
+  }),
   applicationName: siteConfig.name,
   category: "career",
-  description: siteConfig.description,
   keywords: [
-    "application tracker",
+    "AI resume builder",
+    "tailored resume",
+    "accomplishment tracker",
+    "brag document",
+    "resume coach",
     "job application tracker",
-    "resume builder",
-    "cover letter generator",
-    "interview preparation",
-    "job search organizer",
   ],
   metadataBase: new URL(siteConfig.url),
-  openGraph: {
-    description: siteConfig.description,
-    siteName: siteConfig.name,
-    title: siteConfig.name,
-    type: "website",
-    url: siteConfig.url,
-  },
   robots: {
     follow: true,
     googleBot: {
@@ -53,11 +48,10 @@ export const metadata: Metadata = {
     default: siteConfig.name,
     template: siteConfig.titleTemplate,
   },
-  twitter: {
-    card: "summary_large_image",
-    description: siteConfig.description,
-    title: siteConfig.name,
-  },
+};
+
+export const viewport: Viewport = {
+  themeColor: siteConfig.themeColor,
 };
 
 interface RootLayoutProps {

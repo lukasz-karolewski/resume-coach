@@ -42,6 +42,19 @@ describe("HomePage", () => {
     expect(hrefs).toContain("/login");
   });
 
+  test("publishes structured data search engines can parse", async () => {
+    vi.mocked(auth.api.getSession).mockResolvedValue(null);
+
+    const { container } = render(await HomePage());
+    const script = container.querySelector(
+      'script[type="application/ld+json"]',
+    );
+
+    expect(JSON.parse(script?.textContent ?? "")).toMatchObject({
+      "@context": "https://schema.org",
+    });
+  });
+
   test("redirects authenticated users to the job tracker", async () => {
     vi.mocked(auth.api.getSession).mockResolvedValue({
       session: {

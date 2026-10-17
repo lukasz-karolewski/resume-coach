@@ -9,7 +9,11 @@ vi.mock("next/font/google", () => ({
   }),
 }));
 
-import { metadata } from "./layout";
+import { metadata as loginMetadata } from "./(public)/login/layout";
+import { metadata as signupMetadata } from "./(public)/signup/layout";
+import { metadata, viewport } from "./layout";
+import manifest from "./manifest";
+import { metadata as homeMetadata } from "./page";
 import robots from "./robots";
 import sitemap from "./sitemap";
 
@@ -44,5 +48,41 @@ describe("app metadata", () => {
         [],
       );
     }
+  });
+
+  test("lets crawlers reach noindex pages so the tag is honored", () => {
+    const disallowed = [robots().rules]
+      .flat()
+      .flatMap((rule) => [rule.disallow ?? []].flat());
+
+    for (const path of ["/login", "/signup", "/r/some-slug"]) {
+      expect(disallowed.filter((prefix) => path.startsWith(prefix))).toEqual(
+        [],
+      );
+    }
+  });
+
+  test("names the product once in the home page title", () => {
+    const title = homeMetadata.title;
+    const absolute =
+      typeof title === "object" && title && "absolute" in title
+        ? title.absolute
+        : undefined;
+
+    expect(absolute?.match(/Resume Coach/g)).toHaveLength(1);
+  });
+
+  test("matches the browser theme color to the installed app", () => {
+    expect(viewport.themeColor).toBe(manifest().theme_color);
+  });
+
+  test.each([
+    ["root layout", metadata],
+    ["home page", homeMetadata],
+    ["login", loginMetadata],
+    ["signup", signupMetadata],
+  ])("%s keeps a preview image for shared links", (_name, pageMeta) => {
+    expect(pageMeta.openGraph?.images).toBeTruthy();
+    expect(pageMeta.twitter?.images).toBeTruthy();
   });
 });
