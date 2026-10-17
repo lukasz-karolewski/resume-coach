@@ -1,18 +1,14 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "~/app/seo";
 import { siteConfig } from "~/app/site-config";
 
 export const metadata: Metadata = {
-  alternates: {
-    canonical: "/signup",
-  },
-  description:
-    "Create a Resume Coach account to track job applications, generate tailored resumes and cover letters, and prepare for interviews.",
-  openGraph: {
+  ...pageMetadata({
     description:
-      "Create a Resume Coach account to track job applications, generate tailored resumes and cover letters, and prepare for interviews.",
+      "Create a Resume Coach account to log your accomplishments, track job applications, and generate tailored resumes from your real work.",
+    path: "/signup",
     title: `Create Account | ${siteConfig.name}`,
-    url: `${siteConfig.url}/signup`,
-  },
+  }),
   robots: {
     follow: false,
     index: false,

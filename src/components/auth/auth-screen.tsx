@@ -87,9 +87,11 @@ export function AuthScreen({
           <div className="space-y-3">
             <p className="text-sm font-medium">Built for tech professionals</p>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>Continuous accomplishment tracking with reminders.</li>
-              <li>AI-tailored resumes — no hallucinations, ever.</li>
-              <li>Perf review drafts from the same accomplishment log.</li>
+              <li>
+                One running log of your accomplishments, organized by role.
+              </li>
+              <li>Tailored resumes built only from work you logged.</li>
+              <li>An AI coach that sharpens wording without inventing any.</li>
             </ul>
           </div>
         </div>

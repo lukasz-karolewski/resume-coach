@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { siteConfig } from "~/app/site-config";
 
-// /login and /signup are noindex and disallowed in robots.ts, so they stay out.
+// /login, /signup, and shared /r/ resumes are noindex, so they stay out.
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {

@@ -1,18 +1,14 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "~/app/seo";
 import { siteConfig } from "~/app/site-config";
 
 export const metadata: Metadata = {
-  alternates: {
-    canonical: "/login",
-  },
-  description:
-    "Sign in to Resume Coach to manage your application tracker, tailored resumes, cover letters, and interview prep.",
-  openGraph: {
+  ...pageMetadata({
     description:
-      "Sign in to Resume Coach to manage your application tracker, tailored resumes, cover letters, and interview prep.",
+      "Sign in to Resume Coach to update your accomplishment log, track job applications, and generate tailored resumes.",
+    path: "/login",
     title: `Sign In | ${siteConfig.name}`,
-    url: `${siteConfig.url}/login`,
-  },
+  }),
   robots: {
     follow: false,
     index: false,
