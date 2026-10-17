@@ -50,6 +50,10 @@ vi.mock("./accomplishment-profile-editor", () => ({
   }) => <div>{`Profile editor ${initialProfile.roles[0]?.startMonth}`}</div>,
 }));
 
+vi.mock("./passkeys-card", () => ({
+  PasskeysCard: () => null,
+}));
+
 vi.mock("./connected-apps-card", () => ({
   ConnectedAppsCard: () => null,
 }));

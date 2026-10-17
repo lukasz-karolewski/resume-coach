@@ -1,6 +1,7 @@
 import { cimd } from "@better-auth/cimd";
 import { mcp } from "@better-auth/mcp";
 import type { ClientMetadataResourceFetch } from "@better-auth/oauth-provider";
+import { passkey } from "@better-auth/passkey";
 import { nextCookies } from "better-auth/next-js";
 import { jwt } from "better-auth/plugins/jwt";
 
@@ -36,6 +37,7 @@ export function createAuthPlugins(
       fetchClientMetadataResource,
       metadataProfile: "mcp-2026-07-28",
     }),
+    passkey({ rpName: "Resume Coach" }),
     nextCookies(),
   ];
 }

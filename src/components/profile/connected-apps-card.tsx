@@ -26,12 +26,8 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
+import { RelativeTime } from "~/components/ui/relative-time";
 import { toast } from "~/components/ui/toast";
-import {
-  formatRelativeTime,
-  formatTimestampTooltip,
-  toDateTimeValue,
-} from "~/lib/date-time";
 import { useTRPC } from "~/trpc/react";
 
 import { connectedAppsQuery } from "./profile-queries";
@@ -93,13 +89,7 @@ export function ConnectedAppsCard() {
                     </Badge>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Connected{" "}
-                    <time
-                      dateTime={toDateTimeValue(app.connectedAt)}
-                      title={formatTimestampTooltip(app.connectedAt)}
-                    >
-                      {formatRelativeTime(app.connectedAt)}
-                    </time>
+                    Connected <RelativeTime value={app.connectedAt} />
                   </p>
                   <ul className="flex flex-wrap gap-2" aria-label="Permissions">
                     {app.permissions.map((permission) => (

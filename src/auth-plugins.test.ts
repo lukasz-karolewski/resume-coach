@@ -52,3 +52,17 @@ test("uses the supplied hardened transport for CIMD metadata", () => {
     metadataProfile: "mcp-2026-07-28",
   });
 });
+
+test("serves the passkey endpoints the sign-in page calls", () => {
+  const plugins = createAuthPlugins(vi.fn());
+  const passkey = plugins.find((plugin) => plugin.id === "passkey");
+
+  expect(passkey?.endpoints).toEqual(
+    expect.objectContaining({
+      generatePasskeyAuthenticationOptions: expect.anything(),
+      generatePasskeyRegistrationOptions: expect.anything(),
+      verifyPasskeyAuthentication: expect.anything(),
+      verifyPasskeyRegistration: expect.anything(),
+    }),
+  );
+});
