@@ -107,14 +107,12 @@ export default function PageLoading({
       >
         <div className={resumeToolbarClass}>
           <div className={resumeToolbarInnerClass}>
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div className="flex min-w-0 flex-1 items-center gap-2">
-                <LoadingBlock className="h-11 w-72 rounded-md" />
-                <LoadingBlock className="size-5 rounded-full" />
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex min-w-0 flex-1 items-center gap-1">
+                <LoadingBlock className="h-9 w-56 max-w-full rounded-md" />
+                <LoadingBlock className="size-8 rounded-full" />
               </div>
-              <div className="flex items-center gap-1 self-end md:self-auto">
-                <LoadingBlock className="size-8 rounded-full" />
-                <LoadingBlock className="size-8 rounded-full" />
+              <div className="flex shrink-0 items-center gap-1">
                 <LoadingBlock className="size-8 rounded-full" />
                 <LoadingBlock className="size-8 rounded-full" />
               </div>

@@ -1,28 +1,20 @@
 "use client";
 
-import {
-  CheckIcon,
-  ClipboardDocumentIcon,
-  EyeIcon,
-  PlusIcon,
-  Squares2X2Icon,
-  TrashIcon,
-} from "@heroicons/react/20/solid";
+import { CheckIcon, PlusIcon, TrashIcon } from "@heroicons/react/20/solid";
 import {
   useMutation,
   useQueryClient,
   useSuspenseQuery,
 } from "@tanstack/react-query";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { AddResumeSectionDropdown } from "~/components/resume/add-resume-section-dropdown";
 import ContactInfo from "~/components/resume/contact-info";
 import EducationExperience from "~/components/resume/education-experience";
 import JobExperience from "~/components/resume/job-experience";
 import { MarkdownEditorDialog } from "~/components/resume/markdown-editor-dialog";
 import { PatentList } from "~/components/resume/patent-list";
 import { ProfessionalSummary } from "~/components/resume/professional-summary";
+import { ResumeActionsMenu } from "~/components/resume/resume-actions-menu";
 import {
   resumePaperClass,
   resumeToolbarClass,
@@ -47,12 +39,7 @@ import {
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { toast } from "~/components/ui/toast";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "~/components/ui/tooltip";
+import { TooltipProvider } from "~/components/ui/tooltip";
 import {
   type ResumeSectionType,
   resumeSectionOptions,
@@ -417,8 +404,8 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: string }) {
       <TooltipProvider delay={150}>
         <div className={resumeToolbarClass}>
           <div className={resumeToolbarInnerClass}>
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div className="flex min-w-0 flex-1 items-center gap-2">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex min-w-0 flex-1 items-center gap-1">
                 <Input
                   aria-label="Resume name"
                   value={draftName}
@@ -428,12 +415,32 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: string }) {
                     }
                   }}
                   onChange={(e) => setDraftName(e.target.value)}
-                  className="h-11 w-auto min-w-0 max-w-full md:max-w-2xl rounded-none border-0 border-b border-border/50 bg-transparent px-0 pb-px pt-0 text-xl font-semibold tracking-tight shadow-none [field-sizing:content] focus:border-b focus:border-foreground/30 focus:outline-hidden focus-visible:ring-0"
+                  className="h-9 w-auto min-w-0 max-w-full truncate rounded-none border-0 border-b border-border/50 bg-transparent px-0 pb-px pt-0 text-base font-semibold tracking-tight shadow-none [field-sizing:content] focus:border-b focus:border-foreground/30 focus:outline-hidden focus-visible:ring-0 sm:text-lg md:max-w-xl"
+                />
+                <ResumeActionsMenu
+                  addedSectionTypes={activeSectionTypes}
+                  isAddingSection={addSectionItemMutation.isPending}
+                  isCopyingMarkdown={isCopyingMarkdown}
+                  isDeleting={deleteMutation.isPending}
+                  isDuplicating={duplicateMutation.isPending}
+                  onAddSection={setAddingSectionType}
+                  onCopyMarkdown={() => {
+                    void copyMarkdownToClipboard();
+                  }}
+                  onDelete={() => deleteMutation.mutate({ id: resume.id })}
+                  onDuplicate={() =>
+                    duplicateMutation.mutate({
+                      id: resume.id,
+                      name: `${resume.name} (Copy)`,
+                    })
+                  }
+                  previewHref={`/resume/${resume.id}/preview`}
+                  resumeName={resume.name}
                 />
                 <div
                   aria-label={showSavedIndicator ? "Saved" : undefined}
                   aria-live="polite"
-                  className={`pointer-events-none flex size-5 items-center justify-center text-emerald-600 transition-all duration-200 ${
+                  className={`pointer-events-none flex size-5 shrink-0 items-center justify-center text-emerald-600 transition-all duration-200 ${
                     showSavedIndicator
                       ? "scale-100 opacity-100"
                       : "scale-95 opacity-0"
@@ -442,118 +449,12 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: string }) {
                   <CheckIcon className="size-4" />
                 </div>
               </div>
-              <div className="flex flex-wrap items-center gap-1 self-end md:self-auto">
-                <AddResumeSectionDropdown
-                  addedSectionTypes={activeSectionTypes}
-                  isPending={addSectionItemMutation.isPending}
-                  onAdd={(type) => {
-                    setAddingSectionType(type);
-                  }}
-                />
+              <div className="flex shrink-0 items-center gap-1">
                 <ResumeShareDialog
                   permalink={resume.permalink}
                   resumeId={resume.id}
                 />
-                <Tooltip>
-                  <TooltipTrigger
-                    render={
-                      <Button
-                        render={<Link href={`/resume/${resume.id}/preview`} />}
-                        size="icon-sm"
-                        variant="ghost"
-                        className="cursor-pointer"
-                        aria-label="Preview resume"
-                      />
-                    }
-                  >
-                    <EyeIcon className="size-4" />
-                  </TooltipTrigger>
-                  <TooltipContent>Preview</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger
-                    render={
-                      <Button
-                        size="icon-sm"
-                        variant="ghost"
-                        className="cursor-pointer"
-                        aria-label="Copy as markdown"
-                        disabled={isCopyingMarkdown}
-                        onClick={() => {
-                          void copyMarkdownToClipboard();
-                        }}
-                      />
-                    }
-                  >
-                    <ClipboardDocumentIcon className="size-4" />
-                  </TooltipTrigger>
-                  <TooltipContent>Copy as markdown</TooltipContent>
-                </Tooltip>
                 <ResumePrintDialog resume={resume} />
-                <Tooltip>
-                  <TooltipTrigger
-                    render={
-                      <Button
-                        size="icon-sm"
-                        variant="ghost"
-                        className="cursor-pointer"
-                        aria-label="Duplicate resume"
-                        disabled={duplicateMutation.isPending}
-                        onClick={() =>
-                          duplicateMutation.mutate({
-                            id: resume.id,
-                            name: `${resume.name} (Copy)`,
-                          })
-                        }
-                      />
-                    }
-                  >
-                    <Squares2X2Icon className="size-4" />
-                  </TooltipTrigger>
-                  <TooltipContent>Duplicate</TooltipContent>
-                </Tooltip>
-                <AlertDialog>
-                  <Tooltip>
-                    <TooltipTrigger
-                      render={
-                        <AlertDialogTrigger
-                          render={
-                            <Button
-                              size="icon-sm"
-                              variant="ghost"
-                              className="cursor-pointer"
-                              aria-label="Delete resume"
-                              disabled={deleteMutation.isPending}
-                            />
-                          }
-                        />
-                      }
-                    >
-                      <TrashIcon className="size-4" />
-                    </TooltipTrigger>
-                    <TooltipContent>Delete</TooltipContent>
-                  </Tooltip>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete resume?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will permanently delete "{resume.name}" and its
-                        associated resume data.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        variant="destructive"
-                        onClick={() => {
-                          deleteMutation.mutate({ id: resume.id });
-                        }}
-                      >
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
               </div>
             </div>
           </div>

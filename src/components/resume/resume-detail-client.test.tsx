@@ -241,6 +241,16 @@ vi.mock("@tanstack/react-query", () => ({
   useSuspenseQuery: () => ({ data: mockResume }),
 }));
 
+async function openResumeActions() {
+  fireEvent.click(screen.getByRole("button", { name: "Resume actions" }));
+  return screen.findByRole("menu");
+}
+
+async function pickResumeAction(name: RegExp | string) {
+  const menu = await openResumeActions();
+  fireEvent.click(within(menu).getByRole("menuitem", { name }));
+}
+
 describe("ResumeDetailClient", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -287,15 +297,34 @@ describe("ResumeDetailClient", () => {
     });
   });
 
-  test("exposes the resume name as an editable input and links to the preview", () => {
+  test("exposes the resume name as an editable input and links to the preview from its menu", async () => {
     render(<ResumeDetailClient resumeId={"Res007"} />);
 
     expect(screen.getByRole("textbox", { name: "Resume name" })).toHaveValue(
       "Platform Resume",
     );
+    const menu = await openResumeActions();
     expect(
-      screen.getByRole("link", { name: /preview resume/i }),
+      within(menu).getByRole("menuitem", { name: "Preview" }),
     ).toHaveAttribute("href", "/resume/Res007/preview");
+  });
+
+  test("keeps only print standing in the toolbar and tucks secondary actions into the title menu", () => {
+    render(<ResumeDetailClient resumeId={"Res007"} />);
+
+    expect(
+      screen.getByRole("button", { name: /print resume/i }),
+    ).toBeInTheDocument();
+    for (const name of [
+      /add section/i,
+      /preview/i,
+      /copy as markdown/i,
+      /duplicate/i,
+      /delete resume/i,
+    ]) {
+      expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
+      expect(screen.queryByRole("link", { name })).not.toBeInTheDocument();
+    }
   });
 
   test("collects initial content before adding a section", async () => {
@@ -326,7 +355,11 @@ describe("ResumeDetailClient", () => {
 
     render(<ResumeDetailClient resumeId={"Res007"} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Add section" }));
+    fireEvent.click(
+      within(await openResumeActions()).getByRole("menuitem", {
+        name: "Add section",
+      }),
+    );
 
     expect(
       screen.getByRole("menuitem", { name: /experience/i }),
@@ -404,7 +437,7 @@ describe("ResumeDetailClient", () => {
     });
   });
 
-  test("copies the resume markdown from the toolbar", async () => {
+  test("copies the resume markdown from the title menu", async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       text: vi.fn().mockResolvedValue("# Resume markdown"),
@@ -413,7 +446,7 @@ describe("ResumeDetailClient", () => {
 
     render(<ResumeDetailClient resumeId={"Res007"} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /copy as markdown/i }));
+    await pickResumeAction("Copy as markdown");
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith("/resume/Res007/markdown");
@@ -474,7 +507,7 @@ describe("ResumeDetailClient", () => {
 
     render(<ResumeDetailClient resumeId={"Res007"} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /delete resume/i }));
+    await pickResumeAction("Delete");
 
     expect(await screen.findByRole("alertdialog")).toBeInTheDocument();
 
@@ -527,7 +560,7 @@ describe("ResumeDetailClient", () => {
     vi.useRealTimers();
   });
 
-  test("duplicates the resume from the toolbar", async () => {
+  test("duplicates the resume from the title menu", async () => {
     const mutate = vi.fn();
     mockDuplicateMutation.mockReturnValue({
       isPending: false,
@@ -536,7 +569,7 @@ describe("ResumeDetailClient", () => {
 
     render(<ResumeDetailClient resumeId={"Res007"} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /duplicate resume/i }));
+    await pickResumeAction("Duplicate");
 
     await waitFor(() => {
       expect(mutate).toHaveBeenCalledWith({
@@ -555,7 +588,7 @@ describe("ResumeDetailClient", () => {
 
     render(<ResumeDetailClient resumeId={"Res007"} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /delete resume/i }));
+    await pickResumeAction("Delete");
     expect(mutate).not.toHaveBeenCalled();
     fireEvent.click(
       within(await screen.findByRole("alertdialog")).getByRole("button", {

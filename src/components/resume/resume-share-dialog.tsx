@@ -34,6 +34,11 @@ import { Form, useAppForm } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { toast } from "~/components/ui/toast";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
 import { permalinkFormSchema } from "~/lib/schemas/resume-identifiers";
 import { useTRPC } from "~/trpc/react";
 import type { RouterOutputs } from "~/trpc/shared";
@@ -107,18 +112,25 @@ export function ResumeShareDialog({
 
   return (
     <Dialog>
-      <DialogTrigger
-        render={
-          <Button
-            aria-label="Share resume"
-            className="cursor-pointer"
-            size="icon-sm"
-            variant="ghost"
-          />
-        }
-      >
-        <LinkIcon className="size-4" />
-      </DialogTrigger>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <DialogTrigger
+              render={
+                <Button
+                  aria-label="Share resume"
+                  className="cursor-pointer"
+                  size="icon-sm"
+                  variant="ghost"
+                />
+              }
+            />
+          }
+        >
+          <LinkIcon className="size-4" />
+        </TooltipTrigger>
+        <TooltipContent>Share</TooltipContent>
+      </Tooltip>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Public resume link</DialogTitle>
