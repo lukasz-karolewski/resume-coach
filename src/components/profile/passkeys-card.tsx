@@ -1,6 +1,6 @@
 "use client";
 
-import { FingerprintIcon } from "@phosphor-icons/react";
+import { FingerprintIcon, TrashIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 import { authClient, passkey } from "~/auth-client";
@@ -23,6 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
+import { InlineEdit } from "~/components/ui/inline-edit";
 import { RelativeTime } from "~/components/ui/relative-time";
 import { toast } from "~/components/ui/toast";
 import { isPasskeyPromptDismissed } from "~/lib/passkey-errors";
@@ -39,6 +40,7 @@ export function PasskeysCard() {
   } = authClient.useListPasskeys();
   const [isAdding, setIsAdding] = useState(false);
   const [removingId, setRemovingId] = useState<string>();
+  const [renamingId, setRenamingId] = useState<string>();
 
   const handleAdd = async () => {
     setIsAdding(true);
@@ -70,6 +72,11 @@ export function PasskeysCard() {
         ? { title: "Failed to remove passkey", type: "error" }
         : { title: "Passkey removed", type: "success" },
     );
+  };
+
+  const handleRename = async (id: string, name: string) => {
+    const { error } = await passkey.updatePasskey({ id, name });
+    if (error) toast.add({ title: "Failed to rename passkey", type: "error" });
   };
 
   return (
@@ -104,55 +111,72 @@ export function PasskeysCard() {
             You have no passkeys yet.
           </p>
         ) : (
-          <ul className="divide-y rounded-xl border">
+          <ul className="divide-y">
             {passkeys.map((key) => (
               <li
-                className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between"
+                className="flex items-center gap-3 py-1.5 first:pt-0 last:pb-0"
                 key={key.id}
               >
-                <div className="min-w-0 space-y-1">
-                  <p className="font-medium">{passkeyLabel(key)}</p>
-                  {key.createdAt ? (
-                    <p className="text-xs text-muted-foreground">
+                <FingerprintIcon
+                  aria-hidden
+                  className="size-4 shrink-0 text-muted-foreground"
+                />
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                  <InlineEdit
+                    className="min-w-0"
+                    label="Passkey name"
+                    onEditingChange={(editing) =>
+                      setRenamingId(editing ? key.id : undefined)
+                    }
+                    onSave={(name) => handleRename(key.id, name)}
+                    placeholder="Passkey"
+                    value={key.name ?? ""}
+                  />
+                  {renamingId === key.id || !key.createdAt ? null : (
+                    <span className="shrink-0 text-xs text-muted-foreground">
                       Added <RelativeTime value={key.createdAt} />
-                    </p>
-                  ) : null}
+                    </span>
+                  )}
                 </div>
 
-                <AlertDialog>
-                  <AlertDialogTrigger
-                    render={
-                      <Button
-                        disabled={removingId === key.id}
-                        size="sm"
-                        type="button"
-                        variant="destructive"
-                      />
-                    }
-                  >
-                    Remove
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        Remove {passkeyLabel(key)}?
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        You will no longer be able to sign in with it. Delete it
-                        from your device or password manager too.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        variant="destructive"
-                        onClick={() => handleRemove(key.id)}
-                      >
-                        Remove {passkeyLabel(key)}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                {renamingId === key.id ? null : (
+                  <AlertDialog>
+                    <AlertDialogTrigger
+                      render={
+                        <Button
+                          aria-label={`Remove ${passkeyLabel(key)}`}
+                          className="text-muted-foreground hover:text-destructive"
+                          disabled={removingId === key.id}
+                          size="icon-sm"
+                          type="button"
+                          variant="ghost"
+                        />
+                      }
+                    >
+                      <TrashIcon />
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          Remove {passkeyLabel(key)}?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          You will no longer be able to sign in with it. Delete
+                          it from your device or password manager too.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          variant="destructive"
+                          onClick={() => handleRemove(key.id)}
+                        >
+                          Remove passkey
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
               </li>
             ))}
           </ul>
