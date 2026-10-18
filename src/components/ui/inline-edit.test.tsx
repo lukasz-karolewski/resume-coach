@@ -14,16 +14,46 @@ function renderEdit(value = "Mac") {
 }
 
 describe("InlineEdit", () => {
-  test("saves the trimmed value on Enter", async () => {
+  test("saves the trimmed value on submit", async () => {
     const { input, onSave } = renderEdit();
 
     fireEvent.change(input, { target: { value: "  Work laptop " } });
-    fireEvent.keyDown(input, { key: "Enter" });
+    fireEvent.submit(input);
 
     await waitFor(() => expect(onSave).toHaveBeenCalledWith("Work laptop"));
     expect(
       await screen.findByRole("button", { name: /rename/i }),
     ).toBeVisible();
+  });
+
+  test("saves with the Save button", async () => {
+    const { input, onSave } = renderEdit();
+
+    fireEvent.change(input, { target: { value: "Phone" } });
+    // A tap on Save blurs the field without focusing the button on Safari.
+    fireEvent.blur(input);
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith("Phone"));
+    expect(onSave).toHaveBeenCalledTimes(1);
+  });
+
+  test("reports when editing starts and stops", () => {
+    const onEditingChange = vi.fn();
+    render(
+      <InlineEdit
+        label="Passkey name"
+        onEditingChange={onEditingChange}
+        onSave={vi.fn()}
+        value="Mac"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /rename/i }));
+    expect(onEditingChange).toHaveBeenLastCalledWith(true);
+
+    fireEvent.keyDown(screen.getByRole("textbox"), { key: "Escape" });
+    expect(onEditingChange).toHaveBeenLastCalledWith(false);
   });
 
   test("saves when focus leaves the field", async () => {

@@ -40,6 +40,7 @@ export function PasskeysCard() {
   } = authClient.useListPasskeys();
   const [isAdding, setIsAdding] = useState(false);
   const [removingId, setRemovingId] = useState<string>();
+  const [renamingId, setRenamingId] = useState<string>();
 
   const handleAdd = async () => {
     setIsAdding(true);
@@ -124,53 +125,58 @@ export function PasskeysCard() {
                   <InlineEdit
                     className="min-w-0"
                     label="Passkey name"
+                    onEditingChange={(editing) =>
+                      setRenamingId(editing ? key.id : undefined)
+                    }
                     onSave={(name) => handleRename(key.id, name)}
                     placeholder="Passkey"
                     value={key.name ?? ""}
                   />
-                  {key.createdAt ? (
+                  {renamingId === key.id || !key.createdAt ? null : (
                     <span className="shrink-0 text-xs text-muted-foreground">
                       Added <RelativeTime value={key.createdAt} />
                     </span>
-                  ) : null}
+                  )}
                 </div>
 
-                <AlertDialog>
-                  <AlertDialogTrigger
-                    render={
-                      <Button
-                        aria-label={`Remove ${passkeyLabel(key)}`}
-                        className="text-muted-foreground hover:text-destructive"
-                        disabled={removingId === key.id}
-                        size="icon-sm"
-                        type="button"
-                        variant="ghost"
-                      />
-                    }
-                  >
-                    <TrashIcon />
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        Remove {passkeyLabel(key)}?
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        You will no longer be able to sign in with it. Delete it
-                        from your device or password manager too.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        variant="destructive"
-                        onClick={() => handleRemove(key.id)}
-                      >
-                        Remove passkey
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                {renamingId === key.id ? null : (
+                  <AlertDialog>
+                    <AlertDialogTrigger
+                      render={
+                        <Button
+                          aria-label={`Remove ${passkeyLabel(key)}`}
+                          className="text-muted-foreground hover:text-destructive"
+                          disabled={removingId === key.id}
+                          size="icon-sm"
+                          type="button"
+                          variant="ghost"
+                        />
+                      }
+                    >
+                      <TrashIcon />
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          Remove {passkeyLabel(key)}?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          You will no longer be able to sign in with it. Delete
+                          it from your device or password manager too.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          variant="destructive"
+                          onClick={() => handleRemove(key.id)}
+                        >
+                          Remove passkey
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
               </li>
             ))}
           </ul>

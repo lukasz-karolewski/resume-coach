@@ -83,7 +83,7 @@ describe("PasskeysCard", () => {
     fireEvent.click(screen.getByRole("button", { name: "Rename Mac" }));
     const input = screen.getByRole("textbox", { name: "Passkey name" });
     fireEvent.change(input, { target: { value: "Work laptop" } });
-    fireEvent.keyDown(input, { key: "Enter" });
+    fireEvent.submit(input);
 
     await waitFor(() =>
       expect(updatePasskey).toHaveBeenCalledWith({
@@ -91,6 +91,21 @@ describe("PasskeysCard", () => {
         name: "Work laptop",
       }),
     );
+  });
+
+  test("swaps the remove action for Save while renaming", () => {
+    listPasskeys([
+      { createdAt: new Date("2026-10-01T00:00:00Z"), id: "pk-1", name: "Mac" },
+    ]);
+
+    render(<PasskeysCard />);
+    fireEvent.click(screen.getByRole("button", { name: "Rename Mac" }));
+
+    expect(
+      screen.queryByRole("button", { name: "Remove Mac" }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/ago/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save" })).toBeVisible();
   });
 
   test("reports a failed rename", async () => {
