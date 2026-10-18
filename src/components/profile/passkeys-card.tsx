@@ -1,6 +1,6 @@
 "use client";
 
-import { FingerprintIcon } from "@phosphor-icons/react";
+import { FingerprintIcon, TrashIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 import { authClient, passkey } from "~/auth-client";
@@ -23,6 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
+import { InlineEdit } from "~/components/ui/inline-edit";
 import { RelativeTime } from "~/components/ui/relative-time";
 import { toast } from "~/components/ui/toast";
 import { isPasskeyPromptDismissed } from "~/lib/passkey-errors";
@@ -72,6 +73,11 @@ export function PasskeysCard() {
     );
   };
 
+  const handleRename = async (id: string, name: string) => {
+    const { error } = await passkey.updatePasskey({ id, name });
+    if (error) toast.add({ title: "Failed to rename passkey", type: "error" });
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -104,18 +110,28 @@ export function PasskeysCard() {
             You have no passkeys yet.
           </p>
         ) : (
-          <ul className="divide-y rounded-xl border">
+          <ul className="divide-y">
             {passkeys.map((key) => (
               <li
-                className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between"
+                className="flex items-center gap-3 py-1.5 first:pt-0 last:pb-0"
                 key={key.id}
               >
-                <div className="min-w-0 space-y-1">
-                  <p className="font-medium">{passkeyLabel(key)}</p>
+                <FingerprintIcon
+                  aria-hidden
+                  className="size-4 shrink-0 text-muted-foreground"
+                />
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                  <InlineEdit
+                    className="min-w-0"
+                    label="Passkey name"
+                    onSave={(name) => handleRename(key.id, name)}
+                    placeholder="Passkey"
+                    value={key.name ?? ""}
+                  />
                   {key.createdAt ? (
-                    <p className="text-xs text-muted-foreground">
+                    <span className="shrink-0 text-xs text-muted-foreground">
                       Added <RelativeTime value={key.createdAt} />
-                    </p>
+                    </span>
                   ) : null}
                 </div>
 
@@ -123,14 +139,16 @@ export function PasskeysCard() {
                   <AlertDialogTrigger
                     render={
                       <Button
+                        aria-label={`Remove ${passkeyLabel(key)}`}
+                        className="text-muted-foreground hover:text-destructive"
                         disabled={removingId === key.id}
-                        size="sm"
+                        size="icon-sm"
                         type="button"
-                        variant="destructive"
+                        variant="ghost"
                       />
                     }
                   >
-                    Remove
+                    <TrashIcon />
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
@@ -148,7 +166,7 @@ export function PasskeysCard() {
                         variant="destructive"
                         onClick={() => handleRemove(key.id)}
                       >
-                        Remove {passkeyLabel(key)}
+                        Remove passkey
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>

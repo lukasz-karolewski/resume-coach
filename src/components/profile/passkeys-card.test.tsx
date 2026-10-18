@@ -9,13 +9,18 @@ const { toastAdd } = vi.hoisted(() => ({ toastAdd: vi.fn() }));
 
 vi.mock("~/auth-client", () => ({
   authClient: { useListPasskeys: vi.fn() },
-  passkey: { addPasskey: vi.fn(), deletePasskey: vi.fn() },
+  passkey: {
+    addPasskey: vi.fn(),
+    deletePasskey: vi.fn(),
+    updatePasskey: vi.fn(),
+  },
 }));
 vi.mock("~/components/ui/toast", () => ({ toast: { add: toastAdd } }));
 
 const useListPasskeys = vi.mocked(authClient.useListPasskeys);
 const addPasskey = vi.mocked(passkey.addPasskey);
 const deletePasskey = vi.mocked(passkey.deletePasskey);
+const updatePasskey = vi.mocked(passkey.updatePasskey);
 
 function listPasskeys(data: { createdAt?: Date; id: string; name?: string }[]) {
   useListPasskeys.mockReturnValue({ data, isPending: false } as never);
@@ -62,11 +67,49 @@ describe("PasskeysCard", () => {
     deletePasskey.mockResolvedValue({ data: {}, error: null } as never);
 
     render(<PasskeysCard />);
-    fireEvent.click(screen.getByRole("button", { name: "Remove" }));
     fireEvent.click(screen.getByRole("button", { name: "Remove Mac" }));
+    fireEvent.click(screen.getByRole("button", { name: "Remove passkey" }));
 
     await waitFor(() =>
       expect(deletePasskey).toHaveBeenCalledWith({ id: "pk-1" }),
+    );
+  });
+
+  test("renames a passkey in place", async () => {
+    listPasskeys([{ id: "pk-1", name: "Mac" }]);
+    updatePasskey.mockResolvedValue({ data: {}, error: null } as never);
+
+    render(<PasskeysCard />);
+    fireEvent.click(screen.getByRole("button", { name: "Rename Mac" }));
+    const input = screen.getByRole("textbox", { name: "Passkey name" });
+    fireEvent.change(input, { target: { value: "Work laptop" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    await waitFor(() =>
+      expect(updatePasskey).toHaveBeenCalledWith({
+        id: "pk-1",
+        name: "Work laptop",
+      }),
+    );
+  });
+
+  test("reports a failed rename", async () => {
+    listPasskeys([{ id: "pk-1", name: "Mac" }]);
+    updatePasskey.mockResolvedValue({
+      data: null,
+      error: { status: 500 },
+    } as never);
+
+    render(<PasskeysCard />);
+    fireEvent.click(screen.getByRole("button", { name: "Rename Mac" }));
+    const input = screen.getByRole("textbox", { name: "Passkey name" });
+    fireEvent.change(input, { target: { value: "Work laptop" } });
+    fireEvent.blur(input);
+
+    await waitFor(() =>
+      expect(toastAdd).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "error" }),
+      ),
     );
   });
 
