@@ -77,15 +77,9 @@ export function MessageList({
           >
             {messages.length === 0 ? (
               <MessageScrollerItem className="flex min-h-full items-center justify-center">
-                <div className="max-w-sm text-center text-muted-foreground">
-                  <p className="text-lg font-semibold tracking-tight text-foreground">
-                    Resume Coach
-                  </p>
-                  <p className="mt-2 text-sm leading-6">
-                    Ask me to review your resume, analyze a job description, or
-                    improve a specific section.
-                  </p>
-                </div>
+                <p className="max-w-sm text-center text-sm text-muted-foreground">
+                  Review a resume, target a job, or polish a section.
+                </p>
               </MessageScrollerItem>
             ) : null}
 

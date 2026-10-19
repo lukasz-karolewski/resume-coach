@@ -1,9 +1,11 @@
+import { useRef } from "react";
 import { PlusIcon, XIcon } from "~/components/icons";
 import { Alert, AlertDescription } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
 import { ChatInput } from "./chat-input";
 import { MessageList } from "./message-list";
 import type { ChatMessage, ToolExecution } from "./use-chat-stream";
+import { useVisualViewport } from "./use-visual-viewport";
 
 interface ConversationOption {
   createdAt: string;
@@ -40,19 +42,20 @@ export function ChatWindow({
   error,
   onNewThread,
 }: ChatWindowProps) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  useVisualViewport(panelRef);
+
   return (
+    // Phones get a full-screen panel sized to the visual viewport so the input
+    // stays above the on-screen keyboard; larger screens get a floating card.
     <div
+      ref={panelRef}
       data-testid="assistant-panel"
-      className="fixed bottom-5 right-5 z-40 flex h-[min(66vh,48rem)] w-[min(32rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-3xl border border-border/70 bg-card/95 text-card-foreground shadow-2xl shadow-black/10 backdrop-blur supports-[backdrop-filter]:bg-card/90"
+      className="fixed inset-x-0 top-[var(--visual-viewport-top,0px)] z-40 flex h-[var(--visual-viewport-height,100dvh)] flex-col overflow-hidden overscroll-contain bg-card text-card-foreground sm:top-auto sm:right-5 sm:bottom-5 sm:left-auto sm:h-[min(66vh,48rem)] sm:w-[min(32rem,calc(100vw-2rem))] sm:rounded-3xl sm:border sm:border-border/70 sm:bg-card/95 sm:shadow-2xl sm:shadow-black/10 sm:backdrop-blur sm:supports-[backdrop-filter]:bg-card/90"
     >
-      <div className="flex items-start justify-between gap-4 border-b border-border/60 bg-muted/40 px-5 py-4">
-        <div className="min-w-0 space-y-2">
-          <div>
-            <h3 className="font-semibold tracking-tight">Resume Coach</h3>
-            <p className="text-sm text-muted-foreground">
-              Review, rewrite, and target this resume faster.
-            </p>
-          </div>
+      <div className="flex items-start justify-between gap-4 border-b border-border/60 bg-muted/40 px-4 py-3 sm:px-5 sm:py-4">
+        <div className="min-w-0 flex-1 space-y-2">
+          <h3 className="font-semibold tracking-tight">Resume Coach</h3>
           <select
             aria-label="Select conversation"
             className="w-full truncate rounded-lg border border-border bg-background px-3 py-2 text-xs text-muted-foreground shadow-sm outline-hidden transition-colors focus:border-ring"

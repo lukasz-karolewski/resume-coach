@@ -55,3 +55,22 @@ test("signed-in pages fit a phone-width viewport", async ({ page }) => {
   ).toBeVisible();
   await expectNoHorizontalScroll(page);
 });
+
+test("assistant fills the phone screen with its input in view", async ({
+  page,
+}) => {
+  await signUp(page, "Mobile Tester");
+
+  await page.getByRole("button", { name: "Open chat" }).click();
+  const panel = page.getByTestId("assistant-panel");
+  await expect(panel).toBeVisible();
+
+  const viewport = page.viewportSize();
+  expect(await panel.boundingBox()).toEqual({
+    height: viewport?.height,
+    width: viewport?.width,
+    x: 0,
+    y: 0,
+  });
+  await expect(page.getByRole("textbox", { name: /ask/i })).toBeInViewport();
+});

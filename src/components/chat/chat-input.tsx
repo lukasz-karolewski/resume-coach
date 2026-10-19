@@ -49,7 +49,7 @@ export function ChatInput({ onSend, onStop, disabled }: ChatInputProps) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="border-t border-border/60 bg-muted/20 px-4 py-4"
+      className="border-t border-border/60 bg-muted/20 px-4 py-3"
     >
       <div className="flex items-end gap-2">
         <Textarea
@@ -57,7 +57,7 @@ export function ChatInput({ onSend, onStop, disabled }: ChatInputProps) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Ask about your resume or paste a job URL..."
+          placeholder="Ask about your resume…"
           disabled={disabled}
           rows={1}
           className={`max-h-48 min-h-11 flex-1 rounded-2xl bg-background px-4 py-2.5 leading-6 shadow-sm ${
@@ -83,9 +83,6 @@ export function ChatInput({ onSend, onStop, disabled }: ChatInputProps) {
           </Button>
         )}
       </div>
-      <p className="mt-2 text-xs text-muted-foreground">
-        Press Enter to send, Shift+Enter for new line
-      </p>
     </form>
   );
 }
