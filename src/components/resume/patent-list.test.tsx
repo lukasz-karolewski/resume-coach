@@ -1,17 +1,18 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
 import { PatentList } from "./patent-list";
 
+const patent = {
+  date: new Date("2021-06-01T00:00:00.000Z"),
+  description: "Reduced stale reads in distributed systems.",
+  id: 52,
+  link: "https://patents.example.com/cache",
+  resumeId: "Res007",
+  title: "Adaptive cache invalidation",
+};
+
 describe("PatentList", () => {
   test("opens editing for a patent item", () => {
-    const patent = {
-      date: new Date("2021-06-01T00:00:00.000Z"),
-      description: "Reduced stale reads in distributed systems.",
-      id: 52,
-      link: "https://patents.example.com/cache",
-      resumeId: "Res007",
-      title: "Adaptive cache invalidation",
-    };
     const onEdit = vi.fn();
 
     render(<PatentList patents={[patent]} onEdit={onEdit} />);
@@ -22,5 +23,23 @@ describe("PatentList", () => {
       }),
     );
     expect(onEdit).toHaveBeenCalledWith(patent);
+  });
+
+  test("deletes a patent item from its own control", async () => {
+    const onDelete = vi.fn();
+
+    render(<PatentList patents={[patent]} onDelete={onDelete} />);
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Delete patent Adaptive cache invalidation",
+      }),
+    );
+    fireEvent.click(
+      within(await screen.findByRole("alertdialog")).getByRole("button", {
+        name: "Delete",
+      }),
+    );
+    expect(onDelete).toHaveBeenCalledWith(patent);
   });
 });

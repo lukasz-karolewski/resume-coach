@@ -23,6 +23,7 @@ const mockInvalidateQueries = vi.fn();
 const mockFetch = vi.fn();
 const mockClipboardWriteText = vi.fn();
 const mockPrint = vi.fn();
+const mockUseSuspenseQuery = vi.fn();
 const mockResume = {
   contactInfo: {
     email: "jane@example.com",
@@ -93,9 +94,13 @@ vi.mock("~/components/resume/education-experience", () => ({
 vi.mock("~/components/resume/job-experience", () => ({
   default: ({
     jobs,
+    onDeletePosition,
     onEditPosition,
   }: {
     jobs: typeof mockResume.experience;
+    onDeletePosition?: (
+      position: (typeof mockResume.experience)[number]["positions"][number],
+    ) => void;
     onEditPosition?: (
       position: (typeof mockResume.experience)[number]["positions"][number],
       companyName: string,
@@ -111,6 +116,15 @@ vi.mock("~/components/resume/job-experience", () => ({
         }}
       >
         Edit test experience
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          const position = jobs[0]?.positions[0];
+          if (position) onDeletePosition?.(position);
+        }}
+      >
+        Delete test experience
       </button>
     </div>
   ),
@@ -238,7 +252,7 @@ vi.mock("@tanstack/react-query", () => ({
     return mockUpdateTitleMutation(options);
   },
   useQueryClient: () => ({ invalidateQueries: mockInvalidateQueries }),
-  useSuspenseQuery: () => ({ data: mockResume }),
+  useSuspenseQuery: () => mockUseSuspenseQuery(),
 }));
 
 async function openResumeActions() {
@@ -254,6 +268,7 @@ async function pickResumeAction(name: RegExp | string) {
 describe("ResumeDetailClient", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseSuspenseQuery.mockReturnValue({ data: mockResume });
     vi.stubGlobal("fetch", mockFetch);
     Object.assign(window, {
       print: mockPrint,
@@ -666,25 +681,47 @@ describe("ResumeDetailClient", () => {
     });
   });
 
-  test("removes an entire section after confirmation", async () => {
+  test("deletes an item from its own control", () => {
     const mutate = vi.fn();
-    mockRemoveSectionMutation.mockReturnValue({ isPending: false, mutate });
+    mockDeleteSectionItemMutation.mockReturnValue({ isPending: false, mutate });
 
     render(<ResumeDetailClient resumeId={"Res007"} />);
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Remove Experience section" }),
+      screen.getByRole("button", { name: "Delete test experience" }),
     );
-    expect(mutate).not.toHaveBeenCalled();
+
+    expect(mutate).toHaveBeenCalledWith({
+      itemId: 34,
+      resumeId: "Res007",
+      type: "EXPERIENCE",
+    });
+  });
+
+  test("removes a section only once it is empty", () => {
+    const mutate = vi.fn();
+    mockRemoveSectionMutation.mockReturnValue({ isPending: false, mutate });
+    mockUseSuspenseQuery.mockReturnValue({
+      data: {
+        ...mockResume,
+        sections: [
+          { id: 22, resumeId: "Res007", title: "Patents", type: "PATENTS" },
+        ],
+      },
+    });
+
+    render(<ResumeDetailClient resumeId={"Res007"} />);
+
+    expect(
+      screen.queryByRole("button", { name: "Remove Experience section" }),
+    ).not.toBeInTheDocument();
     fireEvent.click(
-      within(await screen.findByRole("alertdialog")).getByRole("button", {
-        name: "Remove section",
-      }),
+      screen.getByRole("button", { name: "Remove Patents section" }),
     );
 
     expect(mutate).toHaveBeenCalledWith({
       resumeId: "Res007",
-      type: "EXPERIENCE",
+      type: "PATENTS",
     });
   });
 
