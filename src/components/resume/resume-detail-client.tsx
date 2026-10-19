@@ -206,7 +206,6 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: string }) {
       },
       onSuccess: (updatedResume) => {
         setResume(updatedResume);
-        setEditingSectionItem(null);
         toast.add({ title: "Resume item deleted", type: "success" });
       },
     }),
@@ -617,20 +616,9 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: string }) {
 
       <ResumeSectionItemDialog
         initialItem={editingSectionItem?.item}
-        isPending={
-          updateSectionItemMutation.isPending ||
-          deleteSectionItemMutation.isPending
-        }
+        isPending={updateSectionItemMutation.isPending}
         open={editingSectionItem !== null}
         type={editingSectionItem?.item.type ?? null}
-        onDelete={() => {
-          if (!editingSectionItem) return;
-          deleteSectionItemMutation.mutate({
-            itemId: editingSectionItem.id,
-            resumeId: resume.id,
-            type: editingSectionItem.item.type,
-          });
-        }}
         onOpenChange={(open) => {
           if (!open) setEditingSectionItem(null);
         }}

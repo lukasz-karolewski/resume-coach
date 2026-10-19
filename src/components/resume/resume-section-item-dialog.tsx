@@ -46,7 +46,6 @@ const SECTION_ITEM_COPY: Record<
 type ResumeSectionItemDialogProps = {
   initialItem?: ResumeSectionItem;
   isPending: boolean;
-  onDelete?: () => void;
   onOpenChange: (open: boolean) => void;
   onSave: (item: ResumeSectionItem) => void;
   open: boolean;
@@ -361,7 +360,6 @@ function PatentFields({
 export function ResumeSectionItemDialog({
   initialItem,
   isPending,
-  onDelete,
   onOpenChange,
   onSave,
   open,
@@ -442,38 +440,24 @@ export function ResumeSectionItemDialog({
             ) : null}
           </div>
 
-          <DialogFooter className="sm:justify-between">
-            {isEditing && onDelete ? (
-              <Button
-                disabled={isPending}
-                type="button"
-                variant="destructive"
-                onClick={onDelete}
-              >
-                Delete {copy.label}
-              </Button>
-            ) : (
-              <span />
-            )}
-            <div className="flex flex-col-reverse gap-2 sm:flex-row">
-              <Button
-                disabled={isPending}
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
-                Cancel
-              </Button>
-              <Button disabled={isPending} type="submit">
-                {isPending
-                  ? isEditing
-                    ? "Saving…"
-                    : "Adding…"
-                  : isEditing
-                    ? "Save changes"
-                    : `Add ${copy.label}`}
-              </Button>
-            </div>
+          <DialogFooter>
+            <Button
+              disabled={isPending}
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button disabled={isPending} type="submit">
+              {isPending
+                ? isEditing
+                  ? "Saving…"
+                  : "Adding…"
+                : isEditing
+                  ? "Save changes"
+                  : `Add ${copy.label}`}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
