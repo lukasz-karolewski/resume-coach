@@ -40,7 +40,7 @@ test("resume items carry their own edit controls, hidden in print", async ({
   await page.getByRole("menuitem", { name: "Patents" }).click();
   await addPatent(page, "Adaptive cache invalidation");
 
-  // The dashed placeholder at the end of the section adds the next item.
+  // The dashed placeholder at the top of the section adds the next item.
   await page.getByRole("button", { name: "Add patent" }).click();
   await addPatent(page, "Predictive prefetching");
 
