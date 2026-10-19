@@ -3,8 +3,7 @@ import { describe, expect, test, vi } from "vitest";
 import { ResumeSectionItemDialog } from "./resume-section-item-dialog";
 
 describe("ResumeSectionItemDialog", () => {
-  test("prefills patent details and keeps deletion inside the edit modal", () => {
-    const onDelete = vi.fn();
+  test("prefills patent details and saves edits without offering deletion", () => {
     const onSave = vi.fn();
 
     render(
@@ -19,7 +18,6 @@ describe("ResumeSectionItemDialog", () => {
         isPending={false}
         open
         type="PATENTS"
-        onDelete={onDelete}
         onOpenChange={vi.fn()}
         onSave={onSave}
       />,
@@ -48,7 +46,9 @@ describe("ResumeSectionItemDialog", () => {
       type: "PATENTS",
     });
 
-    fireEvent.click(screen.getByRole("button", { name: "Delete patent" }));
-    expect(onDelete).toHaveBeenCalledOnce();
+    // Deleting lives on the item itself, not in its edit dialog.
+    expect(
+      screen.queryByRole("button", { name: /delete/i }),
+    ).not.toBeInTheDocument();
   });
 });
