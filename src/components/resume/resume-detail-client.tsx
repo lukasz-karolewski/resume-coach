@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckIcon } from "@heroicons/react/20/solid";
+import { CheckIcon, TrashIcon } from "@heroicons/react/20/solid";
 import {
   useMutation,
   useQueryClient,
@@ -26,7 +26,7 @@ import { ResumeSectionItemDialog } from "~/components/resume/resume-section-item
 import { ResumeShareDialog } from "~/components/resume/resume-share-dialog";
 import Section from "~/components/resume/section";
 import { Skill } from "~/components/resume/skill";
-import { ConfirmDeleteButton } from "~/components/ui/confirm-delete-button";
+import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { toast } from "~/components/ui/toast";
 import { TooltipProvider } from "~/components/ui/tooltip";
@@ -74,23 +74,21 @@ function getResumeSkillNames(resume: Resume) {
 
 function getActiveSectionTypes(
   resume: Resume,
-  educationCount: number,
-  certificateCount: number,
-  skillCount: number,
+  itemCounts: Record<ResumeSectionType, number>,
 ) {
   const activeTypes = new Set<ResumeSectionType>(
     resume.sections.map((section) => section.type),
   );
 
-  if (resume.experience.length > 0) activeTypes.add("EXPERIENCE");
-  if (educationCount > 0) activeTypes.add("EDUCATION");
-  if (certificateCount > 0) activeTypes.add("CERTIFICATION");
-  if (skillCount > 0) activeTypes.add("SKILLS_SUMMARY");
-  if (resume.patents.length > 0) activeTypes.add("PATENTS");
+  for (const option of resumeSectionOptions) {
+    if (itemCounts[option.type] > 0) activeTypes.add(option.type);
+  }
 
   return activeTypes;
 }
 
+// Only an empty section can be removed, so nothing is lost and no confirmation
+// is needed; a section with items goes away once its last item is deleted.
 function RemoveSectionButton({
   isPending,
   label,
@@ -101,15 +99,17 @@ function RemoveSectionButton({
   onRemove: () => void;
 }) {
   return (
-    <ConfirmDeleteButton
-      className="print:hidden"
-      confirmLabel="Remove section"
-      description="This permanently removes the section and all of its items from this resume."
+    <Button
+      aria-label={`Remove ${label} section`}
+      className="hover:text-destructive print:hidden"
       disabled={isPending}
-      label={`Remove ${label} section`}
-      title={`Remove ${label} section?`}
-      onConfirm={onRemove}
-    />
+      size="icon-xs"
+      type="button"
+      variant="ghost"
+      onClick={onRemove}
+    >
+      <TrashIcon />
+    </Button>
   );
 }
 
@@ -311,12 +311,14 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: string }) {
     resume.education,
   );
   const skillNames = getResumeSkillNames(resume);
-  const activeSectionTypes = getActiveSectionTypes(
-    resume,
-    education.length,
-    certificates.length,
-    skillNames.length,
-  );
+  const itemCounts: Record<ResumeSectionType, number> = {
+    CERTIFICATION: certificates.length,
+    EDUCATION: education.length,
+    EXPERIENCE: resume.experience.length,
+    PATENTS: resume.patents.length,
+    SKILLS_SUMMARY: skillNames.length,
+  };
+  const activeSectionTypes = getActiveSectionTypes(resume, itemCounts);
 
   const copyMarkdownToClipboard = async () => {
     setIsCopyingMarkdown(true);
@@ -558,16 +560,18 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: string }) {
             return (
               <Section
                 action={
-                  <RemoveSectionButton
-                    isPending={removeSectionMutation.isPending}
-                    label={option.label}
-                    onRemove={() =>
-                      removeSectionMutation.mutate({
-                        resumeId: resume.id,
-                        type: option.type,
-                      })
-                    }
-                  />
+                  itemCounts[option.type] > 0 ? null : (
+                    <RemoveSectionButton
+                      isPending={removeSectionMutation.isPending}
+                      label={option.label}
+                      onRemove={() =>
+                        removeSectionMutation.mutate({
+                          resumeId: resume.id,
+                          type: option.type,
+                        })
+                      }
+                    />
+                  )
                 }
                 key={option.type}
                 layout={option.type === "EXPERIENCE" ? "standard" : "compact"}

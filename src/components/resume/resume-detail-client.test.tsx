@@ -23,6 +23,7 @@ const mockInvalidateQueries = vi.fn();
 const mockFetch = vi.fn();
 const mockClipboardWriteText = vi.fn();
 const mockPrint = vi.fn();
+const mockUseSuspenseQuery = vi.fn();
 const mockResume = {
   contactInfo: {
     email: "jane@example.com",
@@ -251,7 +252,7 @@ vi.mock("@tanstack/react-query", () => ({
     return mockUpdateTitleMutation(options);
   },
   useQueryClient: () => ({ invalidateQueries: mockInvalidateQueries }),
-  useSuspenseQuery: () => ({ data: mockResume }),
+  useSuspenseQuery: () => mockUseSuspenseQuery(),
 }));
 
 async function openResumeActions() {
@@ -267,6 +268,7 @@ async function pickResumeAction(name: RegExp | string) {
 describe("ResumeDetailClient", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseSuspenseQuery.mockReturnValue({ data: mockResume });
     vi.stubGlobal("fetch", mockFetch);
     Object.assign(window, {
       print: mockPrint,
@@ -696,25 +698,30 @@ describe("ResumeDetailClient", () => {
     });
   });
 
-  test("removes an entire section after confirmation", async () => {
+  test("removes a section only once it is empty", () => {
     const mutate = vi.fn();
     mockRemoveSectionMutation.mockReturnValue({ isPending: false, mutate });
+    mockUseSuspenseQuery.mockReturnValue({
+      data: {
+        ...mockResume,
+        sections: [
+          { id: 22, resumeId: "Res007", title: "Patents", type: "PATENTS" },
+        ],
+      },
+    });
 
     render(<ResumeDetailClient resumeId={"Res007"} />);
 
+    expect(
+      screen.queryByRole("button", { name: "Remove Experience section" }),
+    ).not.toBeInTheDocument();
     fireEvent.click(
-      screen.getByRole("button", { name: "Remove Experience section" }),
-    );
-    expect(mutate).not.toHaveBeenCalled();
-    fireEvent.click(
-      within(await screen.findByRole("alertdialog")).getByRole("button", {
-        name: "Remove section",
-      }),
+      screen.getByRole("button", { name: "Remove Patents section" }),
     );
 
     expect(mutate).toHaveBeenCalledWith({
       resumeId: "Res007",
-      type: "EXPERIENCE",
+      type: "PATENTS",
     });
   });
 

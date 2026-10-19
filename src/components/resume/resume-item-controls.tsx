@@ -31,12 +31,13 @@ export function ResumeItemActions({
       {onEdit ? (
         <Button
           aria-label={`Edit ${label}`}
-          size="icon-xs"
+          size="xs"
           type="button"
           variant="ghost"
           onClick={onEdit}
         >
-          <PencilSquareIcon />
+          <PencilSquareIcon data-icon="inline-start" />
+          Edit
         </Button>
       ) : null}
       {onDelete ? (
