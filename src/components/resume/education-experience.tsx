@@ -40,7 +40,7 @@ function EducationExperienceItem({
       : formattedFrom;
 
   return (
-    <div className="group/item relative grid break-inside-avoid grid-cols-[1fr_auto] gap-x-4 text-sm">
+    <div className="grid break-inside-avoid grid-cols-[1fr_auto] gap-x-4 text-sm">
       <span className="font-bold">
         {link ? <a href={link}>{institution}</a> : institution}
       </span>

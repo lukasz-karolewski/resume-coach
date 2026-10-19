@@ -6,15 +6,6 @@ import { Button } from "~/components/ui/button";
 import { ConfirmDeleteButton } from "~/components/ui/confirm-delete-button";
 import { cn } from "~/lib/utils";
 
-// Editing controls stay out of the way of a mouse user reading the resume:
-// with a precise pointer they appear while the item is hovered or a control is
-// focused. Touch devices cannot hover, so there they are always visible.
-// Every control is hidden when printing.
-export const revealOnItemHoverClass =
-  "transition-opacity pointer-fine:opacity-0 pointer-fine:group-hover/item:opacity-100 pointer-fine:focus-within:opacity-100 print:hidden";
-export const revealOnSectionHoverClass =
-  "transition-opacity pointer-fine:opacity-0 pointer-fine:group-hover/section:opacity-100 pointer-fine:focus-within:opacity-100 print:hidden";
-
 interface ResumeItemActionsProps {
   /** Describes the item, e.g. "patent Adaptive cache"; prefixed with the verb. */
   label: string;
@@ -24,9 +15,8 @@ interface ResumeItemActionsProps {
 }
 
 /**
- * Edit and delete controls for one resume item. The item root must carry
- * `group/item relative`. Below `sm` they sit in a row under the item; from `sm`
- * up they float in the page gutter to the right of it.
+ * Edit and delete controls for one resume item, in a row under it. Like every
+ * editing control on the resume, they are hidden when printing.
  */
 export function ResumeItemActions({
   label,
@@ -37,13 +27,7 @@ export function ResumeItemActions({
   if (!onEdit && !onDelete) return null;
 
   return (
-    <div
-      className={cn(
-        "mt-1 flex justify-end gap-1 sm:absolute sm:top-0 sm:-right-9 sm:mt-0 sm:flex-col",
-        revealOnItemHoverClass,
-        className,
-      )}
-    >
+    <div className={cn("mt-1 flex justify-end gap-1 print:hidden", className)}>
       {onEdit ? (
         <Button
           aria-label={`Edit ${label}`}

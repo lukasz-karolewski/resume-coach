@@ -54,7 +54,7 @@ const PositionItem: React.FC<PositionItemProps> = ({
   const { formattedFrom, formattedTo } = formatFromTo(startDate, endDate);
 
   return (
-    <div className="group/item relative">
+    <div>
       <div className="flex items-center justify-between">
         <div className="mb-2 flex w-max flex-col">
           <span className="font-bold">{title}</span>

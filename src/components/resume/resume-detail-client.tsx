@@ -15,10 +15,7 @@ import { MarkdownEditorDialog } from "~/components/resume/markdown-editor-dialog
 import { PatentList } from "~/components/resume/patent-list";
 import { ProfessionalSummary } from "~/components/resume/professional-summary";
 import { ResumeActionsMenu } from "~/components/resume/resume-actions-menu";
-import {
-  ResumeAddItemButton,
-  revealOnSectionHoverClass,
-} from "~/components/resume/resume-item-controls";
+import { ResumeAddItemButton } from "~/components/resume/resume-item-controls";
 import {
   resumePaperClass,
   resumeToolbarClass,
@@ -105,7 +102,7 @@ function RemoveSectionButton({
 }) {
   return (
     <ConfirmDeleteButton
-      className={revealOnSectionHoverClass}
+      className="print:hidden"
       confirmLabel="Remove section"
       description="This permanently removes the section and all of its items from this resume."
       disabled={isPending}

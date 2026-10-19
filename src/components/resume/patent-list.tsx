@@ -14,7 +14,7 @@ export function PatentList({
 }) {
   return patents.map((patent) => (
     <div
-      className="group/item relative grid break-inside-avoid grid-cols-[1fr_auto] gap-x-4 text-sm"
+      className="grid break-inside-avoid grid-cols-[1fr_auto] gap-x-4 text-sm"
       key={patent.id}
     >
       <span className="font-bold">

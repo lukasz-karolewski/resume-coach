@@ -1,11 +1,7 @@
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import type React from "react";
 import { Button } from "~/components/ui/button";
-import { cn } from "~/lib/utils";
-import {
-  ResumeItemDeleteButton,
-  revealOnItemHoverClass,
-} from "./resume-item-controls";
+import { ResumeItemDeleteButton } from "./resume-item-controls";
 import Section from "./section";
 
 interface SkillProps {
@@ -17,7 +13,7 @@ interface SkillProps {
 export const Skill: React.FC<SkillProps> = ({ children, onEdit, onDelete }) => {
   if (onEdit) {
     return (
-      <span className="group/item relative inline-flex">
+      <span className="relative inline-flex">
         <Button
           aria-label={`Edit skill ${children}`}
           className="h-auto rounded-sm bg-gray-200 px-1 py-0.5 text-xs text-black hover:bg-gray-300"
@@ -28,9 +24,7 @@ export const Skill: React.FC<SkillProps> = ({ children, onEdit, onDelete }) => {
           {children}
         </Button>
         {onDelete ? (
-          <span
-            className={cn("absolute -top-2 -right-2", revealOnItemHoverClass)}
-          >
+          <span className="absolute -top-2 -right-2 print:hidden">
             <ResumeItemDeleteButton
               className="size-4 border bg-white shadow-xs [&_svg:not([class*='size-'])]:size-2.5"
               icon={<XMarkIcon />}

@@ -47,7 +47,7 @@ test("resume items carry their own edit controls, hidden in print", async ({
   const deleteFirst = page.getByRole("button", {
     name: "Delete patent Adaptive cache invalidation",
   });
-  await page.getByText("Adaptive cache invalidation", { exact: true }).hover();
+  // Controls show without hovering, on desktop as on mobile.
   await expect(deleteFirst).toBeVisible();
 
   await page.emulateMedia({ media: "print" });
@@ -58,7 +58,6 @@ test("resume items carry their own edit controls, hidden in print", async ({
   await expect(page.getByRole("button", { name: "Add patent" })).toBeHidden();
   await page.emulateMedia({ media: "screen" });
 
-  await page.getByText("Adaptive cache invalidation", { exact: true }).hover();
   await deleteFirst.click();
   await page
     .getByRole("alertdialog")

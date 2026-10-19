@@ -13,7 +13,7 @@ export const ProfessionalSummary: React.FC<SummaryProps> = ({
 }) => {
   return (
     <div
-      className="group/item relative flex flex-col gap-2 rounded-sm text-justify text-sm outline-none focus-within:ring-2 focus-within:ring-ring/50"
+      className="flex flex-col gap-2 rounded-sm text-justify text-sm outline-none focus-within:ring-2 focus-within:ring-ring/50"
       onDoubleClick={onEdit}
     >
       <MarkdownContent>{info}</MarkdownContent>
