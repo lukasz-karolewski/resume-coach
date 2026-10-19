@@ -2,7 +2,12 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (@media (prefers-color-scheme: dark));
+/*
+  The app ships a light theme only. `dark:` utilities follow a `.dark` class
+  (never applied) rather than the OS setting, so a phone in dark mode does not
+  mix dark-mode colors into light surfaces.
+*/
+@custom-variant dark (&:is(.dark *));
 
 /*
   The default border color has changed to `currentcolor` in Tailwind CSS v4,
@@ -34,12 +39,7 @@
 @layer base {
   :root {
     --foreground-rgb: 0, 0, 0;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --foreground-rgb: 189, 193, 198;
-    }
+    color-scheme: light;
   }
 
   body {
