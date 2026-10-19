@@ -413,6 +413,20 @@ describe("ResumeDetailClient", () => {
     ).toBeInTheDocument();
   });
 
+  test("places the add placeholder above the newest item", () => {
+    render(<ResumeDetailClient resumeId={"Res007"} />);
+
+    const addButton = screen.getByRole("button", { name: "Add experience" });
+    const firstEdit = screen.getByRole("button", {
+      name: "Edit test experience",
+    });
+
+    expect(
+      addButton.compareDocumentPosition(firstEdit) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
   test("adds another item to an existing section", async () => {
     const mutate = vi.fn();
     mockAddSectionItemMutation.mockReturnValue({ isPending: false, mutate });

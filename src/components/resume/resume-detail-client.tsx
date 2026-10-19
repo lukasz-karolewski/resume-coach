@@ -576,13 +576,14 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: string }) {
                 layout={option.type === "EXPERIENCE" ? "standard" : "compact"}
                 title={option.label}
               >
-                {renderSectionItems(option.type, deleteItem)}
+                {/* Items are listed newest first, so new ones are added at the top. */}
                 {option.type === "SKILLS_SUMMARY" ? null : (
                   <ResumeAddItemButton
                     itemLabel={option.itemLabel}
                     onClick={() => setAddingSectionType(option.type)}
                   />
                 )}
+                {renderSectionItems(option.type, deleteItem)}
               </Section>
             );
           })}

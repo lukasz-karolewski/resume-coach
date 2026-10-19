@@ -68,7 +68,7 @@ export function ResumeItemDeleteButton({
   );
 }
 
-/** Dashed placeholder at the end of a section for adding another item. */
+/** Dashed placeholder in a section for adding another item. */
 export function ResumeAddItemButton({
   itemLabel,
   onClick,
