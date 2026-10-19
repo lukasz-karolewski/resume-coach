@@ -1,15 +1,16 @@
-import { PencilSquareIcon } from "@heroicons/react/20/solid";
-import { Button } from "~/components/ui/button";
 import type { RouterOutputs } from "~/trpc/shared";
+import { ResumeItemActions } from "./resume-item-controls";
 
 type Patent = RouterOutputs["resume"]["getById"]["patents"][number];
 
 export function PatentList({
   patents,
   onEdit,
+  onDelete,
 }: {
   patents: Patent[];
   onEdit?: (patent: Patent) => void;
+  onDelete?: (patent: Patent) => void;
 }) {
   return patents.map((patent) => (
     <div
@@ -27,18 +28,12 @@ export function PatentList({
         })}
       </time>
       <span className="col-span-2">{patent.description}</span>
-      {onEdit ? (
-        <Button
-          aria-label={`Edit patent ${patent.title}`}
-          className="absolute top-0 -right-7 opacity-0 transition-opacity group-hover/item:opacity-100 focus:opacity-100 print:hidden"
-          size="icon-xs"
-          type="button"
-          variant="ghost"
-          onClick={() => onEdit(patent)}
-        >
-          <PencilSquareIcon />
-        </Button>
-      ) : null}
+      <ResumeItemActions
+        className="col-span-2"
+        label={`patent ${patent.title}`}
+        onDelete={onDelete && (() => onDelete(patent))}
+        onEdit={onEdit && (() => onEdit(patent))}
+      />
     </div>
   ));
 }

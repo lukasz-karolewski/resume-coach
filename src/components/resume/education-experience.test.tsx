@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
 import EducationExperience from "./education-experience";
 
@@ -33,5 +33,40 @@ describe("EducationExperience", () => {
       }),
     );
     expect(onEdit).toHaveBeenCalledWith(education);
+  });
+
+  test("deletes a certification from its own control", async () => {
+    const certification = {
+      distinction: "Professional Cloud Architect",
+      endDate: new Date("2023-03-01T00:00:00.000Z"),
+      id: 32,
+      institution: "Google Cloud",
+      link: null,
+      location: "Online",
+      notes: null,
+      resumeId: "Res007",
+      startDate: new Date("2023-03-01T00:00:00.000Z"),
+      type: "CERTIFICATION" as const,
+    };
+    const onDelete = vi.fn();
+
+    render(
+      <EducationExperience
+        educationList={[certification]}
+        onDelete={onDelete}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Delete certification at Google Cloud",
+      }),
+    );
+    fireEvent.click(
+      within(await screen.findByRole("alertdialog")).getByRole("button", {
+        name: "Delete",
+      }),
+    );
+    expect(onDelete).toHaveBeenCalledWith(certification);
   });
 });

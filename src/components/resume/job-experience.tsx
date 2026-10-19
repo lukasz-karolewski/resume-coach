@@ -1,10 +1,9 @@
-import { PencilSquareIcon } from "@heroicons/react/20/solid";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import { formatFromTo, toYearMonthsDuration } from "~/app/utils";
-import { Button } from "~/components/ui/button";
 import { MarkdownContent } from "~/components/ui/markdownContent";
 import type { RouterOutputs } from "~/trpc/shared";
+import { ResumeItemActions } from "./resume-item-controls";
 
 dayjs.extend(duration);
 
@@ -22,16 +21,19 @@ interface PositionItemProps {
   link?: string | null;
   position: Position;
   onEditPosition?: (position: Position, companyName: string) => void;
+  onDeletePosition?: (position: Position) => void;
 }
 
 interface JobExperienceItemProps {
   job: JobExperienceItem;
   onEditPosition?: (position: Position, companyName: string) => void;
+  onDeletePosition?: (position: Position) => void;
 }
 
 interface JobExperienceProps {
   jobs: JobExperienceItem[];
   onEditPosition?: (position: Position, companyName: string) => void;
+  onDeletePosition?: (position: Position) => void;
 }
 
 const Accomplishments: React.FC<AccomplishmentsProps> = ({ markdown }) => {
@@ -46,6 +48,7 @@ const PositionItem: React.FC<PositionItemProps> = ({
   companyName,
   position,
   onEditPosition,
+  onDeletePosition,
 }) => {
   const { startDate, endDate, title, location, accomplishments } = position;
   const { formattedFrom, formattedTo } = formatFromTo(startDate, endDate);
@@ -65,18 +68,11 @@ const PositionItem: React.FC<PositionItemProps> = ({
       <div>
         <Accomplishments markdown={accomplishments} />
       </div>
-      {onEditPosition ? (
-        <Button
-          type="button"
-          size="icon-xs"
-          variant="ghost"
-          aria-label={`Edit experience ${title} at ${companyName}`}
-          className="absolute -top-1 -right-7 opacity-0 transition-opacity group-hover/item:opacity-100 focus:opacity-100 print:hidden"
-          onClick={() => onEditPosition(position, companyName)}
-        >
-          <PencilSquareIcon />
-        </Button>
-      ) : null}
+      <ResumeItemActions
+        label={`experience ${title} at ${companyName}`}
+        onDelete={onDeletePosition && (() => onDeletePosition(position))}
+        onEdit={onEditPosition && (() => onEditPosition(position, companyName))}
+      />
     </div>
   );
 };
@@ -84,6 +80,7 @@ const PositionItem: React.FC<PositionItemProps> = ({
 const JobExperienceItem: React.FC<JobExperienceItemProps> = ({
   job,
   onEditPosition,
+  onDeletePosition,
 }) => {
   const { companyName, link, positions } = job;
   const hasMultiplePositions = positions.length > 1;
@@ -102,6 +99,7 @@ const JobExperienceItem: React.FC<JobExperienceItemProps> = ({
             companyName={companyName}
             link={link}
             position={position}
+            onDeletePosition={onDeletePosition}
             onEditPosition={onEditPosition}
           />
         ))}
@@ -113,6 +111,7 @@ const JobExperienceItem: React.FC<JobExperienceItemProps> = ({
 const JobExperience: React.FC<JobExperienceProps> = ({
   jobs,
   onEditPosition,
+  onDeletePosition,
 }) => {
   return (
     <>
@@ -120,6 +119,7 @@ const JobExperience: React.FC<JobExperienceProps> = ({
         <JobExperienceItem
           key={job.id}
           job={job}
+          onDeletePosition={onDeletePosition}
           onEditPosition={onEditPosition}
         />
       ))}

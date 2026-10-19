@@ -93,9 +93,13 @@ vi.mock("~/components/resume/education-experience", () => ({
 vi.mock("~/components/resume/job-experience", () => ({
   default: ({
     jobs,
+    onDeletePosition,
     onEditPosition,
   }: {
     jobs: typeof mockResume.experience;
+    onDeletePosition?: (
+      position: (typeof mockResume.experience)[number]["positions"][number],
+    ) => void;
     onEditPosition?: (
       position: (typeof mockResume.experience)[number]["positions"][number],
       companyName: string,
@@ -111,6 +115,15 @@ vi.mock("~/components/resume/job-experience", () => ({
         }}
       >
         Edit test experience
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          const position = jobs[0]?.positions[0];
+          if (position) onDeletePosition?.(position);
+        }}
+      >
+        Delete test experience
       </button>
     </div>
   ),
@@ -662,6 +675,23 @@ describe("ResumeDetailClient", () => {
       resumeId: "Res007",
       roleTitle: "Staff Engineer",
       startDate: "2022-01",
+      type: "EXPERIENCE",
+    });
+  });
+
+  test("deletes an item from its own control", () => {
+    const mutate = vi.fn();
+    mockDeleteSectionItemMutation.mockReturnValue({ isPending: false, mutate });
+
+    render(<ResumeDetailClient resumeId={"Res007"} />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Delete test experience" }),
+    );
+
+    expect(mutate).toHaveBeenCalledWith({
+      itemId: 34,
+      resumeId: "Res007",
       type: "EXPERIENCE",
     });
   });

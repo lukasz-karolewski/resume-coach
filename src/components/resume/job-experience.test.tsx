@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
 
 import JobExperience from "./job-experience";
@@ -37,5 +37,24 @@ describe("JobExperience", () => {
     );
 
     expect(onEditPosition).toHaveBeenCalledWith(position, "Acme");
+  });
+
+  test("deletes a single position from its own control", async () => {
+    const onDeletePosition = vi.fn();
+
+    render(<JobExperience jobs={jobs} onDeletePosition={onDeletePosition} />);
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Delete experience Staff Engineer at Acme",
+      }),
+    );
+    fireEvent.click(
+      within(await screen.findByRole("alertdialog")).getByRole("button", {
+        name: "Delete",
+      }),
+    );
+
+    expect(onDeletePosition).toHaveBeenCalledWith(position);
   });
 });

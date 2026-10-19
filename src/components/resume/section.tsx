@@ -1,4 +1,5 @@
 import type { HTMLAttributes, ReactNode } from "react";
+import { cn } from "~/lib/utils";
 
 interface SectionProps extends HTMLAttributes<HTMLDivElement> {
   title: string;
@@ -12,9 +13,10 @@ const Section = ({
   children,
   action,
   layout = "standard",
+  className,
   ...rest
 }: SectionProps) => (
-  <div {...rest}>
+  <div className={cn("group/section", className)} {...rest}>
     <div className="mb-4 flex items-center border-b-2 border-b-gray-300 bg-white">
       <h2 className="top-0 flex-1 text-2xl font-semibold">{title}</h2>
       {action}
