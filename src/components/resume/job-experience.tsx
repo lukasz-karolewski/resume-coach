@@ -38,7 +38,7 @@ interface JobExperienceProps {
 
 const Accomplishments: React.FC<AccomplishmentsProps> = ({ markdown }) => {
   return (
-    <div className="text-sm list-decimal list-inside">
+    <div className="list-inside list-decimal text-sm">
       <MarkdownContent>{markdown}</MarkdownContent>
     </div>
   );

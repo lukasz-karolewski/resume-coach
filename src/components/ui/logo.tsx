@@ -16,7 +16,7 @@ export function Logo({ className, nameVisibility = "responsive" }: LogoProps) {
     <Link
       href="/"
       className={cn(
-        "inline-flex items-center gap-2 whitespace-nowrap text-lg font-semibold tracking-tight",
+        "inline-flex items-center gap-2 text-lg font-semibold tracking-tight whitespace-nowrap",
         className,
       )}
     >

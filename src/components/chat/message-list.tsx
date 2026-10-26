@@ -43,7 +43,7 @@ function ChatMessageRow({
             {isUser ? (
               <p className="whitespace-pre-wrap">{message.content}</p>
             ) : (
-              <div className="prose prose-sm max-w-none prose-p:leading-6">
+              <div className="prose prose-sm prose-p:leading-6 max-w-none">
                 <Markdown>{message.content}</Markdown>
               </div>
             )}
@@ -71,10 +71,7 @@ export function MessageList({
     <MessageScrollerProvider autoScroll defaultScrollPosition="end">
       <MessageScroller className="flex-1 bg-background/60">
         <MessageScrollerViewport>
-          <MessageScrollerContent
-            aria-busy={isStreaming}
-            className="gap-3 px-4 py-4"
-          >
+          <MessageScrollerContent aria-busy={isStreaming} className="gap-3 p-4">
             {messages.length === 0 ? (
               <MessageScrollerItem className="flex min-h-full items-center justify-center">
                 <p className="max-w-sm text-center text-sm text-muted-foreground">

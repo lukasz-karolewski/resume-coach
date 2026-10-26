@@ -81,7 +81,7 @@ export function ResumePageClient({ sort }: { sort: ResumeSort }) {
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div className="rounded-lg bg-muted/60 px-3 py-2">
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                      <p className="text-xs tracking-wide text-muted-foreground uppercase">
                         Experience
                       </p>
                       <p className="mt-1 font-medium">
@@ -89,7 +89,7 @@ export function ResumePageClient({ sort }: { sort: ResumeSort }) {
                       </p>
                     </div>
                     <div className="rounded-lg bg-muted/60 px-3 py-2">
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                      <p className="text-xs tracking-wide text-muted-foreground uppercase">
                         Education
                       </p>
                       <p className="mt-1 font-medium">
