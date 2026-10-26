@@ -73,7 +73,7 @@ export function AuthScreen({
           <div className="space-y-6">
             <div className="space-y-4">
               <Logo nameVisibility="always" />
-              <h1 className="max-w-lg text-5xl font-semibold leading-tight tracking-tight text-balance">
+              <h1 className="max-w-lg text-5xl leading-tight font-semibold tracking-tight text-balance">
                 Your accomplishments are the resume. We just help you deploy
                 them.
               </h1>

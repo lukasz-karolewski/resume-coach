@@ -487,7 +487,7 @@ export default function ResumeDetailClient({ resumeId }: { resumeId: string }) {
                     }
                   }}
                   onChange={(e) => setDraftName(e.target.value)}
-                  className="h-9 w-auto min-w-0 max-w-full truncate rounded-none border-0 border-b border-border/50 bg-transparent px-0 pb-px pt-0 text-base font-semibold tracking-tight shadow-none [field-sizing:content] focus:border-b focus:border-foreground/30 focus:outline-hidden focus-visible:ring-0 sm:text-lg md:max-w-xl"
+                  className="[field-sizing:content] h-9 w-auto max-w-full min-w-0 truncate rounded-none border-0 border-b border-border/50 bg-transparent px-0 pt-0 pb-px text-base font-semibold tracking-tight shadow-none focus:border-b focus:border-foreground/30 focus:outline-hidden focus-visible:ring-0 sm:text-lg md:max-w-xl"
                 />
                 <ResumeActionsMenu
                   addedSectionTypes={activeSectionTypes}

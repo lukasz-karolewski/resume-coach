@@ -51,7 +51,7 @@ export function ResumePrintDialog({ resume }: { resume: ResumePdfData }) {
         </TooltipTrigger>
         <TooltipContent>Print</TooltipContent>
       </Tooltip>
-      <DialogContent className="top-0 left-0 flex h-svh w-screen max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-none p-0 sm:max-w-none">
+      <DialogContent className="top-0 left-0 flex h-svh w-screen max-w-none translate-0 flex-col gap-0 rounded-none p-0 sm:max-w-none">
         <DialogHeader className="border-b px-6 py-4 pr-16">
           <DialogTitle className="truncate">{resume.name}</DialogTitle>
         </DialogHeader>

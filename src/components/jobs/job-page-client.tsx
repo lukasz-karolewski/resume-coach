@@ -268,7 +268,7 @@ export function JobPageClient() {
                         href={job.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex max-w-56 items-center gap-1.5 font-medium max-md:max-w-full text-foreground hover:text-primary"
+                        className="inline-flex max-w-56 items-center gap-1.5 font-medium text-foreground hover:text-primary max-md:max-w-full"
                       >
                         <span className="truncate">
                           {job.title ?? "Position not added"}
@@ -333,7 +333,7 @@ export function JobPageClient() {
                     >
                       {job.notes ? (
                         <p
-                          className="line-clamp-2 min-w-40 text-muted-foreground [overflow-wrap:anywhere]"
+                          className="line-clamp-2 min-w-40 [overflow-wrap:anywhere] text-muted-foreground"
                           title={job.notes}
                         >
                           {job.notes}
@@ -376,7 +376,7 @@ const stackedCell =
 
 function Metric({ label, value }: { label: string; value: number }) {
   return (
-    <div className="border-r px-3 py-3 last:border-r-0 sm:px-5 sm:py-4">
+    <div className="border-r p-3 last:border-r-0 sm:px-5 sm:py-4">
       <p className="text-2xl font-semibold tracking-tight">{value}</p>
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
     </div>

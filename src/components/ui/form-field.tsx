@@ -19,7 +19,7 @@ const FormField: FC<FormFieldProps> = ({
       <label className="text-right font-bold">{label}</label>
       <div className="col-span-2">{children}</div>
       {help && (
-        <p className="col-span-2 col-start-2 text-sm italic text-gray-500">
+        <p className="col-span-2 col-start-2 text-sm text-gray-500 italic">
           {help}
         </p>
       )}

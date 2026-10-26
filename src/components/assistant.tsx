@@ -114,12 +114,12 @@ const Assistant: React.FC = () => {
         <Button
           data-testid="assistant-launcher"
           onClick={() => setIsOpen(true)}
-          className="fixed right-5 bottom-[calc(1.25rem+var(--bottom-nav-clearance))] z-30 h-12 w-12 rounded-2xl border-border/70 bg-card text-foreground shadow-lg shadow-black/5 hover:bg-muted print:hidden"
+          className="fixed right-5 bottom-[calc(1.25rem+var(--bottom-nav-clearance))] z-30 size-12 rounded-2xl border-border/70 bg-card text-foreground shadow-lg shadow-black/5 hover:bg-muted print:hidden"
           size="icon"
           variant="outline"
           aria-label="Open chat"
         >
-          <ChatIcon className="h-5 w-5" />
+          <ChatIcon className="size-5" />
         </Button>
       )}
 

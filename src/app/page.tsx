@@ -126,14 +126,14 @@ export default async function HomePage() {
         {/* Hero */}
         <section className="relative overflow-hidden">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,oklch(0.65_0.15_250/0.15),transparent)]" />
-          <div className="mx-auto max-w-5xl px-6 pb-32 pt-24 md:pb-40 md:pt-32">
+          <div className="mx-auto max-w-5xl px-6 pt-24 pb-32 md:pt-32 md:pb-40">
             <div className="mx-auto max-w-3xl text-center">
               <p className="text-sm font-medium tracking-wide text-blue-600 dark:text-blue-400">
                 An AI resume builder grounded in your real work
               </p>
-              <h1 className="mt-4 text-5xl font-semibold leading-[1.1] tracking-tight text-balance md:text-7xl">
+              <h1 className="mt-4 text-5xl leading-[1.1] font-semibold tracking-tight text-balance md:text-7xl">
                 Your career story,{" "}
-                <span className="bg-gradient-to-r from-blue-600 via-violet-600 to-emerald-600 bg-clip-text text-transparent dark:from-blue-400 dark:via-violet-400 dark:to-emerald-400">
+                <span className="bg-linear-to-r from-blue-600 via-violet-600 to-emerald-600 bg-clip-text text-transparent dark:from-blue-400 dark:via-violet-400 dark:to-emerald-400">
                   logged as it happens.
                 </span>
               </h1>
@@ -166,7 +166,7 @@ export default async function HomePage() {
         <section className="border-y border-border/40 bg-muted/30">
           <div className="mx-auto max-w-5xl px-6 py-20 md:py-28">
             <div className="mx-auto max-w-3xl text-center">
-              <h2 className="text-2xl font-medium leading-relaxed tracking-tight text-balance md:text-3xl">
+              <h2 className="text-2xl leading-relaxed font-medium tracking-tight text-balance md:text-3xl">
                 The best time to write your resume is{" "}
                 <span className="text-blue-600 dark:text-blue-400">
                   long before you need it
@@ -194,7 +194,7 @@ export default async function HomePage() {
             </h2>
           </div>
 
-          <ol className="mt-16 space-y-16 md:mt-20 md:space-y-0 md:grid md:grid-cols-3 md:gap-12">
+          <ol className="mt-16 space-y-16 md:mt-20 md:grid md:grid-cols-3 md:gap-12 md:space-y-0">
             {steps.map((step) => (
               <li key={step.number} className="relative">
                 <div

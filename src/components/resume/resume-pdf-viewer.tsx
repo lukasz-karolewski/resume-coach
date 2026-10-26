@@ -562,7 +562,7 @@ export default function ResumePdfViewer({ resume }: { resume: Resume }) {
   return (
     <div
       aria-label={`Paginated preview of ${resume.name}`}
-      className="h-full w-full"
+      className="size-full"
       role="region"
     >
       {canEmbedPdf ? (
