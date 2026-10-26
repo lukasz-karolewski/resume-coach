@@ -1,4 +1,5 @@
 ---
+
 name: frontend-design
 description: Use when the task asks for a visually strong landing page, website, app, prototype, demo, or game UI. In this repository, default to the established shadcn/ui visual system, token palette, and app-shell composition instead of bespoke styling.
 ---

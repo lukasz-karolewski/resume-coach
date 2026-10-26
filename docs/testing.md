@@ -39,10 +39,10 @@ component does not need a test unless the app adds behavior of its own.
 
 `vitest.config.ts` splits the suite into two projects keyed on file extension:
 
-| Extension | Environment | For |
-| --- | --- | --- |
-| `*.test.ts` | `node` | logic, server, queries, config |
-| `*.test.tsx` | `jsdom` | anything that renders |
+| Extension    | Environment | For                            |
+| ------------ | ----------- | ------------------------------ |
+| `*.test.ts`  | `node`      | logic, server, queries, config |
+| `*.test.tsx` | `jsdom`     | anything that renders          |
 
 Creating jsdom for every file adds startup work, so only tests that render
 components or hooks should use it. Keep stream parsers and other pure logic in

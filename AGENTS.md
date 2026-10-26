@@ -1,6 +1,7 @@
 This is LLM agent powered app to help users edit their resumes/CVs. Below are the coding guidelines to follow when contributing to this project.
 
 # tech stack
+
 next 16
 react 19
 tailwind 4
@@ -9,6 +10,7 @@ better-auth
 shadcn/ui
 
 ## TanStack/tRPC
+
 when working with TanStack/tRPC get latest skills ONCE using `pnpm dlx @tanstack/intent@latest list` from the workspace root.
 - If a listed skill matches the task, run `pnpm dlx @tanstack/intent@latest load <package>#<skill>` before changing files.
 - Use the loaded `SKILL.md` guidance while making the change.
@@ -27,15 +29,17 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 # Local architecture patters: 
 
 ## Tech Docs
-- Modals, dialogs  `./docs/modals.md`
-- Testing approach (assert behavior, not copy)  `./docs/testing.md`
+
+- Modals, dialogs `./docs/modals.md`
+- Testing approach (assert behavior, not copy) `./docs/testing.md`
 - Form validation: eager react-hook-form timing and schemas shared with tRPC `./docs/form-validation.md`
 - Shared UI patterns `./docs/ui-patterns.md`
 - Server error classification and user-facing message rules `./docs/errors.md`
 - Data refresh mechanics `./docs/data-refresh.md`
 
 # General
-- always apply general coding best practices for the framework you're working with 
+
+- always apply general coding best practices for the framework you're working with
 - have a bias towards DRY (don't repeat yourself) principle
 - write clean, readable, and maintainable code
 - when you see code that can be improved, refactored, or simplified, do it.
@@ -47,6 +51,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - when adding frontend building blocks, prefer composable shadcn-style primitives in `src/components/ui` instead of route-local one-off markup.
 
 # Linting and Testing Guidelines
+
 - do not fix linting issues yourself use `pnpm lint:fix` to fix them automatically and run it after all code generation
 
 when you see lint/suspicious/noArrayIndexKey, sometimes it is justified to use array index as a key, but think twice before doing it. add a comment disabling check for this line and explaining why it is safe in this case.

@@ -96,7 +96,7 @@ Because the modal only resolves data and never runs the mutation, edit is just
 "create, but prefilled, with different copy, and the caller runs the update
 procedure instead."
 
-1. **Still a pure resolver.** The modal resolves the *create* input shape for
+1. **Still a pure resolver.** The modal resolves the _create_ input shape for
    both flows. It never learns whether it is creating or editing.
 2. **Prefill via `defaultValues`.** Add an optional, form-shaped `defaultValues`
    prop and seed the form from it. Provide a small mapper next to the modal that
@@ -146,12 +146,16 @@ export const GoalModal = createModal<GoalFormResult, GoalModalProps>(
       useModalForm<GoalFormResult>(onSubmit);
 
     const submitForm = handleSubmit((values) =>
-      submit({ /* ...map values... */ }),
+      submit({
+        /* ...map values... */
+      }),
     );
 
     return (
       <Dialog {...dialogProps}>
-        <DialogContent>{/* DialogTitle + <Form onSubmit={submitForm}> */}</DialogContent>
+        <DialogContent>
+          {/* DialogTitle + <Form onSubmit={submitForm}> */}
+        </DialogContent>
       </Dialog>
     );
   },
@@ -184,7 +188,8 @@ server's message.
 await showModal(AddExpenseModal, {
   accounts,
   childName,
-  onSubmit: (result) => recordExpense.mutateAsync({ childProfileId, ...result }),
+  onSubmit: (result) =>
+    recordExpense.mutateAsync({ childProfileId, ...result }),
 });
 ```
 
@@ -203,12 +208,12 @@ await showModal(AddExpenseModal, {
 
 The rules that keep this honest:
 
-- **Nothing runs after the `await`.** The side effect lives *in* the handler;
+- **Nothing runs after the `await`.** The side effect lives _in_ the handler;
   the awaited `showModal` promise is now a completion signal. Calling `.mutate()`
   after it fires the request twice. Keep the `try/catch` — dismissal still
   rejects.
 - **The mutation must not carry an `onError` toast.** `mutateAsync` rejecting
-  does *not* suppress `onError`, so a leftover toast reports the same failure
+  does _not_ suppress `onError`, so a leftover toast reports the same failure
   twice. Watch for mutations serving both a modal and a non-modal path: split
   the shared options object rather than sharing one with a toast in it.
 - **Only server-authored messages are shown.** Render `error.message` only when
@@ -223,7 +228,7 @@ The rules that keep this honest:
   mutation as a failure the user retries.
 - **Optimistic updates still apply.** With `optimisticChildBalanceOptions`
   (`~/lib/kid-money-actions`) the balance behind the dialog moves on submit and
-  rolls back on rejection. Drop only its toast *argument*; the helper's own
+  rolls back on rejection. Drop only its toast _argument_; the helper's own
   `onError` does the rollback.
 
 ## Conventions & gotchas
