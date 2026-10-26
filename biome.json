@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.7/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.6.3/schema.json",
   "assist": {
     "actions": {
       "source": {
@@ -12,7 +12,21 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!**/*.d.ts", "!**/*.css", "!skills-lock.json"]
+    "includes": [
+      "**",
+      "!**/*.d.ts",
+      "!pnpm-lock.yaml",
+      "!skills-lock.json",
+      "!.agents/skills/para-memory-files",
+      "!.agents/skills/better-auth-best-practices",
+      "!.agents/skills/langgraph-docs",
+      "!.agents/skills/langgraph-fundamentals",
+      "!.agents/skills/langgraph-human-in-the-loop",
+      "!.agents/skills/vercel-cli",
+      "!.agents/skills/vercel-composition-patterns",
+      "!.agents/skills/vercel-react-best-practices",
+      "!.agents/skills/web-design-guidelines"
+    ]
   },
   "formatter": {
     "enabled": true,
@@ -26,12 +40,18 @@
   "linter": {
     "domains": {
       "next": "recommended",
-      "react": "recommended"
+      "react": "recommended",
+      "tailwind": "recommended"
     },
     "enabled": true,
     "rules": {
       "a11y": {
         "preset": "none"
+      },
+      "nursery": {
+        "noTailwindLegacyUtilities": "error",
+        "useTailwindShorthandClasses": "error",
+        "useTailwindSortedClasses": "error"
       },
       "preset": "recommended",
       "style": {
@@ -70,6 +90,9 @@
     }
   ],
   "root": true,
+  "tailwind": {
+    "stylesheet": "./src/app/styles.css"
+  },
   "vcs": {
     "clientKind": "git",
     "defaultBranch": "dev",
