@@ -1,4 +1,5 @@
 ---
+
 name: resume-coach-architecture
 description: Explain the architecture of the resume-coach repository and map changes to the correct layer. Use when working in this repo and you need to understand request flow, app structure, domain boundaries, tRPC router vs `src/server/lib` responsibilities, Better Auth integration, Prisma model ownership, or where new code should live.
 ---

@@ -38,7 +38,7 @@ Rules that follow from how the primitives are built:
 - **`FieldLabel` + `htmlFor`, not `aria-label`.** When the surrounding row
   already shows the name, keep the label and add `className="sr-only"` rather
   than dropping it.
-- **`FieldGroup` only spaces its own children.** Anything sitting *beside* a
+- **`FieldGroup` only spaces its own children.** Anything sitting _beside_ a
   group — a validation message, a `DialogFooter`, a submit button — gets its gap
   from `Form`. This is why the gap lives on the form and not on each group.
 - **`FieldSet` + `FieldLegend variant="label"`** for related option groups.
@@ -51,7 +51,7 @@ Rules that follow from how the primitives are built:
   history, access logs, and the `Referer` header.
 
   Override to `method="get"` only for a form whose fields are safe to read off
-  a URL *and* whose server route reads them back off `searchParams` — POST
+  a URL _and_ whose server route reads them back off `searchParams` — POST
   would move them into the body, where such a route silently ignores them and
   renders as if nothing was submitted. The super-admin directory search
   (`src/components/staff/super-admin-directory.tsx`) is the only such form; it
@@ -69,11 +69,11 @@ re-run the shadcn CLI for `field`, re-apply this.
 
 ## Numeric inputs
 
-Three purpose-specific primitives wrap the shadcn `Input` —  `MoneyInput`
+Three purpose-specific primitives wrap the shadcn `Input` — `MoneyInput`
 (`src/components/ui/money-input.tsx`), plus `PercentageInput` and `IntegerInput`
 (`src/components/ui/numeric-input.tsx`). All default to
 `autoComplete="off"` so browsers do not offer unrelated contact data, and on
-each one `className` targets the *complete* control (including the `$` or `%`
+each one `className` targets the _complete_ control (including the `$` or `%`
 adornment) — call sites use it for layout only; inner-input styling stays
 private to the primitive.
 
@@ -118,7 +118,7 @@ deposits, expenses, transfers, exchanges, destinations. Every option shows the
 same three
 things: icon, name, and current balance in its own currency. Someone choosing
 where money comes from or goes should never have to leave the dialog to check
-what is in an account. Callers pass a `SelectableAccount` that *requires*
+what is in an account. Callers pass a `SelectableAccount` that _requires_
 `balance` and `currency`, so a picker cannot be wired up without them; select
 `emoji` in the same mapping, since accounts own their icon.
 
@@ -205,7 +205,7 @@ keep it correct:
 - It belongs in the **page**, after all `prefetch()` calls — layouts and pages
   render in parallel, so a layout-level boundary cannot see queries a page
   prefetches. The one exception is a layout whose own shell consumes prefetched
-  data, which gets its own boundary *in addition to* the per-page ones.
+  data, which gets its own boundary _in addition to_ the per-page ones.
 - The `fallback` is the page's skeleton, so client-side navigation between pages
   under the same shell shows a content-shaped placeholder.
 

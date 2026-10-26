@@ -5,7 +5,7 @@ words. Two mechanisms get us there, and they stack:
 
 1. **Timing and voice** — `useAppForm` + `<Form noValidate>` so react-hook-form
    reports a field when the user leaves it, using copy we wrote.
-2. **One schema, both sides** — the form validates against the *same* zod schema
+2. **One schema, both sides** — the form validates against the _same_ zod schema
    the procedure enforces, so a rule can't drift between client and server.
 
 Neither can check anything that needs server state — a balance, a uniqueness
@@ -32,7 +32,7 @@ const { control, handleSubmit } = useAppForm<Values>({ defaultValues });
 - Before adding `noValidate` to a form, **move every native constraint into a
   rule or a schema first**. `required`, `min`, `max`, and `type="email"` stop
   being enforced the moment it goes on. `maxLength` is the exception: it limits
-  typing rather than validating, so it keeps working — keep it *and* mirror it in
+  typing rather than validating, so it keeps working — keep it _and_ mirror it in
   a rule, since it does not constrain a prefilled value.
 - Attributes that carry non-validation meaning stay: `type="email"` still picks
   the right mobile keyboard, `min` still drives number-input stepping.
@@ -54,7 +54,7 @@ const name = useController({ control, name: "name" });
     onChange={name.field.onChange}
   />
   <FieldError errors={[name.fieldState.error]} />
-</Field>
+</Field>;
 ```
 
 `register(...)` supplies `onBlur` itself; read those errors off
@@ -73,7 +73,9 @@ that use them. Both the procedure and the form import the same object, so a
 limit is written once:
 
 ```tsx
-const expenseFormSchema = recordExpenseInputSchema.omit({ childProfileId: true });
+const expenseFormSchema = recordExpenseInputSchema.omit({
+  childProfileId: true,
+});
 
 useAppForm<AddExpenseResult>({
   defaultValues: { amount: undefined, description: undefined, ledgerAccountId },
@@ -103,7 +105,7 @@ useAppForm<AddExpenseResult>({
   inline `Alert` (an overdraw warning, for instance), or a check inside the
   submit handler.
 - **`.transform()` and `.default()` split a schema's input and output types**,
-  and react-hook-form validates the *input* side. Where the wire schema has
+  and react-hook-form validates the _input_ side. Where the wire schema has
   either, export a transform-free form variant alongside it in
   `src/lib/schemas/` and keep the wire schema authoritative on the server.
 
@@ -115,7 +117,7 @@ useAppForm<AddExpenseResult>({
 
   Which side you name `TValues` decides whether a split schema compiles, so type
   form values from the **input** side — `RouterInputs[…]` or `z.input<…>`, as
-  `JobModal` does. `z.infer<…>` is the *output* type: pass it a defaulted schema
+  `JobModal` does. `z.infer<…>` is the _output_ type: pass it a defaulted schema
   and you get `_zod.input.<field>` is not assignable, because a `.default()`
   field is optional on input and required on output.
 
@@ -139,9 +141,9 @@ is what the rule blocks, so the array is the copy that keeps the schema portable
 
 ### Choosing a strategy
 
-| Form state | Validation |
-|---|---|
-| Typed values matching a procedure input | shared schema via `useAppForm({ schema })` — the default |
-| String-shaped state that would need a coercing form schema | hand-written react-hook-form rules |
-| `useState`, with a single cross-field rule | enforce it with a disabled submit |
-| `useState` auth/onboarding forms | native browser validation (no `noValidate`) |
+| Form state                                                 | Validation                                               |
+| ---------------------------------------------------------- | -------------------------------------------------------- |
+| Typed values matching a procedure input                    | shared schema via `useAppForm({ schema })` — the default |
+| String-shaped state that would need a coercing form schema | hand-written react-hook-form rules                       |
+| `useState`, with a single cross-field rule                 | enforce it with a disabled submit                        |
+| `useState` auth/onboarding forms                           | native browser validation (no `noValidate`)              |

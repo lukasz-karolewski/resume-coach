@@ -1,10 +1,11 @@
 ---
+
 name: db-backup-restore
 description: >
-  Back up and restore resume-coach PostgreSQL databases. Use for local Docker
-  database setup or wipes, production Neon backups, production-to-local
-  restores, pg_dump, pg_restore, Prisma reset safety, and preserving data
-  before destructive database work.
+Back up and restore resume-coach PostgreSQL databases. Use for local Docker
+database setup or wipes, production Neon backups, production-to-local
+restores, pg_dump, pg_restore, Prisma reset safety, and preserving data
+before destructive database work.
 ---
 
 # DB Backup & Restore
@@ -14,10 +15,10 @@ scripts over ad hoc `pg_dump`, `pg_restore`, or schema deletion commands.
 
 ## Targets
 
-| Target | Database | Script argument |
-|---|---|---|
-| Local Docker | `postgresql://postgres:postgres@localhost:5432/resume_coach` | `local` |
-| Production Neon | project `fragrant-unit-64753227`, database `neondb` | `prod` |
+| Target          | Database                                                     | Script argument |
+| --------------- | ------------------------------------------------------------ | --------------- |
+| Local Docker    | `postgresql://postgres:postgres@localhost:5432/resume_coach` | `local`         |
+| Production Neon | project `fragrant-unit-64753227`, database `neondb`          | `prod`          |
 
 The Compose service is `postgres`; start it with:
 
@@ -82,14 +83,14 @@ script.
 
 ## Environment
 
-| Variable | Default | Purpose |
-|---|---|---|
-| `DB_DOCKER_SERVICE` | `postgres` | Compose service containing PostgreSQL tools |
-| `LOCAL_DATABASE_URL` | local `resume_coach` URL | Local backup/restore target |
-| `LOCAL_ADMIN_URL` | local `postgres` database URL | Local drop/create connection |
-| `PROD_ENV_FILE` | `.env.production.local` | File holding the production URL |
-| `PROD_URL_KEY` | `POSTGRES_URL_NON_POOLING` | The one key read from that file |
-| `PROD_DATABASE_URL_UNPOOLED` | unset | Explicit production URL override |
+| Variable                     | Default                       | Purpose                                     |
+| ---------------------------- | ----------------------------- | ------------------------------------------- |
+| `DB_DOCKER_SERVICE`          | `postgres`                    | Compose service containing PostgreSQL tools |
+| `LOCAL_DATABASE_URL`         | local `resume_coach` URL      | Local backup/restore target                 |
+| `LOCAL_ADMIN_URL`            | local `postgres` database URL | Local drop/create connection                |
+| `PROD_ENV_FILE`              | `.env.production.local`       | File holding the production URL             |
+| `PROD_URL_KEY`               | `POSTGRES_URL_NON_POOLING`    | The one key read from that file             |
+| `PROD_DATABASE_URL_UNPOOLED` | unset                         | Explicit production URL override            |
 
 ## Safety Rules
 
