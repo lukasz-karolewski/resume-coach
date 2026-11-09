@@ -12,6 +12,7 @@ shadcn/ui
 ## TanStack/tRPC
 
 when working with TanStack/tRPC get latest skills ONCE using `pnpm dlx @tanstack/intent@latest list` from the workspace root.
+
 - If a listed skill matches the task, run `pnpm dlx @tanstack/intent@latest load <package>#<skill>` before changing files.
 - Use the loaded `SKILL.md` guidance while making the change.
 - Multiple matches: prefer the most specific local skill for the package or concern you are changing; load additional skills only when the task spans multiple packages or concerns.

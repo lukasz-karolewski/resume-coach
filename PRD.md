@@ -15,6 +15,7 @@ The key insight: **the best time to write your resume is every month, not when y
 ## Target User
 
 Tech professionals — software engineers, data scientists, product managers, designers, engineering managers — who:
+
 - Want to land roles at specific companies, not spray-and-apply
 - Value accuracy and authenticity over keyword stuffing
 - Are too busy to maintain polished resumes while employed
@@ -88,17 +89,20 @@ Lightweight kanban for tracking application status (saved, applied, interviewing
 ### P0 — Core (Must Have)
 
 **Accomplishment Profile**
+
 - Create/edit profile with roles organized by employer and position
 - Free-text accomplishment entry per role (markdown supported)
 - AI assistant helps refine raw notes into structured accomplishments without changing the facts
 
 **Job Import & Research**
+
 - Paste URL to import job posting
 - Scrape and save as editable markdown
 - Web search for company culture and function-specific context
 - All research visible and editable by user
 
 **Tailored Resume Generation**
+
 - AI selects relevant accomplishments from profile for a given job
 - Rephrases for impact and relevance — never fabricates
 - User can accept, reject, or modify each suggestion
@@ -106,33 +110,39 @@ Lightweight kanban for tracking application status (saved, applied, interviewing
 - Skills section derived from actual experience
 
 **Resume Editing & Export**
+
 - Direct editing of all resume sections
 - Chat-based AI coaching for refinement
 - Export as PDF (print-ready)
 - Export as plain text / markdown (ATS-friendly)
 
 **Authentication & Basics**
+
 - Email/password and Google OAuth sign-in
 - User account management
 
 ### P1 — Important (Should Have)
 
 **Accomplishment Reminders**
+
 - Recurring prompts to log accomplishments (default monthly)
 - User-configurable frequency (weekly, biweekly, monthly, quarterly)
 - Low-friction entry — quick note capture, refine later
 
 **Cover Letter Generation**
+
 - Generated from profile + job context + company research
 - Same no-hallucination constraint as resumes
 - Editable and exportable
 
 **Job Tracker**
+
 - Kanban board with stages: saved, applied, interviewing, offer, rejected, withdrawn
 - Notes field per job
 - Link between job and its tailored resume
 
 **Performance Review Assistant**
+
 - User provides their company's review format/template
 - System drafts review from recent accomplishments
 - Editable output
@@ -140,14 +150,17 @@ Lightweight kanban for tracking application status (saved, applied, interviewing
 ### P2 — Nice to Have (Could Have)
 
 **LinkedIn Import**
+
 - Import work history from LinkedIn to bootstrap the profile
 - User reviews and enriches imported data
 
 **Resume Versioning**
+
 - Track changes across resume iterations
 - Compare versions side-by-side
 
 **Analytics**
+
 - Application funnel metrics (how many applied vs. interviews vs. offers)
 - Which accomplishments get used most across tailored resumes
 
