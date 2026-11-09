@@ -17,15 +17,7 @@
       "!**/*.d.ts",
       "!pnpm-lock.yaml",
       "!skills-lock.json",
-      "!.agents/skills/para-memory-files",
-      "!.agents/skills/better-auth-best-practices",
-      "!.agents/skills/langgraph-docs",
-      "!.agents/skills/langgraph-fundamentals",
-      "!.agents/skills/langgraph-human-in-the-loop",
-      "!.agents/skills/vercel-cli",
-      "!.agents/skills/vercel-composition-patterns",
-      "!.agents/skills/vercel-react-best-practices",
-      "!.agents/skills/web-design-guidelines"
+      "!.agents"
     ]
   },
   "formatter": {
